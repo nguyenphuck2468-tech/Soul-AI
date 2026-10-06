@@ -129,6 +129,13 @@ class ObsEncoder:
             # mo hinh, vi NaS lan ra moi trong so mot cach khong the can.
             if not math.isfinite(v):
                 return
+            # Trường `time` là đặc biệt: nếu ta clip thẳng theo 20.0, mọi thời
+            # điểm >=20 đều gần như giống nhau. Để giữ thông tin trong cả chuỗi,
+            # ta chuẩn hóa theo tỉ lệ thực của episode/horizon.
+            if prefix == 'time' or prefix.endswith('.time'):
+                scale = max(self.cfg.time_scale, 1e-6)
+                self._put(prefix, np.clip(v / scale, -1.0, 1.0), values, mask, raw=True)
+                return
             clip = self.cfg.clip
             self._put(prefix, max(-clip, min(clip, v)), values, mask)
             return

@@ -20,6 +20,9 @@ class ObsConfig:
     text_buckets: int = 128
     # Giá trị ngoài khoảng này bị bóp lại trước khi vào mô hình.
     clip: float = 20.0
+    # Thang thời gian: nếu trường `time` đang đo theo số bước, ta nên
+    # chuẩn hóa theo cả phạm vi bài toán để không bị bão hòa sớm.
+    time_scale: float = 200.0
 
 
 @dataclass

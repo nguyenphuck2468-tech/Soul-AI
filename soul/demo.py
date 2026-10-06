@@ -85,6 +85,9 @@ class PendulumEnv:
 
     def step(self, action: np.ndarray):
         a = float(action[0]) if isinstance(action, (np.ndarray, list)) else float(action)
+        # Giới hạn hành động theo môi trường. Nếu không chặn, policy có thể
+        # so sánh với một không gian hành động khác và đánh giá bị lệch.
+        a = float(np.clip(a, -1.0, 1.0))
         # Dong luc.
         self.v += (-self.k * self.x + a) * self.dt
         self.x += self.v * self.dt
