@@ -19,10 +19,16 @@ from typing import Dict, List
 import numpy as np
 import torch
 
-from .config import Config
-from .soul import Soul
-from .demo import PendulumEnv
-from .model import PolicyHead
+try:
+    from .config import Config
+    from .soul import Soul
+    from .demo import PendulumEnv
+    from .model import PolicyHead
+except ImportError:  # pragma: no cover - chạy trực tiếp như script
+    from config import Config
+    from soul import Soul
+    from demo import PendulumEnv
+    from model import PolicyHead
 
 
 def banner(title: str):
@@ -402,7 +408,10 @@ def test_save_load(seed=0):
 def test_obs_encoder_independent(seed=0):
     """Encoder quan sat co on dinh khong (cung duong dan -> cung o)?"""
     banner("8. Bo chuan hoa du lieu on dinh va dung")
-    from .obs import ObsEncoder
+    try:
+        from .obs import ObsEncoder
+    except ImportError:  # pragma: no cover - chạy trực tiếp như script
+        from obs import ObsEncoder
     cfg = Config()
     e1 = ObsEncoder(cfg.obs)
     e2 = ObsEncoder(cfg.obs)
@@ -538,7 +547,10 @@ def test_log_density_consistent(seed=0):
     # Khac phai sua model: sua tham chieu. `sample` va `log_prob` phai
     # cung std, neu khong REINFORCE uoc luong gradient cua mot phan bo
     # ma policy khong bao gio lay mau tu — ca loi mau hon.
-    from .model import MIN_STD
+    try:
+        from .model import MIN_STD
+    except ImportError:  # pragma: no cover - chạy trực tiếp như script
+        from model import MIN_STD
     ls_eff = torch.maximum(logstd.clamp(-8.0, 2.0),
                            torch.full_like(logstd, math.log(MIN_STD)))
     std = ls_eff.exp()
@@ -552,6 +564,10 @@ def test_log_density_consistent(seed=0):
           f"{[round(float(v), 5) for v in area.reshape(-1)]}")
 
     # `log_prob` phải bằng log của mật độ đó, đúng cả phần chuẩn hoá.
+    try:
+        from .model import MIN_STD
+    except ImportError:  # pragma: no cover - chạy trực tiếp như script
+        from model import MIN_STD
     head = PolicyHead(8, 4, 3, 0, 0)
     with torch.no_grad():
         mean = torch.zeros(1, 3)

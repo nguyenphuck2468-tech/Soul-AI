@@ -36,7 +36,10 @@ import math
 import torch
 import torch.nn.functional as F
 
-from .model import MIN_STD, _logstd_to_std, _logvar_to_std
+try:
+    from .model import MIN_STD, _logstd_to_std, _logvar_to_std
+except ImportError:  # pragma: no cover - chạy trực tiếp như script
+    from model import MIN_STD, _logstd_to_std, _logvar_to_std
 
 
 def imagine_actor_critic(model, h0: torch.Tensor, z0: torch.Tensor,

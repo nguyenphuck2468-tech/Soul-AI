@@ -19,11 +19,18 @@ from typing import Any, Dict, List, Optional, Tuple
 import numpy as np
 import torch
 
-from .config import Config
-from .obs import ObsEncoder
-from .model import SoulModel
-from .memory import Episode, ReplayBuffer
-from .trainer import Trainer
+try:
+    from .config import Config
+    from .obs import ObsEncoder
+    from .model import SoulModel
+    from .memory import Episode, ReplayBuffer
+    from .trainer import Trainer
+except ImportError:  # pragma: no cover - chạy trực tiếp như script
+    from config import Config
+    from obs import ObsEncoder
+    from model import SoulModel
+    from memory import Episode, ReplayBuffer
+    from trainer import Trainer
 
 
 class Soul:
@@ -260,7 +267,7 @@ class Soul:
 
     def load(self, path: str):
         """Nạp checkpoint, phục hồi nguyên trạng."""
-        ckpt = torch.load(path, map_location=self.device)
+        ckpt = torch.load(path, map_location=self.device, weights_only=False)
         self.model.load_state_dict(ckpt['model'])
         # Trong so Adam khong tuong thich giua cac phien bien do cau truc
         # nhom tham so doi. Checkpoint cu co MOT nhom, optimizer hien tai

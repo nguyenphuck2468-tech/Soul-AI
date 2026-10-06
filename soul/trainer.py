@@ -24,7 +24,10 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-from .imagine import imagine_actor_critic
+try:
+    from .imagine import imagine_actor_critic
+except ImportError:  # pragma: no cover - chạy trực tiếp như script
+    from imagine import imagine_actor_critic
 
 
 def _log_prob_normal(x, mu, logvar):

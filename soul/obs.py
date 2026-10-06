@@ -50,7 +50,10 @@ class ObsEncoder:
     """Bien du lieu tho thanh vector. Tu gan o theo duong dan truong."""
 
     def __init__(self, cfg=None):
-        from .config import ObsConfig
+        try:
+            from .config import ObsConfig
+        except ImportError:  # pragma: no cover - chạy trực tiếp như script
+            from config import ObsConfig
         self.cfg = cfg or ObsConfig()
         self._schema: Dict[str, int] = {}
         # Dem so con so bi bo vi het ngan sach. Doc so nay de biet mo hinh

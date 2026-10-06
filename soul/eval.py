@@ -28,10 +28,16 @@ import time
 import numpy as np
 import torch
 
-from .demo import PendulumEnv
-from .soul import Soul
-from .train import health
-from .verify import collect_episodes, make_config
+try:
+    from .demo import PendulumEnv
+    from .soul import Soul
+    from .train import health
+    from .verify import collect_episodes, make_config
+except ImportError:  # pragma: no cover - chạy trực tiếp như script
+    from demo import PendulumEnv
+    from soul import Soul
+    from train import health
+    from verify import collect_episodes, make_config
 
 
 def _banner(s):

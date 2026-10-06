@@ -28,9 +28,14 @@ from typing import Dict, Optional
 import numpy as np
 import torch
 
-from .demo import PendulumEnv
-from .soul import Soul
-from .verify import collect_episodes
+try:
+    from .demo import PendulumEnv
+    from .soul import Soul
+    from .verify import collect_episodes
+except ImportError:  # pragma: no cover - chạy trực tiếp như script
+    from demo import PendulumEnv
+    from soul import Soul
+    from verify import collect_episodes
 
 
 def pick_device() -> str:

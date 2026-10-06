@@ -20,8 +20,12 @@ from typing import Dict
 
 import numpy as np
 
-from .config import Config
-from .soul import Soul
+try:
+    from .config import Config
+    from .soul import Soul
+except ImportError:  # pragma: no cover - chạy trực tiếp như script
+    from config import Config
+    from soul import Soul
 
 
 class PendulumEnv:

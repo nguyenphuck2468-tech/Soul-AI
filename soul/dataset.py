@@ -48,8 +48,12 @@ from typing import Any, Dict, List, Sequence
 
 import numpy as np
 
-from .memory import Episode, ReplayBuffer
-from .obs import ObsEncoder
+try:
+    from .memory import Episode, ReplayBuffer
+    from .obs import ObsEncoder
+except ImportError:  # pragma: no cover - chạy trực tiếp như script
+    from memory import Episode, ReplayBuffer
+    from obs import ObsEncoder
 
 # Cot dac biet, khong phai la quan sat.
 _META = ('ep', 'done', 'reward', 'goal')
