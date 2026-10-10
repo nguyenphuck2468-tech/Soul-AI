@@ -66,7 +66,7 @@ def measure(s, rng, shuffle, n_batches=10):
         t = lambda a: torch.as_tensor(a, dtype=torch.float32)
         v_, m_, tx = t(b['values']), t(b['masks']), t(b['texts'])
         ac, va = t(b['actions']), t(b['valid'])
-        seq = v_.shape[1] - 1
+        seq = v_.shape[1]
         oi = torch.cat([v_, m_, tx], -1)
         if shuffle:
             # Xao tron hanh dong theo THOI GIAN: dung mot bien do rieng
@@ -78,7 +78,7 @@ def measure(s, rng, shuffle, n_batches=10):
             ac = ac[perm]
         with torch.no_grad():
             out = s.model.dynamics.observe_sequence(
-                oi[:, :seq], ac, s.model.encoder, va)
+                oi, ac, s.model.encoder, va)
             kl = _kl_normal(out['prior_mu'], out['prior_lv'],
                             out['post_mu'], out['post_lv']).sum(-1)
             kl = torch.maximum(kl, torch.tensor(0.0)).mean()

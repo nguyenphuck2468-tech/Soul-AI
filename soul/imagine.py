@@ -127,10 +127,10 @@ def imagine_actor_critic(model, h0: torch.Tensor, z0: torch.Tensor,
 
     hs = torch.stack(hs, 1)
     zs = torch.stack(zs, 1)
-    rts = torch.stack(rts, 1)          # (B, T)
-    vs = torch.stack(vs, 1)            # (B, T)
+    rts = torch.cat([r.view(-1,1) for r in rts], dim=1) if len(rts) > 0 else torch.zeros(B, 1, device=h0.device)
+    vs = torch.cat([v.view(-1,1) for v in vs], dim=1) if len(vs) > 0 else torch.zeros(B, 1, device=h0.device)
     acts_t = torch.stack(acts, 1)      # (B, T, A)
-    cont = torch.stack(cont, 1)        # (B, T)
+    cont = torch.cat([c.view(-1,1) for c in cont], dim=1) if len(cont) > 0 else torch.zeros(B, 1, device=h0.device)
 
     # --- Muc tieu: lambda-return ---
     #

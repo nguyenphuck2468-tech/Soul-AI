@@ -1,0 +1,17 @@
+{
+  "dataset_sha256": "26d63b1e3a900d40a9532aa5b2e4c178b58129e88f70cb2cb9a6e07af596264e",
+  "dataset_status": "NEW DATASET — NOT ORIGINAL",
+  "environment_id": "Pendulum-v1",
+  "environment_version": "gymnasium 1.4.0",
+  "split": "pilot",
+  "seeds": [2001, 2002, 2003, 2004, 2005],
+  "episode_count": 5,
+  "transition_count": 100,
+  "observation_shape": [3],
+  "action_shape": [1],
+  "action_bounds": [-2.0, 2.0],
+  "collection_policy": "bounded_uniform",
+  "collection_rng": "numpy.default_rng(seed=2001); environment reset seeds 2001-2005",
+  "confirm_accessed": false,
+  "scored": false
+}

@@ -188,6 +188,10 @@ class TrainConfig:
     latent_std_max: float = 1.5
     w_reward: float = 1.0
     w_continue: float = 0.5
+    # Phat hien tac dong cua hanh dong toi trang thai tiep theo.
+    # Day la luc `Soul` thay duoc "neu lam X thi the gioi se di chuyen
+    # nhu the nao" — trong logic cua con nguoi, do la su suy doan.
+    w_action_effect: float = 0.5
     # Trong so policy TANG so voi ban goc (0.5). Ly do: policy phai
     # thang bang hien trong khung gia tri cua value head. Neu value head
     # "chay" nhanh hon, advantage sai ngay -> policy hoc theo tin hieu

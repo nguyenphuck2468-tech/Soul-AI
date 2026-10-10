@@ -1,0 +1,1 @@
+{"train_eps": 5, "pilot_eps": 5, "confirm_eps": 5, "trans_per_ep": 20, "env": "Pendulum-v1", "gymnasium": "1.4.0", "seeds_train": [1001, 1002, 1003, 1004, 1005], "seeds_pilot": [2001, 2002, 2003, 2004, 2005], "seeds_confirm": [3001, 3002, 3003, 3004, 3005], "integrity": "PASS", "confirm_evaluated": false}

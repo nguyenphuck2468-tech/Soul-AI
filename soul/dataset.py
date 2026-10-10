@@ -10,7 +10,13 @@ roi dua vao. Khong can sua gi o `obs.py`.
 
 Dinh dang CSV
 -------------
-Tren dong = mot buoc. Cot dac biet:
+Tren dong = mot transition da thuc thi: observation la `o_{t+1}`, `a0...`
+la action THUC SU AP DUNG `a_t`, va reward/done la ket qua cua transition do.
+Khong ghi `o_t` canh `a_t`; neu nguon du lieu dang o dang do, phai can lech
+observation sang `next_obs` truoc khi nap. Dong terminal la observation cuoi
+cua transition cuoi, khong phai mot dong duplicate them.
+
+Cot dac biet:
 
     ep        so thu tu episode (tu tang)
     done      1 neu day la buoc ket thuc episode
@@ -22,7 +28,7 @@ Vi du:
 
     ep,done,reward,a0,temperature,pressure,valve_open
     0,0,-0.12,0.4,21.3,101.2,0.0
-    0,0,-0.08,0.2,21.4,101.1,0.0
+    0,1,-0.08,0.2,21.4,101.1,0.0
 
 Cot `temperature` → quan sat `{'temperature': 21.3}`.
 Cot `a0` → hanh dong `[0.4]`.
@@ -258,10 +264,17 @@ def to_episodes(soul, eps: List[Dict[str, Any]], goal_dim: int,
     for e in eps:
         ep = Episode()
         for o, a, r, d in zip(e['obs'], e['act'], e['rew'], e['done']):
+            applied = np.asarray(a, dtype=np.float32).reshape(-1)
+            expected = soul._format_action(applied)
+            if applied.size != soul.cfg.model.action_dim or not np.allclose(
+                    applied, expected, rtol=0.0, atol=1e-6):
+                raise ValueError(
+                    'Imported replay actions must already be applied actions '
+                    'within the configured action bounds.')
             if stats is not None:
                 o = apply_norm(o, stats)
             enc = soul.enc.encode(o)
-            ep.append(enc, a, float(r), 0.0 if d else 1.0, g)
+            ep.append(enc, applied, float(r), 0.0 if d else 1.0, g)
         if len(ep.actions):
             out.append(ep)
     return out
@@ -305,17 +318,15 @@ def make_sample_csv(path: str, n_ep: int = 8, length: int = 120,
             x = rng.uniform(-2, 2)
             v = rng.uniform(-1, 1)
             for t in range(length):
-                a = rng.normal(0, 0.8)
+                a = float(np.clip(rng.normal(0, 0.8), -1.0, 1.0))
                 v += (-2.0 * x + a) * 0.05
                 x += v * 0.05
                 x += rng.normal(0, 0.02)
                 v += rng.normal(0, 0.02)
                 rew = -(x ** 2 + 0.1 * v ** 2)
-                w.writerow([e, 0, f'{rew:.6f}', f'{a:.6f}',
+                done = int(t == length - 1)
+                w.writerow([e, done, f'{rew:.6f}', f'{a:.6f}',
                             f'{x:.6f}', f'{v:.6f}', f'{21 + 0.1 * x:.4f}'])
-                if t == length - 1:
-                    w.writerow([e, 1, f'{rew:.6f}', '0.0',
-                                f'{x:.6f}', f'{v:.6f}', f'{21 + 0.1 * x:.4f}'])
     return path
 
 

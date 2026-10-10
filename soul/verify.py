@@ -44,16 +44,19 @@ def check(name: str, ok: bool, detail: str = ''):
     return ok
 
 
-def make_config(seq_len=16, batch=8) -> Config:
+def make_config(seq_len=16, batch=8, seed=0, plan_samples=96) -> Config:
     cfg = Config()
     cfg.model.hidden_dim = 64
     cfg.model.latent_dim = 16
     cfg.model.action_dim = 1
     cfg.model.discrete_dim = 0
     cfg.model.goal_dim = 4
+    cfg.model.plan_samples = plan_samples
+    cfg.model.plan_elite = min(cfg.model.plan_elite, max(0, plan_samples - 1))
     cfg.train.batch_size = batch
     cfg.train.seq_len = seq_len
     cfg.train.updates_per_batch = 1
+    cfg.train.seed = seed
     cfg.device = 'cpu'
     return cfg
 
@@ -62,14 +65,19 @@ def collect_episodes(soul: Soul, n_ep: int, env: PendulumEnv, rng, action_fn=Non
     """Chay n episode, nap day replay, khong hoc."""
     for _ in range(n_ep):
         env.reset(rng)
+        soul.reset_state()
+        soul.set_goal(env.goal_vec())
         obs = env._obs()
         for _ in range(200):
             if action_fn is None:
                 action = soul.act(obs, deterministic=False)
             else:
                 action = action_fn(env, soul)
-            obs, reward, done, _ = env.step(action)
-            soul.observe(obs, action, reward, done)
+            obs, reward, done, info = env.step(action)
+            soul.observe(
+                obs, action, reward, done,
+                applied_action=info['applied_action'],
+            )
             if done:
                 break
 
@@ -134,11 +142,11 @@ def test_policy_receives_gradient(seed=0):
 
     values, masks, texts = t(batch['values']), t(batch['masks']), t(batch['texts'])
     actions, goals, valid = t(batch['actions']), t(batch['goals']), t(batch['valid'])
-    seq = batch['values'].shape[1] - 1
+    seq = batch['values'].shape[1]
     obs_in = torch.cat([values, masks, texts], dim=-1)
 
     out = soul.model.dynamics.observe_sequence(
-        obs_in[:, :seq], actions, soul.model.encoder, valid)
+        obs_in, actions, soul.model.encoder, valid)
     h, z = out['h_seq'], out['z_seq']
     g = goals[:, :seq]
 
@@ -239,7 +247,7 @@ def test_imagination_accuracy(seed=0):
 
     values, masks, texts = t(batch['values']), t(batch['masks']), t(batch['texts'])
     actions = t(batch['actions'])
-    seq = batch['values'].shape[1] - 1
+    seq = batch['values'].shape[1]
     obs_in = torch.cat([values, masks, texts], dim=-1)
 
     # Do TAI SAU khi da co quan sat o dau. Khong do buoc 0: buoc do mo hinh
@@ -254,15 +262,15 @@ def test_imagination_accuracy(seed=0):
 
         errs: List[float] = []
         per_step: Dict[int, float] = {}
-        for t_i in range(seq - 1):
+        for t_i in range(1, seq):
             h, p_mu, _ = soul.model.dynamics.step(h, z, actions[:, t_i])
             z = p_mu
             dec = soul.model.decoder(h, z)['obs']
-            m = masks[:, t_i + 1]
-            e = float(((dec - values[:, t_i + 1]).pow(2) * m).sum()
+            m = masks[:, t_i]
+            e = float(((dec - values[:, t_i]).pow(2) * m).sum()
                       / m.sum().clamp(min=1))
             errs.append(e)
-            per_step[t_i + 1] = e
+            per_step[t_i] = e
 
     mean_err = float(np.mean(errs))
 
@@ -308,13 +316,19 @@ def test_policy_improves(seed=0, episodes=90):
         r = np.random.default_rng(seed + 999)
         for _ in range(n):
             env.reset(r)
-            obs = env._obs()
+            soul.reset_state()
             soul.set_goal(env.goal_vec())
+            obs = env._obs()
             tot = 0.0
             for _ in range(200):
                 a = soul.act(obs, deterministic=True)
-                obs, rew, done, _ = env.step(a)
+                obs, rew, done, info = env.step(a)
                 tot += rew
+                soul.observe(
+                    obs, a, rew, done,
+                    applied_action=info['applied_action'],
+                    record=False,
+                )
                 if done:
                     break
             vals.append(tot)
@@ -486,6 +500,7 @@ def test_act_uses_observation(seed=0):
     soul = Soul(cfg)
 
     def act_from(obs, state):
+        soul.reset_state()
         soul._h, soul._z, soul._prev_action = state
         a = soul.act(obs, deterministic=True)
         return a, (soul._h.clone(), soul._z.clone())
@@ -497,7 +512,7 @@ def test_act_uses_observation(seed=0):
     st0 = (torch.zeros(1, soul.model.hidden), torch.zeros(1, soul.model.latent),
            np.zeros(cfg.model.action_dim, dtype=np.float32))
     a0, st1 = act_from(base, st0)
-    a1, _ = act_from(far, (st1[0], st1[1], np.asarray(a0, dtype=np.float32)))
+    a1, _ = act_from(far, st0)
 
     check("cung trang thai, khac quan sat -> khac hanh dong",
           not np.allclose(a0, a1),
@@ -594,24 +609,34 @@ def test_log_density_consistent(seed=0):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument('--quick', action='store_true', help='bo qua bai test cham')
+    ap.add_argument(
+        '--quick', action='store_true',
+        help='run only fast invariant smoke checks; not a learning benchmark',
+    )
     args = ap.parse_args()
 
     print("Kiem chung mo hinh Soul — ket luan dua tren SO DO, khong tren bao cao")
     t0 = time.time()
 
-    results = []
-    results.append(('trong so doi', test_weights_actually_move()))
-    results.append(('gradient vao policy', test_policy_receives_gradient()))
-    results.append(('recon giam', test_recon_improves()))
-    results.append(('reward loss giam', test_reward_predictor()))
-    results.append(('chuan hoa du lieu', test_obs_encoder_independent()))
-    results.append(('khong NaN', test_no_nan()))
-    results.append(('tuong tuong chinh xac', test_imagination_accuracy()))
-    results.append(('act dung quan sat', test_act_uses_observation()))
-    results.append(('mat do policy chuan hoa', test_log_density_consistent()))
-    results.append(('luu/nap', test_save_load()))
-    if not args.quick:
+    if args.quick:
+        print("SMOKE VERIFICATION — not a learning benchmark or full verification run")
+        results = [
+            ('chuan hoa du lieu', test_obs_encoder_independent()),
+            ('act dung quan sat', test_act_uses_observation()),
+            ('mat do policy chuan hoa', test_log_density_consistent()),
+        ]
+    else:
+        results = []
+        results.append(('trong so doi', test_weights_actually_move()))
+        results.append(('gradient vao policy', test_policy_receives_gradient()))
+        results.append(('recon giam', test_recon_improves()))
+        results.append(('reward loss giam', test_reward_predictor()))
+        results.append(('chuan hoa du lieu', test_obs_encoder_independent()))
+        results.append(('khong NaN', test_no_nan()))
+        results.append(('tuong tuong chinh xac', test_imagination_accuracy()))
+        results.append(('act dung quan sat', test_act_uses_observation()))
+        results.append(('mat do policy chuan hoa', test_log_density_consistent()))
+        results.append(('luu/nap', test_save_load()))
         results.append(('policy tot diem thuong', test_policy_improves()))
 
     banner("TONG KET")

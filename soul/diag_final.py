@@ -50,10 +50,10 @@ def main(seed=0):
     t = lambda a: torch.as_tensor(a, dtype=torch.float32)
     v_, m_, tx = t(b['values']), t(b['masks']), t(b['texts'])
     ac, va, rw = t(b['actions']), t(b['valid']), t(b['rewards'])
-    seq = b['values'].shape[1] - 1
+    seq = b['values'].shape[1]
     oi = torch.cat([v_, m_, tx], -1)
     with torch.no_grad():
-        out = s.model.dynamics.observe_sequence(oi[:, :seq], ac, s.model.encoder, va)
+        out = s.model.dynamics.observe_sequence(oi, ac, s.model.encoder, va)
         pr = s.model.reward_head(out['h_seq'], out['z_seq'])
     n = min(pr.numel(), rw.numel())
     # reward head học trên phần thưởng đã chuẩn hóa — đải ngược về thang
@@ -88,8 +88,8 @@ def main(seed=0):
         r2g = np.random.default_rng(7)
         for i in range(n):
             env.reset(r2g)
+            s.reset_state()
             s.set_goal(env.goal_vec())
-            s._h = None
             tot.append(run_one(s, env, det))
         return float(np.mean(tot)), float(np.std(tot))
 
@@ -97,9 +97,15 @@ def main(seed=0):
         s_total = 0.0
         for _ in range(60):
             a = soul.act(e._obs(), deterministic=det)
-            obs, r, done, _ = e.step(a)
+            obs, r, done, info = e.step(a)
             s_total += r
-            soul.observe(obs, a, r, False)
+            soul.observe(
+                obs, a, r, done,
+                applied_action=info['applied_action'],
+                record=False,
+            )
+            if done:
+                break
         return s_total
 
     def run_zero(e, n=12):
@@ -109,8 +115,10 @@ def main(seed=0):
             e.reset(r2g)
             t_ = 0.0
             for _ in range(60):
-                obs, r, done, _ = e.step(np.zeros(4, np.float32))
+                obs, r, done, _ = e.step(np.zeros(1, np.float32))
                 t_ += r
+                if done:
+                    break
             tot.append(t_)
         return float(np.mean(tot)), float(np.std(tot))
 
@@ -132,10 +140,10 @@ def main(seed=0):
     v_, m_, tx = t(b['values']), t(b['masks']), t(b['texts'])
     ac, va, rw = t(b['actions']), t(b['valid']), t(b['rewards'])
     gl = t(b['goals'])
-    seq = b['values'].shape[1] - 1
+    seq = b['values'].shape[1]
     oi = torch.cat([v_, m_, tx], -1)
     with torch.no_grad():
-        out = s.model.dynamics.observe_sequence(oi[:, :seq], ac, s.model.encoder, va)
+        out = s.model.dynamics.observe_sequence(oi, ac, s.model.encoder, va)
     rts, vs, acts_s = [], [], []
     h, z = out['h_seq'][:, -1], out['z_seq'][:, -1]
     H_ = s.cfg.train.imagine_horizon

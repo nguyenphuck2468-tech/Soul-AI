@@ -14,16 +14,16 @@ Usage:
 from .config import Config, ModelConfig, ObsConfig, TrainConfig
 from .obs import ObsEncoder, stable_hash, squash
 from .model import SoulModel
-from .memory import Episode, ReplayBuffer
+from .memory import Episode, ReplayBuffer, WorkingMemory, ImportantMemory, SkillMemory, MemoryManager
 from .trainer import Trainer
-from .soul import Soul
+from .soul import Soul, SoulBrain
 
 __version__ = '0.1.0'
 __all__ = [
     'Config', 'ModelConfig', 'ObsConfig', 'TrainConfig',
     'ObsEncoder', 'stable_hash', 'squash',
     'SoulModel',
-    'Episode', 'ReplayBuffer',
+    'Episode', 'ReplayBuffer', 'WorkingMemory', 'ImportantMemory', 'SkillMemory', 'MemoryManager',
     'Trainer',
-    'Soul',
+    'Soul', 'SoulBrain',
 ]

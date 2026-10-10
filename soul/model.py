@@ -306,6 +306,24 @@ class ContinueHead(nn.Module):
         return self.net(torch.cat([h, z], dim=-1)).squeeze(-1)
 
 
+class ActionEffectHead(nn.Module):
+    """Du doan hieu ung cua mot hanh dong toi trang thai tiep theo.
+
+    Doi hoi no PHAI suy đoan kieu "neu toi lam X o trang thai hien tai,
+    latent se thay doi the nao". Day la phan bo sung chat cheo cho
+    mo hinh the gioi: bo khong co no thi AI chi biet "sua doi` reward`
+    ma khong biet vi sao the gioi chuyen dong.
+    """
+
+    def __init__(self, hidden, latent, action_dim):
+        super().__init__()
+        self.net = mlp([hidden + latent + action_dim, hidden, latent])
+
+    def forward(self, h, z, action):
+        x = torch.cat([h, z, action], dim=-1)
+        return self.net(x)
+
+
 class PolicyHead(nn.Module):
     """Trang thai + muc tieu -> phan bo hanh dong.
 
@@ -441,6 +459,8 @@ class SoulModel(nn.Module):
                                cfg.obs.text_buckets)
         self.reward_head = RewardHead(m.hidden_dim, m.latent_dim)
         self.continue_head = ContinueHead(m.hidden_dim, m.latent_dim)
+        self.action_effect_head = ActionEffectHead(m.hidden_dim, m.latent_dim,
+                                                 m.action_dim)
         self.policy_head = PolicyHead(m.hidden_dim, m.latent_dim, m.action_dim,
                                       self.goal_dim, m.discrete_dim)
         self.value_head = ValueHead(m.hidden_dim, m.latent_dim, self.goal_dim)

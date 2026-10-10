@@ -139,6 +139,13 @@ class Trainer:
             dec['text_logits'], texts[:, :seq], reduction='none').mean()
         recon = recon_num + 0.5 * recon_mask + 0.5 * recon_text
 
+        # --- Transition-valid mask: row 0 has no predecessor observation
+        # in window, so it must NOT contribute to transition KL.
+        # Rows 1..seq are valid transitions: o_{t-1} --a_t--> o_t.
+        transition_valid = torch.ones((post_mu.shape[0], post_mu.shape[1]),
+                                      device=post_mu.device, dtype=torch.float32)
+        transition_valid[:, 0] = 0.0
+
         # --- 2. KL: prior gan posterior ---
         # Free nats: cat moi phan KL duoi 1.0 nat duoc bo qua. Cach nay
         # cho prior "mien phi" di mot quang nho, nen no co the bo qua
@@ -189,8 +196,12 @@ class Trainer:
                              prior_mu.detach(), prior_lv.detach()).sum(-1)
         kl_prior = torch.maximum(kl_prior, kl_prior.new_tensor(tc.free_nats))
         kl_post = torch.maximum(kl_post, kl_post.new_tensor(tc.free_nats))
-        kl = (tc.kl_prior_weight * kl_prior.mean()
-              + tc.kl_post_weight * kl_post.mean())
+        # Mask out row 0 from transition KL (boundary-invalid).
+        kl_prior = kl_prior * transition_valid
+        kl_post = kl_post * transition_valid
+        valid_count = transition_valid.sum(dim=1).clamp(min=1.0)
+        kl = (tc.kl_prior_weight * (kl_prior.sum(dim=1) / valid_count).mean()
+              + tc.kl_post_weight * (kl_post.sum(dim=1) / valid_count).mean())
 
 # --- 3. THUONG ---
         # CHUAN HOA PHAN THUONG.

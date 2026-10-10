@@ -1,0 +1,17 @@
+{
+  "checkpoint": "artifacts/g31/g31_b1_checkpoint.pt",
+  "checkpoint_sha256": "136017b650fc910043c559822d47fea900391e2823324413327de815a4d8c018",
+  "confirm_accessed": false,
+  "dataset": "artifacts/g31/pilot.jsonl",
+  "deterministic": true,
+  "environment": "Pendulum-v1 / Gymnasium 1.4.0",
+  "episodes": 5,
+  "evaluator": "prior mean + physical theta/velocity decode + real obs teacher forcing",
+  "gate": "INCONCLUSIVE",
+  "model_immutable": true,
+  "note": "Pilot metrics are exploratory; no threshold was locked and Confirm was not run.",
+  "optimizer_updates": 0,
+  "pilot_sha256": "26d63b1e3a900d40a9532aa5b2e4c178b58129e88f70cb2cb9a6e07af596264e",
+  "threshold": "TO_LOCK",
+  "transitions": 100
+}

@@ -77,12 +77,12 @@ def health(soul: Soul, n_batches: int = 4) -> Optional[Dict[str, float]]:
         v_, m_, tx = t(b['values']), t(b['masks']), t(b['texts'])
         ac, va, rw = t(b['actions']), t(b['valid']), t(b['rewards'])
         gl = t(b['goals'])
-        seq = v_.shape[1] - 1
+        seq = v_.shape[1]
         obs_in = torch.cat([v_, m_, tx], -1)
 
         with torch.no_grad():
             out = soul.model.dynamics.observe_sequence(
-                obs_in[:, :seq], ac, soul.model.encoder, va)
+                obs_in, ac, soul.model.encoder, va)
             h, z = out['h_seq'], out['z_seq']
             dec = soul.model.decoder(h, z)
             pr = soul.model.reward_head(h, z)
@@ -124,7 +124,15 @@ def health(soul: Soul, n_batches: int = 4) -> Optional[Dict[str, float]]:
                 from .model import MIN_STD, _logstd_to_std
                 lsc = torch.maximum(als, torch.full_like(als, float(np.log(MIN_STD))))
                 aa = am + torch.randn_like(am) * _logstd_to_std(lsc)
-                hh, mu, lv = soul.model.dynamics.step(hh, zz, aa)
+                continuous_dim = aa.shape[-1] - soul.cfg.model.discrete_dim
+                applied_aa = torch.cat((
+                    aa[..., :continuous_dim].clamp(
+                        soul.cfg.model.action_low,
+                        soul.cfg.model.action_high,
+                    ),
+                    aa[..., continuous_dim:],
+                ), dim=-1)
+                hh, mu, lv = soul.model.dynamics.step(hh, zz, applied_aa)
                 from .model import _logvar_to_std
                 zz = mu + torch.randn_like(mu) * _logvar_to_std(lv)
                 rt.append(soul.model.reward_head(hh, zz).squeeze(-1))
