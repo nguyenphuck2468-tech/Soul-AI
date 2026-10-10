@@ -1,0 +1,14 @@
+seeds:
+  train:
+    dải: [0, 999]
+    trạng_thái: KHÓA
+    mô_tả: thu dữ liệu, huấn luyện WM và skill
+  dev:
+    dải: [1000, 1999]
+    trạng_thái: KHÓA
+    mô_tả: chỉnh tham số, kiểm tra headroom
+  confirm:
+    dải: null
+    trạng_thái: CHƯA CHỐT
+    mô_tả: chỉ kết luận, chạm đúng một lần; chủ dự án chốt khi khóa protocol (3A); phải tách hẳn train và dev
+    lưu_ý: khi dải Confirm chưa chốt, tệp này không được chứa bất kỳ seed Confirm nào
