@@ -11,3 +11,5 @@ CHANGELOG_SOUL.md — sửa tối thiểu cho RAWA (G3.0 transition mask, G3.1 i
 2026-10-11 — `soul/config.py`, `soul/model.py`, `soul/imagine.py`: allow fully discrete action models and train imagined categorical actions with straight-through Gumbel-Softmax; enables MiniCraft 9-action WM training without a synthetic continuous action. `tests/test_wm_api.py` covers its training update.
 2026-10-11 — `soul/obs.py`: add explicit feature-schema freezing so dev observations cannot silently assign slots absent from the train-fitted checkpoint.
 2026-10-11 — Add Phase 0 MiniCraft contract/protocol draft and train-only collector, RSSM trainer, schema-frozen multi-horizon scorer with persistence and action-shuffle diagnostic; smoke run is documented as non-evidentiary.
+2026-10-11 — `wm_api/cost.py`: calculate p95 using the nearest-rank percentile so low-repetition smoke measurements and formal cost records do not report a lower quantile by indexing error.
+2026-10-11 — Add `scripts/phase0_measure_cost.py` to measure the 9-action MiniCraft WM adapter at H={1,5,20,100}, with runtime/source provenance; `ρ(h)` remains deferred until skill-step cost is measurable.

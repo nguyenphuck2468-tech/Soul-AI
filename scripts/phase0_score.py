@@ -1,4 +1,4 @@
-"""Score one-step MiniCraft world-model predictions on dev seeds.
+"""Score MiniCraft world-model predictions on dev seeds.
 
 Uses a train-only checkpoint whose encoder schema was frozen during training.
 Reports model and persistence error per episode, plus an action-shuffle
@@ -8,7 +8,9 @@ diagnostic. No threshold is applied and uncertainty is explicitly unavailable.
 import argparse
 import hashlib
 import json
+import platform
 from pathlib import Path
+import subprocess
 
 import numpy as np
 import torch
@@ -24,10 +26,14 @@ DEV_MIN, DEV_MAX = 1000, 1999
 
 def score(checkpoint: str | Path, output: str | Path, seeds: list[int],
           episodes_per_seed: int = 1, max_ticks: int = 100,
-          shuffle_repeats: int = 5) -> dict:
-    if not seeds or any(isinstance(seed, bool) or not DEV_MIN <= int(seed) <= DEV_MAX
+          shuffle_repeats: int = 5,
+          raw_output: str | Path = 'results/phase0_dev_predictions.jsonl') -> dict:
+    if not seeds or any(isinstance(seed, bool) or not isinstance(seed, (int, np.integer))
+                        or not DEV_MIN <= int(seed) <= DEV_MAX
                         for seed in seeds):
         raise ValueError('Phase 0 scorer accepts dev seeds 1000..1999 only')
+    if len(set(map(int, seeds))) != len(seeds):
+        raise ValueError('dev seed list must not contain duplicates')
     if episodes_per_seed < 1 or max_ticks < 2 or shuffle_repeats < 1:
         raise ValueError('episodes/repeats must be positive and max_ticks >= 2')
     if max(int(seed) + episodes_per_seed - 1 for seed in seeds) > DEV_MAX:
@@ -53,6 +59,8 @@ def score(checkpoint: str | Path, output: str | Path, seeds: list[int],
     ).hexdigest()
     numeric_indices: list[int] | None = None
     episodes = []
+    raw_rows = []
+    action_counts = np.zeros(9, dtype=np.int64)
 
     for seed in seeds:
         for episode_index in range(episodes_per_seed):
@@ -65,6 +73,7 @@ def score(checkpoint: str | Path, output: str | Path, seeds: list[int],
             local_feature_indices: list[int] | None = None
             live_h, live_z = soul.model.dynamics.initial_state(1, soul.device)
             previous_action = None
+            action_rng = np.random.default_rng(env_seed)
             for _ in range(max_ticks):
                 current = soul.enc.encode(obs)
                 current_vec = np.concatenate(
@@ -74,7 +83,8 @@ def score(checkpoint: str | Path, output: str | Path, seeds: list[int],
                         slot for slot in soul.enc.schema.values()
                         if slot < soul.cfg.obs.max_features)
                     local_feature_indices = numeric_indices
-                action = int((env.tick * 7 + seed) % 9)
+                action = int(action_rng.integers(0, 9))
+                action_counts[action] += 1
                 next_obs, _, done, _ = env.step(action)
                 next_encoded = soul.enc.encode(next_obs)
                 target_vec = next_encoded['values'].astype(np.float32, copy=True)
@@ -149,6 +159,19 @@ def score(checkpoint: str | Path, output: str | Path, seeds: list[int],
                     feature_persistence_sum += np.square(
                         current_values[start, idx] - target[target_index, idx]) * weights
                     feature_counts += weights.astype(np.int64)
+                    raw_rows.append({
+                        'schema_version': 1, 'split': 'dev',
+                        'seed': int(seed), 'environment_seed': env_seed,
+                        'episode': episode_index, 'start_tick': start,
+                        'horizon': horizon,
+                        'actions': actions[start:start + horizon],
+                        'feature_names': [feature_names.get(int(slot), f'feature_{slot}')
+                                          for slot in idx],
+                        'prediction': prediction[idx].astype(float).tolist(),
+                        'target': target[target_index, idx].astype(float).tolist(),
+                        'persistence': current_values[start, idx].astype(float).tolist(),
+                        'observed_mask': weights.astype(int).tolist(),
+                    })
                 horizon_metrics[str(horizon)] = {
                     'origins': len(model_errors),
                     'model_mse': float(np.mean(model_errors)) if model_errors else None,
@@ -210,6 +233,24 @@ def score(checkpoint: str | Path, output: str | Path, seeds: list[int],
         'feature_schema_sha256': schema_hash,
         'unseen_feature_overflow': int(soul.enc.overflow),
         'split': 'dev', 'seeds': [int(seed) for seed in seeds],
+        'code_revision': subprocess.run(
+            ['git', 'rev-parse', 'HEAD'], capture_output=True, text=True,
+            check=False).stdout.strip() or None,
+        'working_tree_dirty': bool(subprocess.run(
+            ['git', 'status', '--porcelain'], capture_output=True, text=True,
+            check=False).stdout.strip()),
+        'source_sha256': {
+            name: hashlib.sha256(Path(name).read_bytes()).hexdigest()
+            for name in ('scripts/phase0_score.py', 'soul/obs.py',
+                         'soul/model.py', 'minicraft/env.py')
+        },
+        'runtime': {
+            'python': platform.python_version(), 'torch': torch.__version__,
+            'numpy': np.__version__, 'device': str(soul.device),
+            'torch_threads': torch.get_num_threads(),
+        },
+        'action_counts': action_counts.tolist(),
+        'raw_predictions_path': str(raw_output),
         'episodes': episodes,
         'equal_episode_mean': {
             'horizons': {
@@ -237,6 +278,14 @@ def score(checkpoint: str | Path, output: str | Path, seeds: list[int],
     }
     path = Path(output)
     path.parent.mkdir(parents=True, exist_ok=True)
+    raw_path = Path(raw_output)
+    if raw_path.resolve() == path.resolve():
+        raise ValueError('summary and raw prediction outputs must be different files')
+    raw_path.parent.mkdir(parents=True, exist_ok=True)
+    with raw_path.open('w', encoding='utf-8', newline='\n') as raw_file:
+        for row in raw_rows:
+            raw_file.write(json.dumps(row, ensure_ascii=False, allow_nan=False) + '\n')
+    report['raw_predictions_sha256'] = hashlib.sha256(raw_path.read_bytes()).hexdigest()
     path.write_text(json.dumps(report, indent=2, ensure_ascii=False, allow_nan=False) + '\n',
                     encoding='utf-8')
     return report
@@ -246,6 +295,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--checkpoint', required=True)
     parser.add_argument('--output', default='results/phase0_dev_score.json')
+    parser.add_argument('--raw-output', default='results/phase0_dev_predictions.jsonl')
     parser.add_argument('--seed-start', type=int, default=1000)
     parser.add_argument('--seed-count', type=int, default=10)
     parser.add_argument('--episodes-per-seed', type=int, default=1)
@@ -256,7 +306,8 @@ def main():
     try:
         result = score(args.checkpoint, args.output,
                        list(range(args.seed_start, args.seed_start + args.seed_count)),
-                       args.episodes_per_seed, args.max_ticks)
+                       args.episodes_per_seed, args.max_ticks,
+                       raw_output=args.raw_output)
     except ValueError as exc:
         parser.error(str(exc))
     print(json.dumps(result['equal_episode_mean'], indent=2))

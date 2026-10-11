@@ -5,6 +5,7 @@ import hashlib
 import json
 from collections import OrderedDict
 from pathlib import Path
+import subprocess
 
 import numpy as np
 import torch
@@ -53,7 +54,7 @@ def train(data_path: str | Path, checkpoint_path: str | Path,
     for row in rows:
         grouped.setdefault((int(row['seed']), int(row['episode'])), []).append(row)
     accepted, skipped = 0, 0
-    for key, episode_rows in grouped.items():
+    for episode_rows in grouped.values():
         if len(episode_rows) < seq_len + 1:
             skipped += 1
             continue
@@ -88,6 +89,18 @@ def train(data_path: str | Path, checkpoint_path: str | Path,
         'checkpoint_sha256': hashlib.sha256(checkpoint.read_bytes()).hexdigest(),
         'seed_min': min(int(row['seed']) for row in rows),
         'seed_max': max(int(row['seed']) for row in rows),
+        'code_revision': subprocess.run(
+            ['git', 'rev-parse', 'HEAD'], capture_output=True, text=True,
+            check=False).stdout.strip() or None,
+        'working_tree_dirty': bool(subprocess.run(
+            ['git', 'status', '--porcelain'], capture_output=True, text=True,
+            check=False).stdout.strip()),
+        'source_sha256': {
+            name: hashlib.sha256(Path(name).read_bytes()).hexdigest()
+            for name in ('scripts/phase0_train.py', 'soul/obs.py',
+                         'soul/trainer.py', 'soul/model.py')
+        },
+        'action_counts': np.bincount([int(row['action']) for row in rows], minlength=9).tolist(),
         'transitions': len(rows),
         'episodes_loaded': accepted,
         'episodes_skipped_short': skipped,

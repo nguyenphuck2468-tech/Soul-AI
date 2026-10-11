@@ -26,9 +26,9 @@ encoding.
 
 ## World-model task
 
-The minimum task is action-conditioned prediction of the next structured
-observation from the current observation and the action, anchored to the real
-observation after every transition. Use fixed encoder slots fitted from train
+The minimum task is action-conditioned prediction of future structured
+observations from the current observation and action sequence, anchored to the real
+observation trajectory. Use fixed encoder slots fitted from train
 only; dev scoring freezes that schema. Compare per-episode numeric-feature MSE
 to persistence (repeat current observed values), giving each episode equal
 weight. Report feature-wise errors and observed-feature counts as diagnostics.
@@ -50,12 +50,17 @@ calibration against held-out train/dev outcomes before use.
 - Dev seeds 1000–1999: exploratory diagnostics and implementation iteration.
 - Confirm: no range exists; do not create, infer, or access Confirm seeds.
 - Record seed, episode, tick, integer action, split, checkpoint hash, feature
-  schema hash, model config, code revision, and raw predictions/targets.
+  schema hash, model config, code revision, action counts, and raw predictions,
+  targets, masks, and persistence values.
 - `scripts/phase0_collect.py` writes train-only transition JSONL;
   `scripts/phase0_train.py` fits and saves the schema/config with the checkpoint;
   `scripts/phase0_score.py` rejects non-dev seeds and reports exploratory
   model-vs-persistence at horizons 1, 5, 20, and 100 plus an action-shuffle
-  diagnostic without applying thresholds. Report unseen-feature overflow.
+  diagnostic without applying thresholds. It writes raw per-origin predictions
+  to a JSONL sidecar and reports unseen-feature overflow. `scripts/phase0_measure_cost.py`
+  measures the same MiniCraft adapter call at those horizons with runtime and
+  source provenance; it does not supply a skill-cost denominator before a skill
+  implementation exists.
 
 Example pipeline (temporary paths shown):
 
@@ -63,6 +68,7 @@ Example pipeline (temporary paths shown):
 python -m scripts.phase0_collect --output results/phase0_train.jsonl --seed-count 20 --steps-per-seed 300
 python -m scripts.phase0_train --data results/phase0_train.jsonl --checkpoint results/phase0_soul.pt
 python -m scripts.phase0_score --checkpoint results/phase0_soul.pt --output results/phase0_dev_score.json --seed-start 1000 --seed-count 10 --max-ticks 300
+python -m scripts.phase0_measure_cost --output results/phase0_cost.jsonl --warmup 5 --reps 30 --threads 1
 ```
 
 The scorer's smoke run on dev seeds 1000–1001 was a pipeline diagnostic using a
@@ -79,7 +85,8 @@ execution; a world-model proposal never commits directly.
 
 The only hard constraint proposed for the first simulator version is to forbid
 a directional move when the corresponding visible adjacent `patch` cell is
-lava (tile ID `LAVA`). Action `noop` (0) remains an always-available fallback.
+lava (tile ID `LAVA`): actions 1/2/3/4 map to north/south/west/east. Action
+`noop` (0) remains an always-available fallback.
 The filter may reject or permit a candidate, but does not invent a route,
 search the map, change the task, or create a multi-step plan. It applies equally
 to expert/skill, policy, and future WM actions and logs the input, decision,

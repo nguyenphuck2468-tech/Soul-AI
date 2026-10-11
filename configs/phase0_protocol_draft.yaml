@@ -3,8 +3,8 @@ status: DRAFT_NOT_LOCKED
 source: v2.6_full_report.md sections 12, 12b, 13
 purpose: >-
   Phase 0 feasibility protocol for structured-state, action-conditioned
-  MiniCraft world-model prediction across open-loop horizons. Not an adaptive-compute
-  benchmark and not evidence for the core hypothesis.
+  MiniCraft world-model prediction across open-loop horizons. Not an
+  adaptive-compute benchmark and not evidence for the core hypothesis.
 
 data_splits:
   train: {range: [0, 999], allowed_for: [collection, fitting]}
@@ -25,6 +25,8 @@ environment:
     - events.{last_result,damage,tick}
   actions: 9 discrete actions (0..8); action is the transition input.
   task: deterministic-mean open-loop prediction; compare against real observations.
+  action_policy: >-
+    seeded uniform random; same policy for train collection and dev scoring.
   snapshot_counterfactuals: required capability; not evaluated by this draft.
 
 model:
@@ -36,9 +38,12 @@ model:
 baselines:
   - id: persistence
     prediction: repeat the current encoded numeric observation values
+
+diagnostics:
   - id: action_shuffle
-    prediction: same fitted world model, but permute actions within each episode
-    purpose: diagnostic for action conditioning, not a performance baseline
+    procedure: >-
+      permute actions within each episode while holding observed contexts fixed
+    purpose: action-conditioning diagnostic, not a performance baseline
 
 metrics:
   primary: per-episode mean squared error on observed numeric feature slots
@@ -49,5 +54,21 @@ metrics:
   thresholds: TO_LOCK_AFTER_PROTOCOL_REVIEW; no threshold encoded here
 
 provenance:
-  record: [seed, split, episode, tick, action, feature_schema_hash, model_revision]
+  record:
+    - seed
+    - split
+    - episode
+    - tick
+    - action
+    - action_counts
+    - feature_schema_hash
+    - model_revision
+    - raw_predictions_targets_masks
   phase5_thresholds_or_test_seeds: NOT_DEFINED_OR_ACCESSED
+
+cost:
+  world_model_call: scripts/phase0_measure_cost.py
+  horizons: [1, 5, 20, 100]
+  report: [median_wall_seconds, p95_wall_seconds, runtime, source_hashes]
+  skill_step_denominator: DEFERRED_UNTIL_SKILL_IMPLEMENTATION
+  rho_h: NOT_COMPUTED_UNTIL_C_SKILL_STEP_EXISTS

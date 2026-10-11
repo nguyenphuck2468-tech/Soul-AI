@@ -2,6 +2,7 @@
 
 import statistics
 import time
+import math
 
 
 class CostMeter:
@@ -20,4 +21,5 @@ class CostMeter:
             fn()
             xs.append(time.perf_counter() - started)
         xs.sort()
-        return statistics.median(xs), xs[int(0.95 * len(xs)) - 1], xs
+        p95_index = max(0, math.ceil(0.95 * len(xs)) - 1)
+        return statistics.median(xs), xs[p95_index], xs
