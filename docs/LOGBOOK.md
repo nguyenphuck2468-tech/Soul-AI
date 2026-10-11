@@ -672,3 +672,12 @@ Quyết định: A5 CHƯA ĐẠT (6 lượt hợp lệ: run01-run06, tất cả 
 - Thử GC độc lập run74: GC bật đạt 0/6; GC tắt đạt 1/6. JSONL là chẩn đoán (`working_tree_dirty=true` do các raw output chưa commit trong checkout chạy), không dùng làm kết quả A5 chính thức; việc tắt GC không được giữ làm thủ thuật để làm đẹp benchmark.
 - A/B action embedding (run73, 60 cặp/H, thứ tự old/new xen kẽ, seed cố định trước mỗi call): batch action MLP giảm median thread CPU khoảng 7.1%/10.4%/13.1%/10.6% tại H=4/8/16/32; H=2 cải thiện khoảng 2.2%. H=1 giữ đường cũ trong bản cuối để tránh overhead batch không cần thiết. Dù latency trung vị giảm ở horizon dài, tail max-deviation vẫn vượt 20%; tối ưu này là cải thiện throughput hợp lệ, chưa chứng minh A5 đạt.
 - Đã thêm regression test so sánh `imagine_sequence` cũ/mới cùng seed và thêm test xác nhận benchmark provenance hash `soul/model.py`, ghi inter-op threads/CPU affinity. Script đo không đổi công thức, warm-up/reps hay ngưỡng; A5 chưa được đánh dấu đạt. Raw A/B được lưu tại `results/A5_diag_run73_action_embed_ab.jsonl`; run74 tại hai file `results/A5_diag_run74_gc_*.jsonl`.
+
+=== A5 — RUN75 SAU TỐI ƯU (2026-10-11) ===
+- Chạy `scripts.measure_cost.run` thật trên checkout sạch commit `5748d2e1bf3296211572d1767ff30115b6888f54`, pin CPU1 đối diện PID685 đang ở CPU0; `OMP_NUM_THREADS=1`, `MKL_NUM_THREADS=1`, Torch intra-op=1/inter-op=1. CPU pressure some avg10 tăng 1.57→2.34, full avg10 0.91→1.05 trong lượt.
+- JSONL `results/A5_cost_codespace_run75.jsonl`: 6 H × 30, raw/provenance kiểm lại khớp; script SHA `333ef94d59d92be3753fc01e9c79b02386d1c7ed6c029ea660158705aafccb6d`, model SHA `9bc8533f42adeba41a571260b922174394a3d8418e5de06c5cb795090f9494e8`, affinity `[1]`, tree sạch.
+- H=1 39.55% FAIL (0.343/0.462 ms); H=2 31.64% FAIL (0.681/0.748 ms); H=4 21.07% FAIL (0.756/0.839 ms); H=8 48.43% FAIL (1.375/1.970 ms); H=16 45.02% FAIL (2.408/3.381 ms); H=32 52.92% FAIL (4.651/6.414 ms). Nhanh hơn ở horizon dài nhưng A5 vẫn fail 6/6; ngưỡng giữ nguyên.
+
+=== A5 — THỬ MKLDNN (run76, chẩn đoán) ===
+- Cùng source commit và config 1 intra/inter-op thread; CPU0 là core đối diện PID685 tại thời điểm bắt đầu; output ở `/tmp` nên các record báo tree sạch. Chỉ thay cờ backend trong process, không sửa model/source.
+- MKLDNN bật: đạt H=1,H=8 (2/6); tắt: 0/6. Metrics của cả 12 record tính lại độc lập; không chọn tắt backend vì không cải thiện stability tổng thể. Raw: `results/A5_diag_run76_mkldnn_on.jsonl`, `results/A5_diag_run76_mkldnn_off.jsonl`.
