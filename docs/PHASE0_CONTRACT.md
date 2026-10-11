@@ -84,8 +84,11 @@ OOD/generalization claims are outside this minimum measurement until their
 contracts are specified.
 
 The adapter's uncertainty output remains a zero placeholder for API
-compatibility, and now carries `uncertainty_status=NOT_IMPLEMENTED_PLACEHOLDER`.
-It must not enter metrics, triggers, or claims. A future uncertainty measure
+compatibility, and carries `uncertainty_status=NOT_IMPLEMENTED_PLACEHOLDER`.
+It must not enter metrics, triggers, or claims. `surprise()` now returns the
+masked one-step prior prediction MSE as a raw reality-violation diagnostic,
+with `surprise_status=UNCALIBRATED_RAW_MASKED_MSE`; it is not uncertainty and
+must not drive a gate before separate calibration. A future uncertainty measure
 needs independent calibration against held-out train/dev outcomes before use.
 
 ## Data and reproducibility
