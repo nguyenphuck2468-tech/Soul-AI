@@ -353,8 +353,8 @@ class PolicyHead(nn.Module):
         self.discrete_dim = discrete_dim
         self.cont_dim = action_dim - discrete_dim
         d_in = hidden + latent + goal_dim
-        self.to_mean = mlp([d_in, hidden, self.cont_dim])
-        self.to_logstd = nn.Linear(d_in, self.cont_dim)
+        self.to_mean = mlp([d_in, hidden, self.cont_dim]) if self.cont_dim else None
+        self.to_logstd = nn.Linear(d_in, self.cont_dim) if self.cont_dim else None
         self.to_logits = mlp([d_in, hidden, discrete_dim]) if discrete_dim else None
 
     def forward(self, h, z, goal):
@@ -364,10 +364,14 @@ class PolicyHead(nn.Module):
         # bien, o do gradient bang 0 va policy khong con hiu chinh duoc
         # phia ben kia. Tai MAX_MEAN (3.0) gradient cua tanh van con
         # ~0.99.
-        mean = MAX_MEAN * torch.tanh(self.to_mean(x) / MAX_MEAN)
-        # Khoa logstd trong [-8, 2]. Be qua: policy dong bang, kham pha
-        # het. Lon qua: buoc dau tinh nhieu hon ca nhieu.
-        logstd = self.to_logstd(x).clamp(-8.0, 2.0)
+        if self.cont_dim:
+            mean = MAX_MEAN * torch.tanh(self.to_mean(x) / MAX_MEAN)
+            # Khoa logstd trong [-8, 2]. Be qua: policy dong bang, kham pha
+            # het. Lon qua: buoc dau tinh nhieu hon ca nhieu.
+            logstd = self.to_logstd(x).clamp(-8.0, 2.0)
+        else:
+            mean = x.new_empty((*x.shape[:-1], 0))
+            logstd = x.new_empty((*x.shape[:-1], 0))
         logits = self.to_logits(x) if self.to_logits is not None else None
         return mean, logstd, logits
 

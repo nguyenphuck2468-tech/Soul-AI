@@ -95,7 +95,17 @@ def imagine_actor_critic(model, h0: torch.Tensor, z0: torch.Tensor,
         # hanh dong lien tuc.
         ls = torch.maximum(logstd, torch.full_like(
             logstd, math.log(MIN_STD)))
-        act = mean + torch.randn_like(mean) * _logstd_to_std(ls)
+        if policy_head.cont_dim:
+            cont_action = mean + torch.randn_like(mean) * _logstd_to_std(ls)
+        else:
+            cont_action = mean
+        if policy_head.discrete_dim:
+            # Straight-through Gumbel-Softmax keeps a one-hot forward action
+            # while allowing the imagined return to train categorical logits.
+            discrete_action = F.gumbel_softmax(logits, tau=1.0, hard=True)
+            act = torch.cat([cont_action, discrete_action], dim=-1)
+        else:
+            act = cont_action
         acts.append(act)
 
         h, mu, lv = model.dynamics.step(h, z, act)

@@ -58,10 +58,12 @@ class ModelConfig:
     plan_iters: int = 4
 
     def __post_init__(self):
-        if self.discrete_dim >= self.action_dim:
+        if self.action_dim < 1:
+            raise ValueError('action_dim must be positive.')
+        if not 0 <= self.discrete_dim <= self.action_dim:
             raise ValueError(
-                f'discrete_dim ({self.discrete_dim}) phải nhỏ hơn action_dim '
-                f'({self.action_dim}) — cần ít nhất 1 chiều liên tục.'
+                f'discrete_dim ({self.discrete_dim}) phải nằm trong '
+                f'[0, action_dim ({self.action_dim})].'
             )
         if self.plan_elite >= self.plan_samples:
             raise ValueError('plan_elite phải nhỏ hơn plan_samples.')

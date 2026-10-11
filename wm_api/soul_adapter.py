@@ -24,6 +24,25 @@ from .base import ImagineResult, LatentSnapshot, WorldModel
 class SoulAdapter(WorldModel):
     """Expose a Soul instance through the small `WorldModel` protocol."""
 
+    @classmethod
+    def for_minicraft(cls, *, device: str = 'cpu', seed: int = 0,
+                      hidden_dim: int = 96, latent_dim: int = 24):
+        """Build a Soul configured for MiniCraft's nine categorical actions."""
+        try:
+            from soul.config import Config
+            from soul.soul import Soul
+        except ImportError:  # pragma: no cover - package-relative execution
+            from ..soul.config import Config
+            from ..soul.soul import Soul
+
+        cfg = Config(device=device)
+        cfg.model.action_dim = 9
+        cfg.model.discrete_dim = 9
+        cfg.model.hidden_dim = hidden_dim
+        cfg.model.latent_dim = latent_dim
+        cfg.train.seed = seed
+        return cls(Soul(cfg))
+
     def __init__(self, soul):
         self.soul = soul
         self._tick = 0

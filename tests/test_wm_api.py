@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 
+from minicraft import MiniCraftEnv
 from soul.config import Config
 from soul.soul import Soul
 from wm_api.base import ImagineResult, LatentSnapshot, WorldModel
@@ -119,3 +120,49 @@ def test_integer_actions_are_encoded_as_one_hot_for_vector_action_models():
 
     np.testing.assert_array_equal(
         adapter._encode_action(2), np.asarray([0.0, 0.0, 1.0], dtype=np.float32))
+
+
+def test_nine_way_discrete_policy_has_no_synthetic_continuous_action():
+    cfg = Config()
+    cfg.model.hidden_dim = 8
+    cfg.model.latent_dim = 4
+    cfg.model.action_dim = 9
+    cfg.model.discrete_dim = 9
+    cfg.model.use_goal = False
+    cfg.train.batch_size = 1
+    cfg.train.seq_len = 2
+    cfg.train.imagine_horizon = 2
+    soul = Soul(cfg)
+    adapter = SoulAdapter(soul)
+
+    encoded = adapter._encode_action(8)
+    np.testing.assert_array_equal(encoded, np.eye(9, dtype=np.float32)[8])
+    h = torch.zeros(1, cfg.model.hidden_dim)
+    z = torch.zeros(1, cfg.model.latent_dim)
+    goal = torch.zeros(1, 0)
+    mean, logstd, logits = soul.model.policy_head(h, z, goal)
+    assert mean.shape == logstd.shape == (1, 0)
+    assert logits.shape == (1, 9)
+    action = soul.model.policy_head.sample(mean, logstd, logits, deterministic=True)
+    assert action.shape == (1, 9)
+    torch.testing.assert_close(action.sum(-1), torch.ones(1))
+    assert torch.isfinite(soul.model.policy_head.log_prob(mean, logstd, logits, action)).all()
+    assert torch.isfinite(soul.model.policy_head.entropy(logstd, logits)).all()
+
+    env = MiniCraftEnv(seed=23, max_ticks=3)
+    env.zombies = []
+    env._respawn_timers = {slot: 1000 for slot in range(3)}
+    while not env.done:
+        obs, reward, done, _ = env.step(0)
+        adapter.observe(obs, 0, reward, done)
+    losses = soul.learn(force=True)
+    assert losses is not None
+    assert np.isfinite(losses["total"])
+
+
+def test_minicraft_factory_configures_nine_discrete_actions():
+    adapter = SoulAdapter.for_minicraft(hidden_dim=8, latent_dim=4, seed=7)
+    assert adapter.soul.cfg.model.action_dim == 9
+    assert adapter.soul.cfg.model.discrete_dim == 9
+    np.testing.assert_array_equal(
+        adapter._encode_action(5), np.asarray([0, 0, 0, 0, 0, 1, 0, 0, 0], dtype=np.float32))
