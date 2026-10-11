@@ -1,8 +1,32 @@
 # Phase 0 MiniCraft contract (draft)
 
 Status: exploratory draft; not frozen. Source of truth: the user's cross-checked
-v2.6 report and long-term project direction. No numeric acceptance margins are
-inferred where those sources leave them open.
+v2.6 report and long-term project direction. This contract separates requirements
+that the sources determine from implementation proposals and unresolved owner
+choices. No numeric acceptance margins are inferred where those sources leave
+them open.
+
+## Source-to-protocol decision register
+
+| Topic | Source-determined requirement | Current implementation proposal | Still open before formal use |
+| --- | --- | --- | --- |
+| Research claim | Mature skills should reduce Dreamer intervention and compute in normal conditions while preserving performance within a predeclared non-inferiority margin; intervention should rise again under OOD/risk (v2.6 §§1, 12) | Phase 0 measures only a prerequisite: action-conditioned WM prediction on structured MiniCraft state | Phase 0 is not evidence for the core claim; Phase 5 needs its own frozen protocol |
+| Environment track | Prototype can use structured state; it does not establish pixel perception or Dreamer 4 scale (v2.6 §13) | MiniCraft structured observation and copy/restore | Confirm which long-term-design requirements are intentionally deferred to later phases |
+| Baselines | Compare against simple baselines and retain added complexity only when it wins (v2.6 §§12, 12b) | Persistence baseline; action permutation is diagnostic only | Exact action diagnostic and its inferential role |
+| Horizon | Report multi-step prediction and drift by horizon (v2.6 §12b and its referenced benchmark definitions) | Horizons 1, 5, 20, 100 | Confirm these concrete horizons are the intended Phase 0 set |
+| Sampling | Predeclare seeds and task/action distributions; do not tune on test (v2.6 §12) | Seeded uniform random actions; train 0–999, exploratory dev 1000–1999 | Seed subset/count, episode length, task mix, action distribution, and untouched evaluation set; the v2.6 examples are not approved values |
+| Metric | Define performance and report uncertainty/statistical procedure before confirmatory claims (v2.6 §12) | Equal-episode mean numeric-slot MSE vs persistence, per-feature diagnostics | Feature weighting, missing-feature handling, aggregation/inference procedure, acceptance criterion, uncertainty method |
+| Compute | Report measured wall/GPU time and normalized accounting, including supervision and safety costs; measure rollout-dependent cost (v2.6 §12) | Local WM wall-time helper at listed horizons; no skill denominator exists yet | Integrated cost protocol, hardware/runtime, repetitions, uncertainty intervals, skill-step denominator, and later ρ(h)/σ sweep |
+| Safety | Hard safety rules bypass learned intervention gates and apply to every action source (v2.6 §§3, 4.1c–d) | Draft rule forbids moving into visible adjacent lava; noop fallback | Validate the first constraint against simulator semantics; severity, expiry, hysteresis, response modes and logs |
+| Data separation | Lock protocol before any test; test set is one-touch or replaced after exposure (v2.6 §12) | No Confirm split/range is defined or accessed; dev seeds 1000–1001 were used for smoke | Choose and document a still-untouched evaluation set before a formal Phase 0 run; never relabel already inspected seeds as untouched |
+
+The v2.6 report's “must lock before Phase 0” list in §12 is broader than the
+minimum prerequisite measurement currently implemented: it includes OOD
+conditions, headroom, Pareto criteria, intervention metrics and Phase 5
+thresholds. Those belong to the later adaptive-compute benchmark and must not
+be mistaken for Phase 0 world-model prediction acceptance criteria. The long-
+term direction remains the endpoint; this Phase 0 track is a prerequisite, not
+a replacement or stopping condition.
 
 ## Environment and observation
 
@@ -50,14 +74,18 @@ calibration against held-out train/dev outcomes before use.
 - Dev seeds 1000–1999: exploratory diagnostics and implementation iteration.
 - Confirm: no range exists; do not create, infer, or access Confirm seeds.
 - Record seed, episode, tick, integer action, split, checkpoint hash, feature
-  schema hash, model config, code revision, action counts, and raw predictions,
-  targets, masks, and persistence values.
+  schema hash, model config, code revision, dirty-tree indicator and status
+  hash, action counts, and raw predictions, targets, masks, and persistence
+  values. A commit hash alone does not identify modified working-tree code;
+  source-file hashes cover the scorer and model/environment files listed in
+  the report, while the dirty-tree status hash records paths, not their contents.
 - `scripts/phase0_collect.py` writes train-only transition JSONL;
   `scripts/phase0_train.py` fits and saves the schema/config with the checkpoint;
   `scripts/phase0_score.py` rejects non-dev seeds and reports exploratory
   model-vs-persistence at horizons 1, 5, 20, and 100 plus an action-shuffle
   diagnostic without applying thresholds. It writes raw per-origin predictions
-  to a JSONL sidecar and reports unseen-feature overflow. `scripts/phase0_measure_cost.py`
+  to a JSONL sidecar and reports unseen-feature overflow. Derived episode
+  seeds must be unique; overlapping ranges are rejected. `scripts/phase0_measure_cost.py`
   measures the same MiniCraft adapter call at those horizons with runtime and
   source provenance; it does not supply a skill-cost denominator before a skill
   implementation exists.

@@ -38,6 +38,11 @@ def score(checkpoint: str | Path, output: str | Path, seeds: list[int],
         raise ValueError('episodes/repeats must be positive and max_ticks >= 2')
     if max(int(seed) + episodes_per_seed - 1 for seed in seeds) > DEV_MAX:
         raise ValueError('derived episode seeds must remain in the dev range 1000..1999')
+    environment_seeds = [int(seed) + episode_index
+                         for seed in seeds
+                         for episode_index in range(episodes_per_seed)]
+    if len(set(environment_seeds)) != len(environment_seeds):
+        raise ValueError('derived episode seeds overlap; choose non-overlapping seed ranges')
 
     saved = torch.load(checkpoint, map_location='cpu', weights_only=False)
     cfg = Config.from_dict(saved['config'])
@@ -224,6 +229,12 @@ def score(checkpoint: str | Path, output: str | Path, seeds: list[int],
                 'action_shuffle_mse_samples': shuffle_errors,
             })
 
+    git_revision = subprocess.run(
+        ['git', 'rev-parse', 'HEAD'], capture_output=True, text=True,
+        check=False).stdout.strip() or None
+    git_status = subprocess.run(
+        ['git', 'status', '--porcelain'], capture_output=True, text=True,
+        check=False).stdout.strip()
     report = {
         'schema_version': 1,
         'kind': 'phase0_dev_score',
@@ -233,12 +244,11 @@ def score(checkpoint: str | Path, output: str | Path, seeds: list[int],
         'feature_schema_sha256': schema_hash,
         'unseen_feature_overflow': int(soul.enc.overflow),
         'split': 'dev', 'seeds': [int(seed) for seed in seeds],
-        'code_revision': subprocess.run(
-            ['git', 'rev-parse', 'HEAD'], capture_output=True, text=True,
-            check=False).stdout.strip() or None,
-        'working_tree_dirty': bool(subprocess.run(
-            ['git', 'status', '--porcelain'], capture_output=True, text=True,
-            check=False).stdout.strip()),
+        'code_revision': git_revision,
+        'working_tree_dirty': bool(git_status),
+        'working_tree_status_sha256': hashlib.sha256(
+            git_status.encode('utf-8')).hexdigest() if git_status else None,
+        'environment_seeds': environment_seeds,
         'source_sha256': {
             name: hashlib.sha256(Path(name).read_bytes()).hexdigest()
             for name in ('scripts/phase0_score.py', 'soul/obs.py',
