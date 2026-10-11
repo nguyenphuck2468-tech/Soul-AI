@@ -39,8 +39,10 @@ def measure(output: str | Path, warmup: int = 5, reps: int = 30,
                               text=True, check=False).stdout.strip() or None
     status = subprocess.run(['git', 'status', '--porcelain'], capture_output=True,
                             text=True, check=False)
+    working_tree_status = status.stdout.strip()
     source_files = ('scripts/phase0_measure_cost.py', 'wm_api/cost.py',
-                    'wm_api/soul_adapter.py', 'soul/model.py')
+                    'wm_api/soul_adapter.py', 'soul/model.py',
+                    'configs/phase0_protocol_draft.yaml')
     source_hashes = {name: hashlib.sha256(Path(name).read_bytes()).hexdigest()
                      for name in source_files}
     try:
@@ -55,7 +57,7 @@ def measure(output: str | Path, warmup: int = 5, reps: int = 30,
         median, p95, samples = meter.measure(
             lambda: adapter.imagine(snapshot, actions))
         records.append({
-            'schema_version': 1,
+            'schema_version': 2,
             'kind': 'phase0_cost_measurement',
             'component': 'SoulAdapter.for_minicraft.imagine',
             'status': 'EXPLORATORY_MEASURED',
@@ -79,7 +81,12 @@ def measure(output: str | Path, warmup: int = 5, reps: int = 30,
                 'machine': platform.machine(), 'cpu_affinity': affinity,
             },
             'git_revision': revision,
-            'working_tree_dirty': bool(status.stdout.strip()),
+            'working_tree_dirty': bool(working_tree_status),
+            'working_tree_status_sha256': hashlib.sha256(
+                working_tree_status.encode('utf-8')).hexdigest()
+                if working_tree_status else None,
+            'protocol_config_sha256': hashlib.sha256(
+                Path('configs/phase0_protocol_draft.yaml').read_bytes()).hexdigest(),
             'source_sha256': source_hashes,
         })
 

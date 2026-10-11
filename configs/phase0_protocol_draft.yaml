@@ -80,5 +80,6 @@ cost:
   world_model_call: scripts/phase0_measure_cost.py
   horizons: [1, 5, 20, 100]
   report: [median_wall_seconds, p95_wall_seconds, runtime, source_hashes]
+  provenance: [git_revision, dirty_tree_status_hash, protocol_config_sha256]
   skill_step_denominator: DEFERRED_UNTIL_SKILL_IMPLEMENTATION
   rho_h: NOT_COMPUTED_UNTIL_C_SKILL_STEP_EXISTS

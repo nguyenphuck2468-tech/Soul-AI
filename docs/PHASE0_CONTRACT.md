@@ -116,8 +116,9 @@ calibration against held-out train/dev outcomes before use.
   feature overflow both as a total and by observation path. Derived episode
   seeds must be unique; overlapping ranges are rejected. `scripts/phase0_measure_cost.py`
   measures the same MiniCraft adapter call at those horizons with runtime and
-  source provenance; it does not supply a skill-cost denominator before a skill
-  implementation exists.
+  source, dirty-tree-status, and protocol-config provenance; it does not supply
+  an integrated pipeline cost or skill-cost denominator before those components
+  exist. Cost records use schema v2 and remain exploratory measurements.
 
 Example pipeline (temporary paths shown):
 
