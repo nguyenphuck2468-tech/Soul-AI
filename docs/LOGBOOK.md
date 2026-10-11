@@ -72,8 +72,8 @@ Kiểm tra độc lập từ JSONL (run02):
 - H=8: deviation=1.2682 (FAIL), median=0.001475s, p95=0.002127s, samples=30
 - H=16: deviation=0.6196 (FAIL), median=0.002802s, p95=0.004498s, samples=30
 - H=32: deviation=0.9496 (FAIL), median=0.005111s, p95=0.005858s, samples=30
-PASS: 0/6; FAIL: 6/6. Cross-H không đạt.
-Môi trường: CPU load 0.72, mem 3.8/7.8Gi, torch threads=1, không có benchmark khác.
+PASS: 0/6; FAIL: 6/6 trong riêng run02.
+Môi trường: Copilot báo CPU load 0.72, mem 3.8/7.8Gi, torch threads=1, không có benchmark khác; output gốc của lệnh kiểm tra tải không có trong transcript đã nhận.
 Quyết định: A5 CHƯA ĐẠT; KHÔNG gắn gate-A; KHÔNG bắt pha B; D/F deferred.
 
 === A5 GHI CHÚ (Codespace, 2026-10-11) — LƯỢT 03 (run03) ===
@@ -96,6 +96,16 @@ Quyết định: A5 CHƯA ĐẠT; KHÔNG gắn gate-A; KHÔNG bắt pha B; D/F d
 - Kết luận trước đó “cả 3 lượt fail 6/6 H” sai: raw run01 (`results/A5_cost_codespace.jsonl`) có H=8 deviation 12.7% PASS; năm H còn lại FAIL. Run02 và run03 lần lượt fail 6/6.
 - Cross-H spread không phải tiêu chí A5; đánh giá ổn định riêng cho mỗi horizon bằng max absolute deviation/median theo script hiện có.
 - Chưa có bằng chứng khách quan rằng các nguồn dao động đã hết khả năng xử lý. Tiếp tục phép đo bằng script thật ở run04 trở đi, giữ nguyên điều kiện 5 warm-up/30 reps, Torch 1 thread và ngưỡng 20%; không kết thúc chỉ dựa trên ba lượt fail.
+
+=== A5 GHI CHÚ (Codespace, 2026-10-11) — LƯỢT 04 (run04) ===
+- Dữ liệu `results/A5_cost_codespace_run04.jsonl`: 6 H, 30 mẫu/H; git revision nguồn `ab3b743`, `working_tree_dirty=true`; hash script khớp script hiện hành. Đã tính lại median, p95 và max deviation từ toàn bộ mẫu.
+- H=1: median 0.319 ms, p95 0.379 ms, deviation 61.2% FAIL; H=2: 0.553/0.853 ms, 305.5% FAIL; H=4: 0.793/1.289 ms, 92.7% FAIL; H=8: 2.282/4.547 ms, 149.2% FAIL; H=16: 4.169/6.012 ms, 94.6% FAIL; H=32: 5.252/7.984 ms, 69.0% FAIL.
+- Riêng run04 fail 6/6. Copilot báo load 0.71 và mem 3.8/7.8Gi nhưng transcript không chứa output gốc của các lệnh môi trường. Lượt này không chứng minh biến thiên là không thể khắc phục.
+
+=== A5 GHI CHÚ (máy local, 2026-10-11) — phép đo bổ sung ===
+- Lệnh: `$env:PYTHONPATH='.'; .venv/Scripts/python.exe scripts/measure_cost.py --out results/A5_cost_local_supplementary1.jsonl --threads 1`. Script đo thật, 5 warm-up/30 reps; hash nguồn khớp; dữ liệu được kiểm tra lại từ 30 mẫu từng H.
+- H=1: median 0.974 ms, p95 1.196 ms, deviation 34.5% FAIL; H=2: 1.095/1.556 ms, 69.9% FAIL; H=4: 1.643/2.559 ms, 176.4% FAIL; H=8: 2.716/3.808 ms, 106.8% FAIL; H=16: 6.950/7.611 ms, 32.5% FAIL; H=32: 10.295/13.897 ms, 100.1% FAIL.
+- Phép đo bổ sung local fail 6/6; đây là máy CPU Windows/Python 3.12.10/Torch 2.14.1+cpu, không thay thế phép đo Codespace. A5 vẫn chưa đạt; tiếp tục run05+ trên Codespace, chưa có blocker khách quan đã chứng minh.
 
 === A5 ĐANG LÀM — 2026-10-11 (stability chưa đạt) ===
 - Thêm `wm_api/cost.py` và `scripts/measure_cost.py`. `CostMeter` dùng 5 warm-up + 30 lần lặp theo mặc định; script đo `SoulAdapter.imagine` với H={1,2,4,8,16,32}, ghi median/p95/từng mẫu, shape, CPU/device/thread count, phiên bản phần mềm, revision và source hash vào `results/A5_cost*.jsonl`.
