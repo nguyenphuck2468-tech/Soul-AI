@@ -156,10 +156,9 @@ PASS: 0/6; FAIL: 6/6.
 Quyết định: A5 CHƯA ĐẠT (6 lượt hợp lệ: run01-run06, tất cả FAIL ít nhất 5/6 H; không có lượt nào đạt cả 6 H dưới 20%). KHÔNG gắn gate-A; KHÔNG bắt pha B; D/F deferred (prerequisite missing). Không tuyên bố hoàn tất — trở ngại khách quan đã được chứng minh bằng 6 lượt đo thật từ script không sửa.
 
 === A5 ĐANG LÀM — 2026-10-11 (stability chưa đạt) ===
-=== A5 GHI CHÚ (Codespace, 2026-10-11) — LƯỢT 07 (run07, worktree a5-run07) ===
-Lệnh: PYTHONPATH=. python scripts/measure_cost.py --out results/A5_cost_codespace_run07.jsonl --threads 1 (chạy trong worktree /tmp/Soul-AI-a5-run07 từ origin/main 3292a56)
-Xác nhận git diff scripts/measure_cost.py: KHÔNG ĐỔI (hash 7fa4b3e6... khớp).
-Môi trường thực tế (đầu ra lệnh): date -Is 2026-10-11T03:40:41+00:00; uptime 03:40:41 up 1:17 load 0.66; free -h Mem 7.8Gi/3.8Gi; nproc 2; ps PID 685 MainThread 11.9%, 1986 0.8%, 663 0.2%, 887 0.1%, 3302 0.1%, 700 0.1%, 1079 copilot-runtime 0.1% — không kill.
-Kết quả JSONL: 6 record measured (H=1,2,4,8,16,32), 30 mẫu/H; script hash khớp; git rev trước phép đo = 3292a561b8cc2bf25c0634772ebb1d754acfb4be; working_tree_dirty=false.
-Kiểm tra độc lập từ JSONL (run07): FAIL [1,4,8,16,32] deviations [8.7106, 1.5896, 0.8974, 1.0329, 1.6657]; PASS [2] deviation 0.1976. PASS chỉ H=2 (deviation 19.76% < 20%); 5/6 FAIL.
-Quyết định: A5 CHƯA ĐẠT (7 lượt hợp lệ: run01-run07, không có lượt nào đạt cả 6 H dưới 20%). KHÔNG gắn gate-A; KHÔNG bắt pha B; D/F deferred. Không tuyên bố hoàn tất.
+
+=== A5 KIỂM TOÁN ĐỘC LẬP RUN06 (2026-10-11) ===
+- Đã đọc raw `results/A5_cost_codespace_run06.jsonl` trên origin/main; có đủ 6 measured record cho H=1,2,4,8,16,32, mỗi record 30 mẫu đã sắp xếp. Tính lại bằng `CostMeter` cùng công thức median, p95 (`xs[27]`) và max absolute deviation/median: mọi con số khớp JSONL; stability_pass=False cho cả 6 H.
+- Kết quả: H=1 23.88%; H=2 21.84%; H=4 458.91%; H=8 91.70%; H=16 76.80%; H=32 66.40%. A5 run06 đạt 0/6; Gate A chưa đạt.
+- Script hash khớp mã đo thật. Provenance caveat được ghi ngay trong JSONL: revision đo `ca991b9`, `working_tree_dirty=true`. Commit `8281a73` chứa JSONL, sau đó merge `2de74b7` thêm logbook; logbook hiện nêu rõ dirty state.
+- Run06 chỉ cho thấy lần đo này không ổn định theo ngưỡng 20%; không xác định nguyên nhân và không chứng minh trở ngại là không thể khắc phục. Tiếp tục run07 từ clean checkout, không thay tiêu chí; ghi SHA commit trước đo, xác nhận `git status --porcelain` rỗng và source hashes; nếu lần đo vẫn dirty thì giữ dữ liệu, nêu caveat, không gọi nó là clean provenance.
