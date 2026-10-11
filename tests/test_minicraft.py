@@ -1,8 +1,11 @@
 import unittest
+import time
 
 import numpy as np
 
-from minicraft import GRASS, LAVA, STONE, TREE, MiniCraftEnv
+from minicraft import (
+    GRASS, LAVA, STONE, TREE, MiniCraftEnv, MiniCraftExpert,
+)
 from soul.obs import ObsEncoder
 
 
@@ -71,6 +74,90 @@ class MiniCraftStateTests(unittest.TestCase):
         self.assertEqual(env.tick, 0)
         self.assertEqual(clone.tick, 1)
         self.assertFalse(np.shares_memory(env.grid, clone.grid))
+
+
+class MiniCraftWorldRuleTests(unittest.TestCase):
+    def quiet_env(self, seed=0):
+        env = MiniCraftEnv(seed=seed)
+        env.zombies = []
+        env._respawn_timers = {slot: 1000 for slot in range(3)}
+        return env
+
+    def test_same_seed_and_action_sequence_is_deterministic(self):
+        left, right = MiniCraftEnv(seed=123), MiniCraftEnv(seed=123)
+        actions = np.random.default_rng(99).integers(0, 9, size=300)
+        for action in actions:
+            if left.done:
+                break
+            l_obs, l_reward, l_done, l_info = left.step(int(action))
+            r_obs, r_reward, r_done, r_info = right.step(int(action))
+            np.testing.assert_array_equal(l_obs["patch"], r_obs["patch"])
+            self.assertEqual(l_obs["self"], r_obs["self"])
+            self.assertEqual(l_obs["inv"], r_obs["inv"])
+            self.assertEqual(l_obs["mobs"], r_obs["mobs"])
+            self.assertEqual((l_reward, l_done, l_info), (r_reward, r_done, r_info))
+
+    def test_lava_no_tool_crafting_and_hunger_rules(self):
+        env = self.quiet_env()
+        env.grid[env.y - 1, env.x] = LAVA
+        _, _, done, info = env.step(1)
+        self.assertTrue(done)
+        self.assertEqual(info["death_reason"], "lava")
+
+        env = self.quiet_env()
+        env.grid[env.y - 1, env.x] = STONE
+        env.step(5)
+        self.assertEqual(env.observe()["events"]["last_result"], "no_tool")
+
+        env = self.quiet_env()
+        env.inventory["wood"] = 1
+        env.step(6)
+        self.assertEqual(env.inventory["wood_pickaxe"], 0)
+        env.inventory["wood"] = 2
+        env.step(6)
+        self.assertEqual(env.inventory["wood_pickaxe"], 1)
+        env.inventory["wood"], env.inventory["stone"] = 1, 1
+        env.step(7)
+        self.assertEqual(env.inventory["stone_pickaxe"], 0)
+        env.inventory["stone"] = 2
+        env.step(7)
+        self.assertEqual(env.inventory["stone_pickaxe"], 1)
+
+        env = self.quiet_env()
+        for _ in range(24):
+            env.step(0)
+        self.assertEqual(env.food, 10)
+        env.step(0)
+        self.assertEqual(env.food, 9)
+
+
+class MiniCraftExpertTests(unittest.TestCase):
+    def test_expert_reaches_each_task_on_locked_train_seed_range(self):
+        requirements = {"T_wood": 0.95, "T_tools": 0.85, "T_iron": 0.70}
+        for task, threshold in requirements.items():
+            completed = 0
+            for seed in range(200):
+                env = MiniCraftEnv(seed=seed)
+                expert = MiniCraftExpert(task)
+                while not env.done:
+                    action = expert.expert_action(env.observe(), env)
+                    self.assertIn(action, range(9))
+                    _, _, _, info = env.step(action)
+                    if info["task_success"][task]:
+                        completed += 1
+                        break
+            self.assertGreaterEqual(completed / 200, threshold, msg=f"{task}: {completed}/200")
+
+    def test_environment_step_median_is_below_one_millisecond(self):
+        env = MiniCraftEnv(seed=5)
+        env.zombies = []
+        env._respawn_timers = {slot: 1000 for slot in range(3)}
+        samples = []
+        for _ in range(300):
+            start = time.perf_counter()
+            env.step(0)
+            samples.append(time.perf_counter() - start)
+        self.assertLess(float(np.median(samples)), 0.001)
 
 
 class MiniCraftShockTests(unittest.TestCase):

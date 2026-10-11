@@ -738,3 +738,13 @@ Quyết định: A5 CHƯA ĐẠT (6 lượt hợp lệ: run01-run06, tất cả 
 === PHA B4 — DEV/CONFIRM SHOCKS ===
 - Thêm lịch cú sốc theo tick; chỉ kích hoạt tại tick đã định, ghi trong snapshot/restore. `dev_poison_apple`, zombie 2 ô/tick và cuốc gỗ gãy sau 3 lần đào thành công; Confirm shock được cô lập trong luật môi trường: đổi 5% cỏ thành dung nham trừ ô/kề tác nhân, đảo hướng và chuyển cây thành bụi loại 7 cho gỗ.
 - Chỉnh rõ bảng ánh xạ mã hành động 1–4 và hướng nhìn 0–3 để khớp B1. Chạy `python -m pytest tests/test_minicraft.py -q` trong clone sạch Codespace tại commit `07a8d8e` → 10 passed; B4 VERIFIED.
+
+=== PHA B5 — PRIVILEGED BFS EXPERT ===
+- Thêm `minicraft/experts.py` với expert riêng cho `T_wood`, `T_tools`, `T_iron`; dùng toàn bản đồ từ snapshot, BFS trên ô đi được, tránh lava và vùng kề zombie, rồi tương tác/craft theo mốc mục tiêu. Không sửa luật môi trường.
+- API: `MiniCraftExpert(task).expert_action(obs, env)`; có các hàm tiện ích theo từng task. Commit B5: `40b78bc502f282c1d4f30b9ff6ca2e39d7020d4b`.
+
+=== PHA B6 — ACCEPTANCE / GATE B ===
+- Đã thêm xác định theo seed/hành động, luật lava/no-tool/craft/đói, kiểm thử expert 200 seed train cho từng task, median tốc độ `env.step` dưới 1 ms, cùng test chặn rò rỉ shock giữ lại. Bộ test hiện có bao gồm snapshot/restore, quan sát và đủ sáu shock.
+- Kết quả raw: `results/B6_expert_solvable.jsonl` (600 dòng; SHA-256 `8f6509b9491a6b51ee23b1a7164174eb55f59a2c09c4b8a99dec87c473fd94cc`). Tại commit expert B5, `T_wood` 200/200 (100%, trung bình 6.59 tick), `T_tools` 200/200 (100%, 15.83 tick), `T_iron` 198/200 (99%, 25.48 tick); ngưỡng lần lượt 95%, 85%, 70% đều đạt. Hai thất bại `T_iron` kết thúc do chết trước khi lấy được sắt.
+- Lệnh nghiệm thu: `python -m pytest tests/test_minicraft.py -q` → 14 passed; `python -m pytest tests -q` → 56 passed trong 31.94 giây. `python -m compileall -q minicraft scripts tests` và `git diff --check` sạch. Script tái chạy: `python -m scripts.eval_minicraft_experts --seeds 200 --out results/B6_expert_solvable.jsonl` (không ghi đè file kết quả đã tồn tại).
+- B6 VERIFIED; gắn tag `gate-B` sau commit B6. Đây chỉ xác nhận simulator và expert có khả năng giải nhiệm vụ, chưa phải kết quả về giả thuyết adaptive-compute.
