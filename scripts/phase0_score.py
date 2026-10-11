@@ -378,6 +378,8 @@ def score(checkpoint: str | Path, output: str | Path, seeds: list[int],
         'working_tree_dirty': bool(git_status),
         'working_tree_status_sha256': hashlib.sha256(
             git_status.encode('utf-8')).hexdigest() if git_status else None,
+        'protocol_config_sha256': hashlib.sha256(
+            Path('configs/phase0_protocol_draft.yaml').read_bytes()).hexdigest(),
         'environment_seeds': environment_seeds,
         'run_config': {
             'episodes_per_seed': episodes_per_seed,
