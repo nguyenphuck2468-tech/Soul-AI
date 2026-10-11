@@ -653,3 +653,9 @@ Quyết định: A5 CHƯA ĐẠT (6 lượt hợp lệ: run01-run06, tất cả 
 - Trước đo: CPU pressure `some avg10=1.55 avg60=0.67 avg300=0.47`; VS Code extensionHost PID685 đang ở CPU0, 7.0% CPU. Sau đo pressure tăng lên `some avg10=2.08 avg60=0.85 avg300=0.51` (full avg10 1.17); phép pin CPU0 không tách benchmark khỏi tiến trình nền.
 - Raw tính lại: H=1 40.54% FAIL (0.341/0.463 ms); H=2 17.53% PASS (0.496/0.553 ms); H=4 47.50% FAIL (0.873/1.216 ms); H=8 95.44% FAIL (1.461/2.801 ms); H=16 79.64% FAIL (4.505/6.752 ms); H=32 50.85% FAIL (5.190/7.724 ms). Khớp với JSONL.
 - Kết luận: pin CPU0 không sửa nhiễu; CPU0 có tiến trình VS Code đang chạy và cgroup pressure tăng trong lượt đo. Không tuyên bố do model; thử riêng pin CPU1 ở lượt kế tiếp.
+
+=== A5 GHI CHÚ (Codespace, 2026-10-11) — run71 affinity CPU1 (điều tra) ===
+- Lệnh: `taskset -c 1 env PYTHONPATH=. /workspaces/Soul-AI/.venv/bin/python scripts/measure_cost.py --out results/A5_cost_codespace_run71.jsonl --threads 1` trên checkout sạch `f81736dbe380da74d6cb495478c8d39ab1bdb505`; script SHA giữ nguyên.
+- Trước đo, PID685 (VS Code extensionHost) chạy trên CPU1; CPU pressure `some avg10=1.72 avg60=0.90`, `full avg10=1.00`. Sau đo: `some avg10=3.28 avg60=1.26`, `full avg10=1.51`. Do đó pin CPU1 cũng trùng CPU đang chạy extension host và pressure tăng.
+- Raw: H=1 27.01% FAIL (0.320/0.371 ms); H=2 57.19% FAIL (0.516/0.598 ms); H=4 107.18% FAIL (0.815/0.885 ms); H=8 81.52% FAIL (1.528/2.733 ms); H=16 50.84% FAIL (2.806/4.141 ms); H=32 52.92% FAIL (5.399/7.551 ms). 30 mẫu/horizon, metrics/provenance đối chiếu khớp.
+- Kết luận: pin vào CPU đang có extension host không đạt. CPU pressure tăng mạnh trong cả hai lượt pin affinity; kiểm tra tiếp affinity đối nghịch với CPU hiện tại của PID685 và đối chiếu thread CPU time với wall time để xác định preemption.
