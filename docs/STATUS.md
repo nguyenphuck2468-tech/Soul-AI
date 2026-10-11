@@ -13,8 +13,9 @@ AI-generated execution plan and its B6 endpoint are not the project endpoint.
 
 - Alpha completion is tracked in `docs/ALPHA_SCOPE.md`: Phase 0 smoke pipeline
   run-through is complete, while the Phase 1 engineering alpha is estimated at
-  70% and remains in progress. This is a software checklist, not research
-  validation.
+  75% and remains in progress. Overall alpha progress against the long-term
+  plan is roughly 40%; this is an engineering estimate, not a weighted
+  acceptance score.
 
 - Phase 0 protocol and implementation are still drafts; no formal Phase 0
   experiment or adaptive-compute claim has been completed.
@@ -38,6 +39,17 @@ AI-generated execution plan and its B6 endpoint are not the project endpoint.
   T_iron. This remains exploratory train-seed evidence, not held-out
   generalization, skill validation, or a compute-savings result. See
   `docs/PHASE1_SKILL_ALPHA.md` and `results/phase1_skill_sweep_20261011/`.
+- An observation-only mapped Candidate now builds its map from local patches
+  and explores known frontiers without receiving the full environment state.
+  It succeeded on train seeds 400–409 for all three tasks, matching the
+  privileged expert on that smoke batch. A learned decision-tree distillation
+  prototype was also run and failed to solve T_tools/T_iron on the sample; it
+  is archived as a negative engineering result, not a released skill. See
+  `results/phase1_mapped_skill_20261011/` and
+  `results/phase1_distillation_20261011/`.
+- The mapped Candidate now reports a one-step expected state signature;
+  checked fields matched the next observation on all 539 recorded checks for
+  seeds 400–409. This expectation is hand-coded and uncalibrated.
 - Candidate action-proposal wall time on those seeds was approximately
   0.124–0.136 ms/step versus 0.0007–0.0009 ms/step for fixed replay. Replay
   usually failed, and measurement excludes simulation, safety, and learned

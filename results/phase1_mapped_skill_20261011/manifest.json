@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "kind": "phase1_observation_mapped_skill_smoke",
+  "status": "EXPLORATORY_TRAIN_SEEDS_NO_PROMOTION",
+  "recorded_at_utc": "2026-10-11T13:01:02.842292+00:00",
+  "evaluation_seeds": [
+    400,
+    401,
+    402,
+    403,
+    404,
+    405,
+    406,
+    407,
+    408,
+    409
+  ],
+  "max_ticks": 300,
+  "tasks": {
+    "T_wood": {
+      "mapped_success_fraction": 1.0,
+      "expert_success_fraction": 1.0,
+      "paired_outcomes": {
+        "mapped_only_success": 0,
+        "expert_only_success": 0,
+        "both_same_outcome": 10
+      },
+      "manifest_path": "results/phase1_mapped_skill_20261011/T_wood/manifest.json",
+      "manifest_sha256": "74987e0f5e8e05f10c794f2e8396691beadb52f7c0a0298c2e835991d3cc8d73"
+    },
+    "T_tools": {
+      "mapped_success_fraction": 1.0,
+      "expert_success_fraction": 1.0,
+      "paired_outcomes": {
+        "mapped_only_success": 0,
+        "expert_only_success": 0,
+        "both_same_outcome": 10
+      },
+      "manifest_path": "results/phase1_mapped_skill_20261011/T_tools/manifest.json",
+      "manifest_sha256": "36ffdc55e46cc4a5d39fc8c91d4ed0f0bdea05d8254488ce1565741919901c92"
+    },
+    "T_iron": {
+      "mapped_success_fraction": 1.0,
+      "expert_success_fraction": 1.0,
+      "paired_outcomes": {
+        "mapped_only_success": 0,
+        "expert_only_success": 0,
+        "both_same_outcome": 10
+      },
+      "manifest_path": "results/phase1_mapped_skill_20261011/T_iron/manifest.json",
+      "manifest_sha256": "84dd251da414e2267603b5d4fc27ffb89cba55d313fa3dc27b95e751a6754bfb"
+    }
+  },
+  "limits": [
+    "Mapped skill consumes only structured observations; no full-state API.",
+    "Train-seed smoke only; not held-out variant or promotion evidence.",
+    "Privileged expert is a task-success reference, not matched-cost baseline."
+  ]
+}

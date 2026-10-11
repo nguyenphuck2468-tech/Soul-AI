@@ -28,3 +28,5 @@ CHANGELOG_SOUL.md — sửa tối thiểu cho RAWA (G3.0 transition mask, G3.1 i
 2026-10-11 — Add descriptive same-seed Candidate/replay success-pair counts to the multi-seed sweep manifest.
 2026-10-11 — Store paired outcomes and proposal timing in each per-task manifest and hash child manifests from the sweep summary.
 2026-10-11 — Add an alpha scope checklist with separate Phase 0 smoke and Phase 1 engineering status; add offline CLI/archive sanity command.
+2026-10-11 — Add an observation-only mapped Candidate with online local-map memory/frontier exploration; archive train smoke 400–409 (10/10 each task) and a failed decision-tree distillation attempt.
+2026-10-11 — Add hand-coded one-step outcome expectations to the mapped skill and record next-observation agreement in its exploratory traces.

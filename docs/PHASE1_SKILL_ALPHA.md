@@ -97,3 +97,39 @@ tie 1 for T_wood, 10 / 0 / 0 for T_tools, and 10 / 0 / 0 for T_iron. These
 paired counts are descriptive only; no significance test or promotion rule is
 applied. Each task manifest now stores this breakdown and proposal timing;
 the sweep manifest includes a SHA-256 for every per-task manifest.
+
+## Observation-only mapped Candidate
+
+`MiniCraftMappedSkill` consumes only the structured observation. It accumulates
+the visible 7×7 map over time, routes through known grass to discovered task
+resources, and explores reachable frontiers when the next resource is unknown.
+It does not receive an environment handle or call the privileged BFS expert.
+Run the exploratory smoke batch with:
+
+```powershell
+python -m scripts.phase1_mapped_skill --eval-seeds 400,401,402,403,404,405,406,407,408,409
+```
+
+On train seeds 400–409, it completed 10/10 episodes for each task, matching the
+privileged expert's 10/10 on those same seeds. This is one seen train batch,
+not held-out generalization. Local proposal-only timing was inconsistent by
+task and run; no compute-saving conclusion is supported. Traces and manifests
+are under `results/phase1_mapped_skill_20261011/`.
+
+The mapped skill also emits a one-step expectation for the state fields
+affected by its selected action. Those declared fields matched the next
+observation 65/65 times for T_wood, 151/151 for T_tools, and 323/323 for
+T_iron in this batch. This is a direct, hand-coded simulator rule and not a
+calibrated detector or a learned world-model prediction.
+
+## Distillation attempt
+
+`scripts/phase1_distill_skill.py` behavior-clones expert action labels into a
+small decision tree from structured observations. With 20 train demonstration
+seeds and 10 disjoint train evaluation seeds, the prototype reached 4/10 on
+T_wood and 0/10 on T_tools/T_iron, while the privileged expert reached 10/10
+on each. High training action accuracy did not translate into task completion.
+The tree and examples are preserved under
+`results/phase1_distillation_20261011/`; this prototype is not the active
+Candidate. It shows that straightforward action imitation is insufficient
+for these long-horizon tasks.

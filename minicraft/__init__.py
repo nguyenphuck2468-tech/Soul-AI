@@ -19,6 +19,8 @@ from .experts import (
 from .safety import MiniCraftSafetyController, SafetyDecision
 from .counterfactual import CounterfactualOutcome, branch_actions
 from .skills import MiniCraftExpertSkill, SkillProposal, SkillStatus
+from .mapped_skill import MiniCraftMappedSkill, MappedSkillProposal
+from .distilled_skill import DistilledObservationSkill, DistilledSkillProposal
 
 __all__ = [
     "GRASS", "TREE", "STONE", "WATER", "LAVA", "IRON_ORE", "MiniCraftEnv",
@@ -27,4 +29,6 @@ __all__ = [
     "MiniCraftSafetyController", "SafetyDecision",
     "CounterfactualOutcome", "branch_actions",
     "MiniCraftExpertSkill", "SkillProposal", "SkillStatus",
+    "MiniCraftMappedSkill", "MappedSkillProposal",
+    "DistilledObservationSkill", "DistilledSkillProposal",
 ]

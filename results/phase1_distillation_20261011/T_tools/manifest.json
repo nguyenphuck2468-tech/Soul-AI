@@ -1,0 +1,389 @@
+{
+  "schema_version": 1,
+  "kind": "phase1_distilled_skill_smoke",
+  "status": "EXPLORATORY_TRAIN_SEEDS_NO_PROMOTION",
+  "recorded_at_utc": "2026-10-11T12:54:56.731576+00:00",
+  "task": "T_tools",
+  "train_seeds": [
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39
+  ],
+  "evaluation_seeds": [
+    300,
+    301,
+    302,
+    303,
+    304,
+    305,
+    306,
+    307,
+    308,
+    309
+  ],
+  "max_ticks": 300,
+  "expert_demonstration_episodes": [
+    {
+      "seed": 20,
+      "success": true,
+      "steps": 144
+    },
+    {
+      "seed": 21,
+      "success": true,
+      "steps": 47
+    },
+    {
+      "seed": 22,
+      "success": true,
+      "steps": 44
+    },
+    {
+      "seed": 23,
+      "success": true,
+      "steps": 77
+    },
+    {
+      "seed": 24,
+      "success": true,
+      "steps": 300
+    },
+    {
+      "seed": 25,
+      "success": true,
+      "steps": 50
+    },
+    {
+      "seed": 26,
+      "success": true,
+      "steps": 300
+    },
+    {
+      "seed": 27,
+      "success": true,
+      "steps": 34
+    },
+    {
+      "seed": 28,
+      "success": true,
+      "steps": 36
+    },
+    {
+      "seed": 29,
+      "success": true,
+      "steps": 269
+    },
+    {
+      "seed": 30,
+      "success": true,
+      "steps": 300
+    },
+    {
+      "seed": 31,
+      "success": true,
+      "steps": 226
+    },
+    {
+      "seed": 32,
+      "success": true,
+      "steps": 78
+    },
+    {
+      "seed": 33,
+      "success": true,
+      "steps": 228
+    },
+    {
+      "seed": 34,
+      "success": true,
+      "steps": 47
+    },
+    {
+      "seed": 35,
+      "success": true,
+      "steps": 38
+    },
+    {
+      "seed": 36,
+      "success": true,
+      "steps": 89
+    },
+    {
+      "seed": 37,
+      "success": true,
+      "steps": 132
+    },
+    {
+      "seed": 38,
+      "success": true,
+      "steps": 30
+    },
+    {
+      "seed": 39,
+      "success": true,
+      "steps": 206
+    }
+  ],
+  "fit_metrics": {
+    "sample_count": 2675,
+    "training_action_accuracy": 0.9629906542056075,
+    "node_count": 41,
+    "leaf_count": 21,
+    "depth": 8,
+    "max_depth_config": 8,
+    "min_samples_leaf": 8
+  },
+  "evaluation": {
+    "distilled_successes": 0,
+    "expert_successes": 10,
+    "episodes_per_controller": 10,
+    "distilled_success_fraction": 0.0,
+    "expert_success_fraction": 1.0,
+    "paired_outcomes": {
+      "distilled_only_success": 0,
+      "expert_only_success": 10,
+      "both_same_outcome": 0
+    },
+    "distilled_episodes": [
+      {
+        "task": "T_tools",
+        "seed": 300,
+        "controller": "distilled_tree",
+        "success": false,
+        "steps": 300,
+        "safety_blocks": 0,
+        "proposal_wall_seconds": 0.033914599946001545,
+        "mean_leaf_training_samples": 47
+      },
+      {
+        "task": "T_tools",
+        "seed": 301,
+        "controller": "distilled_tree",
+        "success": false,
+        "steps": 203,
+        "safety_blocks": 0,
+        "proposal_wall_seconds": 0.010709800073527731,
+        "mean_leaf_training_samples": 12
+      },
+      {
+        "task": "T_tools",
+        "seed": 302,
+        "controller": "distilled_tree",
+        "success": false,
+        "steps": 300,
+        "safety_blocks": 0,
+        "proposal_wall_seconds": 0.011447799974121153,
+        "mean_leaf_training_samples": 14
+      },
+      {
+        "task": "T_tools",
+        "seed": 303,
+        "controller": "distilled_tree",
+        "success": false,
+        "steps": 90,
+        "safety_blocks": 0,
+        "proposal_wall_seconds": 0.004912000091280788,
+        "mean_leaf_training_samples": 14
+      },
+      {
+        "task": "T_tools",
+        "seed": 304,
+        "controller": "distilled_tree",
+        "success": false,
+        "steps": 300,
+        "safety_blocks": 0,
+        "proposal_wall_seconds": 0.02091540004767012,
+        "mean_leaf_training_samples": 43
+      },
+      {
+        "task": "T_tools",
+        "seed": 305,
+        "controller": "distilled_tree",
+        "success": false,
+        "steps": 51,
+        "safety_blocks": 0,
+        "proposal_wall_seconds": 0.0023373000149149448,
+        "mean_leaf_training_samples": 47
+      },
+      {
+        "task": "T_tools",
+        "seed": 306,
+        "controller": "distilled_tree",
+        "success": false,
+        "steps": 117,
+        "safety_blocks": 0,
+        "proposal_wall_seconds": 0.006665399923804216,
+        "mean_leaf_training_samples": 20
+      },
+      {
+        "task": "T_tools",
+        "seed": 307,
+        "controller": "distilled_tree",
+        "success": false,
+        "steps": 42,
+        "safety_blocks": 0,
+        "proposal_wall_seconds": 0.0029728000226896256,
+        "mean_leaf_training_samples": 47
+      },
+      {
+        "task": "T_tools",
+        "seed": 308,
+        "controller": "distilled_tree",
+        "success": false,
+        "steps": 66,
+        "safety_blocks": 0,
+        "proposal_wall_seconds": 0.004640600018319674,
+        "mean_leaf_training_samples": 47
+      },
+      {
+        "task": "T_tools",
+        "seed": 309,
+        "controller": "distilled_tree",
+        "success": false,
+        "steps": 53,
+        "safety_blocks": 0,
+        "proposal_wall_seconds": 0.0038373000134015456,
+        "mean_leaf_training_samples": 14
+      }
+    ],
+    "expert_episodes": [
+      {
+        "task": "T_tools",
+        "seed": 300,
+        "controller": "expert",
+        "success": true,
+        "steps": 300,
+        "safety_blocks": 0,
+        "proposal_wall_seconds": 0.03773689996160101,
+        "mean_leaf_training_samples": null
+      },
+      {
+        "task": "T_tools",
+        "seed": 301,
+        "controller": "expert",
+        "success": true,
+        "steps": 252,
+        "safety_blocks": 0,
+        "proposal_wall_seconds": 0.024163600013707764,
+        "mean_leaf_training_samples": null
+      },
+      {
+        "task": "T_tools",
+        "seed": 302,
+        "controller": "expert",
+        "success": true,
+        "steps": 49,
+        "safety_blocks": 0,
+        "proposal_wall_seconds": 0.007196899940026924,
+        "mean_leaf_training_samples": null
+      },
+      {
+        "task": "T_tools",
+        "seed": 303,
+        "controller": "expert",
+        "success": true,
+        "steps": 74,
+        "safety_blocks": 0,
+        "proposal_wall_seconds": 0.011758500040741637,
+        "mean_leaf_training_samples": null
+      },
+      {
+        "task": "T_tools",
+        "seed": 304,
+        "controller": "expert",
+        "success": true,
+        "steps": 44,
+        "safety_blocks": 0,
+        "proposal_wall_seconds": 0.0037491000402951613,
+        "mean_leaf_training_samples": null
+      },
+      {
+        "task": "T_tools",
+        "seed": 305,
+        "controller": "expert",
+        "success": true,
+        "steps": 54,
+        "safety_blocks": 0,
+        "proposal_wall_seconds": 0.004607500057318248,
+        "mean_leaf_training_samples": null
+      },
+      {
+        "task": "T_tools",
+        "seed": 306,
+        "controller": "expert",
+        "success": true,
+        "steps": 245,
+        "safety_blocks": 0,
+        "proposal_wall_seconds": 0.027175499824807048,
+        "mean_leaf_training_samples": null
+      },
+      {
+        "task": "T_tools",
+        "seed": 307,
+        "controller": "expert",
+        "success": true,
+        "steps": 254,
+        "safety_blocks": 0,
+        "proposal_wall_seconds": 0.04368040016561281,
+        "mean_leaf_training_samples": null
+      },
+      {
+        "task": "T_tools",
+        "seed": 308,
+        "controller": "expert",
+        "success": true,
+        "steps": 56,
+        "safety_blocks": 0,
+        "proposal_wall_seconds": 0.005110199985210784,
+        "mean_leaf_training_samples": null
+      },
+      {
+        "task": "T_tools",
+        "seed": 309,
+        "controller": "expert",
+        "success": true,
+        "steps": 56,
+        "safety_blocks": 0,
+        "proposal_wall_seconds": 0.005008799998904578,
+        "mean_leaf_training_samples": null
+      }
+    ]
+  },
+  "timing": {
+    "scope": "action_proposal_only_local_wall_time",
+    "distilled_mean_seconds_per_step": 6.724901453727421e-05,
+    "expert_mean_seconds_per_step": 0.00012296777458686847,
+    "excludes": [
+      "environment_step",
+      "safety_filter",
+      "serialization"
+    ]
+  },
+  "skill_path": "results/phase1_distillation_20261011/T_tools/skill.json",
+  "skill_sha256": "05098ec06518071433524a6b1ed99bb58c03bbabd143637708b0c68d233b23ef",
+  "training_examples_path": "results/phase1_distillation_20261011/T_tools/training_examples.npz",
+  "training_examples_sha256": "67145db25d96e9f505da40af09f406144260c52d91e844af728ee02fde09121d",
+  "limits": [
+    "Tree is behavior-cloned from a privileged expert using train-only demonstrations.",
+    "Evaluation seeds are exploratory train seeds, not held-out variants.",
+    "No promotion margin, variant distance, or scientific claim is applied.",
+    "Timing excludes environment stepping and safety overhead."
+  ]
+}

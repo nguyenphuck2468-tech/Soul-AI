@@ -53,14 +53,46 @@ def check_phase1_archives() -> int:
         if manifest.get('decision_compute') != entry.get('decision_compute'):
             raise ValueError(f'{task}: decision timing mismatch')
         checked += 1
+    mapped_root = ROOT / 'results' / 'phase1_mapped_skill_20261011'
+    mapped = json.loads((mapped_root / 'manifest.json').read_text(encoding='utf-8-sig'))
+    for task, entry in mapped['tasks'].items():
+        task_manifest_path = ROOT / entry['manifest_path']
+        task_manifest = json.loads(task_manifest_path.read_text(encoding='utf-8-sig'))
+        trace_path = ROOT / task_manifest['trace_path']
+        if hashlib.sha256(trace_path.read_bytes()).hexdigest() != task_manifest['trace_sha256']:
+            raise ValueError(f'{task}: mapped-skill trace hash mismatch')
+        if task_manifest['mapped_success_fraction'] != 1.0:
+            raise ValueError(f'{task}: archived mapped-skill smoke result mismatch')
+        if task_manifest['one_step_expectation_match_fraction'] != 1.0:
+            raise ValueError(f'{task}: archived expectation check mismatch')
+        checked += 1
+
+    distill_root = ROOT / 'results' / 'phase1_distillation_20261011'
+    distilled = json.loads(
+        (distill_root / 'batch_manifest.json').read_text(encoding='utf-8-sig'))
+    for task, entry in distilled['tasks'].items():
+        task_manifest_path = ROOT / entry['manifest_path']
+        manifest_bytes = task_manifest_path.read_bytes()
+        if hashlib.sha256(manifest_bytes).hexdigest() != entry['manifest_sha256']:
+            raise ValueError(f'{task}: distillation manifest hash mismatch')
+        task_manifest = json.loads(manifest_bytes.decode('utf-8-sig'))
+        for path_key, hash_key in (
+                ('skill_path', 'skill_sha256'),
+                ('training_examples_path', 'training_examples_sha256')):
+            artifact_path = ROOT / task_manifest[path_key]
+            if hashlib.sha256(artifact_path.read_bytes()).hexdigest() != task_manifest[hash_key]:
+                raise ValueError(f'{task}: distillation {path_key} hash mismatch')
+        checked += 1
     return checked
 
 
 def main() -> None:
     check_cli('scripts.phase0_alpha_run')
     check_cli('scripts.phase1_skill_sweep')
+    check_cli('scripts.phase1_mapped_skill')
+    check_cli('scripts.phase1_distill_skill')
     checked = check_phase1_archives()
-    print(f'Alpha sanity passed: 2 CLIs, {checked} Phase 1 task archives.')
+    print(f'Alpha sanity passed: 4 CLIs, {checked} Phase 1 task archives.')
     print('No simulator seeds were accessed; this is not a model-quality test.')
 
 
