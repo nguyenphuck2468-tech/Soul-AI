@@ -162,9 +162,14 @@ Quyết định: A5 CHƯA ĐẠT (6 lượt hợp lệ: run01-run06, tất cả 
 - Kết quả: H=1 23.88%; H=2 21.84%; H=4 458.91%; H=8 91.70%; H=16 76.80%; H=32 66.40%. A5 run06 đạt 0/6; Gate A chưa đạt.
 - Script hash khớp mã đo thật. Provenance caveat được ghi ngay trong JSONL: revision đo `ca991b9`, `working_tree_dirty=true`. Commit `8281a73` chứa JSONL, sau đó merge `2de74b7` thêm logbook; logbook hiện nêu rõ dirty state.
 - Run06 chỉ cho thấy lần đo này không ổn định theo ngưỡng 20%; không xác định nguyên nhân và không chứng minh trở ngại là không thể khắc phục. Tiếp tục run07 từ clean checkout, không thay tiêu chí; ghi SHA commit trước đo, xác nhận `git status --porcelain` rỗng và source hashes; nếu lần đo vẫn dirty thì giữ dữ liệu, nêu caveat, không gọi nó là clean provenance.
-=== A5 GHI CHÚ (Codespace, 2026-10-11) — LƯỢT 07 (run07) ===
-- Lệnh: `PYTHONPATH=. /workspaces/Soul-AI/.venv/bin/python scripts/measure_cost.py --out results/A5_cost_codespace_run07.jsonl --threads 1`.
-- Đo trong snapshot sạch riêng tạo từ commit `3292a561b8cc2bf25c0634772ebb1d754acfb4be`; `git status --porcelain` trống trước đo; revision, source hash và `working_tree_dirty=false` trong cả 6 record khớp. Script SHA-256: `7fa4b3e6cedb99449492a1e8cf3e909789d5f68c65e839c62c33588e66969fc6`.
-- Môi trường đầu phép đo: 2026-10-11T03:50:29Z; Codespace 2 vCPU, load 1.32/1.09/0.97, RAM 7.8 GiB (4.7 GiB used, 3.0 GiB available), swap 0; Torch threads=1. `ps` thấy tiến trình MainThread PID 685 dùng 11.3% CPU và sshd 1.8%; không đóng tiến trình.
-- Kiểm toán raw JSONL: 6 record measured, 30 mẫu/H, dữ liệu tăng dần; median, p95 theo `CostMeter` (`xs[27]`), deviation và cờ pass tính lại khớp. Kết quả: H=1 68.56% FAIL (median 0.318 ms, p95 0.374 ms); H=2 16.12% PASS (0.503/0.539 ms); H=4 35.05% FAIL (0.846/0.927 ms); H=8 86.87% FAIL (1.545/2.233 ms); H=16 159.20% FAIL (5.266/9.490 ms); H=32 85.99% FAIL (6.975/11.670 ms).
-- Run07 đạt 1/6, A5 vẫn CHƯA ĐẠT. Giữ nguyên tiêu chí; không gắn gate-A, không bắt pha B; D/F deferred. Tiếp tục run08; đây là bằng chứng một lượt đo không đạt, không phải bằng chứng nguyên nhân nội tại/không thể khắc phục.
+=== A5 KIỂM TOÁN RUN07 CỦA COPILOT (2026-10-11) ===
+- JSONL `results/A5_cost_codespace_run07.jsonl` được đối chiếu độc lập: đủ 6 H, 30 mẫu/H; median, p95 theo `CostMeter` (`xs[27]`), deviation và cờ pass đều tính lại khớp. Revision `3292a561b8cc2bf25c0634772ebb1d754acfb4be`, `working_tree_dirty=false`, hash script khớp.
+- H=1: 871.06% FAIL (0.462/2.494 ms); H=2: 19.76% PASS (0.706/0.838 ms); H=4: 158.96% FAIL (1.268/2.609 ms); H=8: 89.74% FAIL (2.172/2.441 ms); H=16: 103.29% FAIL (3.848/5.279 ms); H=32: 166.57% FAIL (7.852/15.529 ms). Kết quả 1/6, A5 chưa đạt.
+- Môi trường ghi trong log Codespace lúc 03:40:41Z: load 0.66, RAM 7.8 GiB (3.8 GiB used), 2 CPU, Torch 1 thread; PID 685 MainThread 11.9%. Không đóng tiến trình.
+
+=== A5 GHI CHÚ (Codespace, 2026-10-11) — LƯỢT 08 (run08) ===
+- Lệnh: `PYTHONPATH=. /workspaces/Soul-AI/.venv/bin/python scripts/measure_cost.py --out results/A5_cost_codespace_run08.jsonl --threads 1`.
+- Chạy trong snapshot sạch riêng từ commit `3292a561b8cc2bf25c0634772ebb1d754acfb4be`; `git status --porcelain` trống trước đo; revision, source hashes và `working_tree_dirty=false` khớp cả 6 record. Script SHA-256: `7fa4b3e6cedb99449492a1e8cf3e909789d5f68c65e839c62c33588e66969fc6`.
+- Môi trường đầu phép đo: 2026-10-11T03:50:29Z; Codespace 2 vCPU, load 1.32/1.09/0.97, RAM 7.8 GiB (4.7 GiB used, 3.0 GiB available), swap 0; Torch threads=1. `ps` thấy MainThread PID 685 dùng 11.3% CPU và sshd 1.8%; không đóng tiến trình.
+- Kiểm toán raw: 6 record measured, 30 mẫu/H, dữ liệu tăng dần; median, p95 (`xs[27]`), deviation và cờ pass tính lại khớp. H=1: 68.56% FAIL (0.318/0.374 ms); H=2: 16.12% PASS (0.503/0.539 ms); H=4: 35.05% FAIL (0.846/0.927 ms); H=8: 86.87% FAIL (1.545/2.233 ms); H=16: 159.20% FAIL (5.266/9.490 ms); H=32: 85.99% FAIL (6.975/11.670 ms). Run08 đạt 1/6.
+- Hai lần đo sạch run07-run08 đều cho thấy A5 CHƯA ĐẠT; chưa xác định nguyên nhân và không chứng minh biến thiên không thể khắc phục. Giữ tiêu chí; không gắn gate-A, không bắt pha B; D/F deferred. Tiếp tục run09.
