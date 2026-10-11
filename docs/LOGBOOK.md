@@ -107,3 +107,20 @@ Quyết định: A5 CHƯA ĐẠT; KHÔNG gắn gate-A; KHÔNG bắt pha B; D/F d
 - Lượt lặp này dùng Python `.venv`, 1 Torch thread, giữ mặc định 5 warm-up/30 reps; ứng dụng khác không bị đóng. Không thể quy nguyên nhân dao động cho một tiến trình cụ thể từ phép đo hiện có. A5 tiếp tục CHƯA ĐẠT; không thay tiêu chí, không gắn `gate-A`. Skill step (D) và detector/gate (F) tiếp tục deferred vì thiếu prerequisite.
 - 2026-10-11 lượt A5 tiếp theo với Torch 1 thread (`results/A5_cost_retry2.jsonl`): median H=1..32 lần lượt 0.000602, 0.001340, 0.001499, 0.002609, 0.005600, 0.009656 giây; p95 0.000895, 0.003611, 0.001772, 0.003116, 0.010756, 0.011563 giây. Max absolute deviation/median: 105.3%, 301.6%, 136.9%, 35.7%, 192.7%, 53.3%; cả sáu FAIL.
 - Mẫu chênh lệch tiến trình 5 giây ngay trước phép đo: Taskmgr 0.70 CPU-giây, PowerShell 0.09, ChatGPT 0.08/0.06/0.06, browser 0.05/0.05. Mẫu ngắn này chỉ mô tả hoạt động tại thời điểm đó, không chứng minh nguyên nhân độ dao động. Không đóng tiến trình vì có thể gián đoạn phiên người dùng. A5/Gate A vẫn CHƯA ĐẠT; chưa gắn tag và chưa vào pha B.
+
+=== A5 GHI CHÚ (Codespace, 2026-10-11) — LƯỢT 05 (run05) ===
+Lệnh: PYTHONPATH=. python scripts/measure_cost.py --out results/A5_cost_codespace_run05.jsonl --threads 1
+Xác nhận git diff scripts/measure_cost.py: KHÔNG ĐỔI (hash 7fa4b3e6... khớp).
+Kết quả JSONL: 6 horizon (H=1,2,4,8,16,32), 30 mẫu/H, median/p95/deviation từ chính mẫu.
+Kiểm tra độc lập từ JSONL (run05):
+- H=1: deviation=0.3585 (FAIL), median=0.000325s, p95=0.000372s, samples=30
+- H=2: deviation=0.3901 (FAIL), median=0.000765s, p95=0.000931s, samples=30
+- H=4: deviation=0.0729 (PASS), median=0.000809s, p95=0.000857s, samples=30
+- H=8: deviation=0.7029 (FAIL), median=0.001427s, p95=0.001684s, samples=30
+- H=16: deviation=0.8598 (FAIL), median=0.002746s, p95=0.004558s, samples=30
+- H=32: deviation=2.5369 (FAIL), median=0.005209s, p95=0.010853s, samples=30
+PASS: 1/6 (H=4); FAIL: 5/6.
+Môi trường (đầu ra thực tế, không thay bằng echo kết luận): CPU load 0.65/0.58/0.71, mem 3.8/7.8Gi, torch threads=1; ps cho thấy các tiến trình vscode (685, 1986, 663, 3302, 887, 700) với pcpu 0.1-12.2 — không phải benchmark do chính lượt này khởi chạy; không kill vì có thể gián đoạn phiên người dùng.
+Quyết định: A5 CHƯA ĐẠT (chưa có lượt nào đạt cả 6 H); KHÔNG gắn gate-A; KHÔNG bắt pha B; D/F deferred. Tiếp tục run06.
+
+=== A5 ĐANG LÀM — 2026-10-11 (stability chưa đạt) ===
