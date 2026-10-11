@@ -153,7 +153,7 @@ Kiểm tra độc lập từ JSONL (run06):
 - H=16: deviation=0.7680 (FAIL), median=0.002855s, p95=0.004507s, samples=30
 - H=32: deviation=0.6640 (FAIL), median=0.005201s, p95=0.007826s, samples=30
 PASS: 0/6; FAIL: 6/6.
-Quyết định: A5 CHƯA ĐẠT (6 lượt hợp lệ: run01-run06, tất cả FAIL ít nhất 5/6 H; không có lượt nào đạt cả 6 H dưới 20%). KHÔNG gắn gate-A; KHÔNG bắt pha B; D/F deferred (prerequisite missing). Không tuyên bố hoàn tất — trở ngại khách quan đã được chứng minh bằng 6 lượt đo thật từ script không sửa.
+Quyết định: A5 CHƯA ĐẠT (6 lượt hợp lệ: run01-run06, tất cả FAIL ít nhất 5/6 H; không có lượt nào đạt cả 6 H dưới 20%). KHÔNG gắn gate-A; KHÔNG bắt pha B; D/F deferred (prerequisite missing). Không tuyên bố hoàn tất — sáu lượt cho thấy A5 chưa đạt, nhưng chưa xác định nguyên nhân và không chứng minh trở ngại là không thể khắc phục.
 
 === A5 ĐANG LÀM — 2026-10-11 (stability chưa đạt) ===
 
@@ -162,3 +162,9 @@ Quyết định: A5 CHƯA ĐẠT (6 lượt hợp lệ: run01-run06, tất cả 
 - Kết quả: H=1 23.88%; H=2 21.84%; H=4 458.91%; H=8 91.70%; H=16 76.80%; H=32 66.40%. A5 run06 đạt 0/6; Gate A chưa đạt.
 - Script hash khớp mã đo thật. Provenance caveat được ghi ngay trong JSONL: revision đo `ca991b9`, `working_tree_dirty=true`. Commit `8281a73` chứa JSONL, sau đó merge `2de74b7` thêm logbook; logbook hiện nêu rõ dirty state.
 - Run06 chỉ cho thấy lần đo này không ổn định theo ngưỡng 20%; không xác định nguyên nhân và không chứng minh trở ngại là không thể khắc phục. Tiếp tục run07 từ clean checkout, không thay tiêu chí; ghi SHA commit trước đo, xác nhận `git status --porcelain` rỗng và source hashes; nếu lần đo vẫn dirty thì giữ dữ liệu, nêu caveat, không gọi nó là clean provenance.
+=== A5 GHI CHÚ (Codespace, 2026-10-11) — LƯỢT 07 (run07) ===
+- Lệnh: `PYTHONPATH=. /workspaces/Soul-AI/.venv/bin/python scripts/measure_cost.py --out results/A5_cost_codespace_run07.jsonl --threads 1`.
+- Đo trong snapshot sạch riêng tạo từ commit `3292a561b8cc2bf25c0634772ebb1d754acfb4be`; `git status --porcelain` trống trước đo; revision, source hash và `working_tree_dirty=false` trong cả 6 record khớp. Script SHA-256: `7fa4b3e6cedb99449492a1e8cf3e909789d5f68c65e839c62c33588e66969fc6`.
+- Môi trường đầu phép đo: 2026-10-11T03:50:29Z; Codespace 2 vCPU, load 1.32/1.09/0.97, RAM 7.8 GiB (4.7 GiB used, 3.0 GiB available), swap 0; Torch threads=1. `ps` thấy tiến trình MainThread PID 685 dùng 11.3% CPU và sshd 1.8%; không đóng tiến trình.
+- Kiểm toán raw JSONL: 6 record measured, 30 mẫu/H, dữ liệu tăng dần; median, p95 theo `CostMeter` (`xs[27]`), deviation và cờ pass tính lại khớp. Kết quả: H=1 68.56% FAIL (median 0.318 ms, p95 0.374 ms); H=2 16.12% PASS (0.503/0.539 ms); H=4 35.05% FAIL (0.846/0.927 ms); H=8 86.87% FAIL (1.545/2.233 ms); H=16 159.20% FAIL (5.266/9.490 ms); H=32 85.99% FAIL (6.975/11.670 ms).
+- Run07 đạt 1/6, A5 vẫn CHƯA ĐẠT. Giữ nguyên tiêu chí; không gắn gate-A, không bắt pha B; D/F deferred. Tiếp tục run08; đây là bằng chứng một lượt đo không đạt, không phải bằng chứng nguyên nhân nội tại/không thể khắc phục.
