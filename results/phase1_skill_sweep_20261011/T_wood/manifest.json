@@ -1,0 +1,575 @@
+{
+  "schema_version": 1,
+  "kind": "phase1_skill_replay_comparison",
+  "status": "EXPLORATORY_TRAIN_SEEDS_NO_PROMOTION",
+  "recorded_at_utc": "2026-10-11T19:40:20.196387+07:00",
+  "task": "T_wood",
+  "source_seed": 5,
+  "evaluation_seeds": [
+    200,
+    201,
+    202,
+    203,
+    204,
+    205,
+    206,
+    207,
+    208,
+    209
+  ],
+  "source_action_count": 104,
+  "candidate_skill_success_fraction": 1.0,
+  "replay_success_fraction": 0.1,
+  "descriptive_A_skill_minus_replay": 0.9,
+  "episodes": [
+    {
+      "task": "T_wood",
+      "seed": 200,
+      "controller": "candidate_skill",
+      "success": true,
+      "steps": 144,
+      "safety_blocks": 0,
+      "decision_wall_seconds": 0.02500950000830926,
+      "skill_card": {
+        "skill_id": "minicraft.expert.T_wood",
+        "version": "0.1.0-alpha",
+        "status": "Candidate",
+        "implementation": "privileged_full_state_expert_wrapper",
+        "context": {
+          "environment": "MiniCraftEnv",
+          "task": "T_wood",
+          "requires_full_state": true
+        },
+        "expected_outcome": {
+          "scope": "episode_goal",
+          "condition": {
+            "field": "inv.wood",
+            "operator": ">=",
+            "value": 5
+          },
+          "confidence_status": "NOT_CALIBRATED"
+        },
+        "episodes_completed": 1,
+        "episodes_succeeded": 1,
+        "empirical_success_rate": 1.0,
+        "known_risks": [
+          "Uses privileged full-map state unavailable to the learned agent.",
+          "Expert replans with BFS each action; no compute advantage is established.",
+          "OOD robustness and held-out generalization are not validated."
+        ],
+        "failure_modes": [
+          "No reachable resource currently yields a noop while the episode continues.",
+          "Safety filtering may replace a proposed action with noop.",
+          "Hidden action-mapping shocks can invalidate expert movement assumptions.",
+          "Survival failure or episode timeout can prevent goal completion."
+        ],
+        "validation_note": "Candidate status only; no promotion threshold is locked."
+      }
+    },
+    {
+      "task": "T_wood",
+      "seed": 200,
+      "controller": "replay",
+      "success": false,
+      "steps": 96,
+      "safety_blocks": 0,
+      "decision_wall_seconds": 7.73001229390502E-05,
+      "skill_card": null
+    },
+    {
+      "task": "T_wood",
+      "seed": 201,
+      "controller": "candidate_skill",
+      "success": true,
+      "steps": 37,
+      "safety_blocks": 0,
+      "decision_wall_seconds": 0.0036805999552598223,
+      "skill_card": {
+        "skill_id": "minicraft.expert.T_wood",
+        "version": "0.1.0-alpha",
+        "status": "Candidate",
+        "implementation": "privileged_full_state_expert_wrapper",
+        "context": {
+          "environment": "MiniCraftEnv",
+          "task": "T_wood",
+          "requires_full_state": true
+        },
+        "expected_outcome": {
+          "scope": "episode_goal",
+          "condition": {
+            "field": "inv.wood",
+            "operator": ">=",
+            "value": 5
+          },
+          "confidence_status": "NOT_CALIBRATED"
+        },
+        "episodes_completed": 1,
+        "episodes_succeeded": 1,
+        "empirical_success_rate": 1.0,
+        "known_risks": [
+          "Uses privileged full-map state unavailable to the learned agent.",
+          "Expert replans with BFS each action; no compute advantage is established.",
+          "OOD robustness and held-out generalization are not validated."
+        ],
+        "failure_modes": [
+          "No reachable resource currently yields a noop while the episode continues.",
+          "Safety filtering may replace a proposed action with noop.",
+          "Hidden action-mapping shocks can invalidate expert movement assumptions.",
+          "Survival failure or episode timeout can prevent goal completion."
+        ],
+        "validation_note": "Candidate status only; no promotion threshold is locked."
+      }
+    },
+    {
+      "task": "T_wood",
+      "seed": 201,
+      "controller": "replay",
+      "success": false,
+      "steps": 55,
+      "safety_blocks": 0,
+      "decision_wall_seconds": 4.39999857917428E-05,
+      "skill_card": null
+    },
+    {
+      "task": "T_wood",
+      "seed": 202,
+      "controller": "candidate_skill",
+      "success": true,
+      "steps": 25,
+      "safety_blocks": 0,
+      "decision_wall_seconds": 0.002909699993324466,
+      "skill_card": {
+        "skill_id": "minicraft.expert.T_wood",
+        "version": "0.1.0-alpha",
+        "status": "Candidate",
+        "implementation": "privileged_full_state_expert_wrapper",
+        "context": {
+          "environment": "MiniCraftEnv",
+          "task": "T_wood",
+          "requires_full_state": true
+        },
+        "expected_outcome": {
+          "scope": "episode_goal",
+          "condition": {
+            "field": "inv.wood",
+            "operator": ">=",
+            "value": 5
+          },
+          "confidence_status": "NOT_CALIBRATED"
+        },
+        "episodes_completed": 1,
+        "episodes_succeeded": 1,
+        "empirical_success_rate": 1.0,
+        "known_risks": [
+          "Uses privileged full-map state unavailable to the learned agent.",
+          "Expert replans with BFS each action; no compute advantage is established.",
+          "OOD robustness and held-out generalization are not validated."
+        ],
+        "failure_modes": [
+          "No reachable resource currently yields a noop while the episode continues.",
+          "Safety filtering may replace a proposed action with noop.",
+          "Hidden action-mapping shocks can invalidate expert movement assumptions.",
+          "Survival failure or episode timeout can prevent goal completion."
+        ],
+        "validation_note": "Candidate status only; no promotion threshold is locked."
+      }
+    },
+    {
+      "task": "T_wood",
+      "seed": 202,
+      "controller": "replay",
+      "success": false,
+      "steps": 30,
+      "safety_blocks": 0,
+      "decision_wall_seconds": 2.3000058718025684E-05,
+      "skill_card": null
+    },
+    {
+      "task": "T_wood",
+      "seed": 203,
+      "controller": "candidate_skill",
+      "success": true,
+      "steps": 216,
+      "safety_blocks": 0,
+      "decision_wall_seconds": 0.02391429987619631,
+      "skill_card": {
+        "skill_id": "minicraft.expert.T_wood",
+        "version": "0.1.0-alpha",
+        "status": "Candidate",
+        "implementation": "privileged_full_state_expert_wrapper",
+        "context": {
+          "environment": "MiniCraftEnv",
+          "task": "T_wood",
+          "requires_full_state": true
+        },
+        "expected_outcome": {
+          "scope": "episode_goal",
+          "condition": {
+            "field": "inv.wood",
+            "operator": ">=",
+            "value": 5
+          },
+          "confidence_status": "NOT_CALIBRATED"
+        },
+        "episodes_completed": 1,
+        "episodes_succeeded": 1,
+        "empirical_success_rate": 1.0,
+        "known_risks": [
+          "Uses privileged full-map state unavailable to the learned agent.",
+          "Expert replans with BFS each action; no compute advantage is established.",
+          "OOD robustness and held-out generalization are not validated."
+        ],
+        "failure_modes": [
+          "No reachable resource currently yields a noop while the episode continues.",
+          "Safety filtering may replace a proposed action with noop.",
+          "Hidden action-mapping shocks can invalidate expert movement assumptions.",
+          "Survival failure or episode timeout can prevent goal completion."
+        ],
+        "validation_note": "Candidate status only; no promotion threshold is locked."
+      }
+    },
+    {
+      "task": "T_wood",
+      "seed": 203,
+      "controller": "replay",
+      "success": false,
+      "steps": 153,
+      "safety_blocks": 0,
+      "decision_wall_seconds": 0.0001297001726925373,
+      "skill_card": null
+    },
+    {
+      "task": "T_wood",
+      "seed": 204,
+      "controller": "candidate_skill",
+      "success": true,
+      "steps": 57,
+      "safety_blocks": 0,
+      "decision_wall_seconds": 0.00672070006839931,
+      "skill_card": {
+        "skill_id": "minicraft.expert.T_wood",
+        "version": "0.1.0-alpha",
+        "status": "Candidate",
+        "implementation": "privileged_full_state_expert_wrapper",
+        "context": {
+          "environment": "MiniCraftEnv",
+          "task": "T_wood",
+          "requires_full_state": true
+        },
+        "expected_outcome": {
+          "scope": "episode_goal",
+          "condition": {
+            "field": "inv.wood",
+            "operator": ">=",
+            "value": 5
+          },
+          "confidence_status": "NOT_CALIBRATED"
+        },
+        "episodes_completed": 1,
+        "episodes_succeeded": 1,
+        "empirical_success_rate": 1.0,
+        "known_risks": [
+          "Uses privileged full-map state unavailable to the learned agent.",
+          "Expert replans with BFS each action; no compute advantage is established.",
+          "OOD robustness and held-out generalization are not validated."
+        ],
+        "failure_modes": [
+          "No reachable resource currently yields a noop while the episode continues.",
+          "Safety filtering may replace a proposed action with noop.",
+          "Hidden action-mapping shocks can invalidate expert movement assumptions.",
+          "Survival failure or episode timeout can prevent goal completion."
+        ],
+        "validation_note": "Candidate status only; no promotion threshold is locked."
+      }
+    },
+    {
+      "task": "T_wood",
+      "seed": 204,
+      "controller": "replay",
+      "success": true,
+      "steps": 104,
+      "safety_blocks": 0,
+      "decision_wall_seconds": 0.0001000999181997031,
+      "skill_card": null
+    },
+    {
+      "task": "T_wood",
+      "seed": 205,
+      "controller": "candidate_skill",
+      "success": true,
+      "steps": 300,
+      "safety_blocks": 0,
+      "decision_wall_seconds": 0.036055700009455904,
+      "skill_card": {
+        "skill_id": "minicraft.expert.T_wood",
+        "version": "0.1.0-alpha",
+        "status": "Candidate",
+        "implementation": "privileged_full_state_expert_wrapper",
+        "context": {
+          "environment": "MiniCraftEnv",
+          "task": "T_wood",
+          "requires_full_state": true
+        },
+        "expected_outcome": {
+          "scope": "episode_goal",
+          "condition": {
+            "field": "inv.wood",
+            "operator": ">=",
+            "value": 5
+          },
+          "confidence_status": "NOT_CALIBRATED"
+        },
+        "episodes_completed": 1,
+        "episodes_succeeded": 1,
+        "empirical_success_rate": 1.0,
+        "known_risks": [
+          "Uses privileged full-map state unavailable to the learned agent.",
+          "Expert replans with BFS each action; no compute advantage is established.",
+          "OOD robustness and held-out generalization are not validated."
+        ],
+        "failure_modes": [
+          "No reachable resource currently yields a noop while the episode continues.",
+          "Safety filtering may replace a proposed action with noop.",
+          "Hidden action-mapping shocks can invalidate expert movement assumptions.",
+          "Survival failure or episode timeout can prevent goal completion."
+        ],
+        "validation_note": "Candidate status only; no promotion threshold is locked."
+      }
+    },
+    {
+      "task": "T_wood",
+      "seed": 205,
+      "controller": "replay",
+      "success": false,
+      "steps": 300,
+      "safety_blocks": 0,
+      "decision_wall_seconds": 0.0002450999163556844,
+      "skill_card": null
+    },
+    {
+      "task": "T_wood",
+      "seed": 206,
+      "controller": "candidate_skill",
+      "success": true,
+      "steps": 300,
+      "safety_blocks": 0,
+      "decision_wall_seconds": 0.06027270013873931,
+      "skill_card": {
+        "skill_id": "minicraft.expert.T_wood",
+        "version": "0.1.0-alpha",
+        "status": "Candidate",
+        "implementation": "privileged_full_state_expert_wrapper",
+        "context": {
+          "environment": "MiniCraftEnv",
+          "task": "T_wood",
+          "requires_full_state": true
+        },
+        "expected_outcome": {
+          "scope": "episode_goal",
+          "condition": {
+            "field": "inv.wood",
+            "operator": ">=",
+            "value": 5
+          },
+          "confidence_status": "NOT_CALIBRATED"
+        },
+        "episodes_completed": 1,
+        "episodes_succeeded": 1,
+        "empirical_success_rate": 1.0,
+        "known_risks": [
+          "Uses privileged full-map state unavailable to the learned agent.",
+          "Expert replans with BFS each action; no compute advantage is established.",
+          "OOD robustness and held-out generalization are not validated."
+        ],
+        "failure_modes": [
+          "No reachable resource currently yields a noop while the episode continues.",
+          "Safety filtering may replace a proposed action with noop.",
+          "Hidden action-mapping shocks can invalidate expert movement assumptions.",
+          "Survival failure or episode timeout can prevent goal completion."
+        ],
+        "validation_note": "Candidate status only; no promotion threshold is locked."
+      }
+    },
+    {
+      "task": "T_wood",
+      "seed": 206,
+      "controller": "replay",
+      "success": false,
+      "steps": 300,
+      "safety_blocks": 0,
+      "decision_wall_seconds": 0.000261900044279173,
+      "skill_card": null
+    },
+    {
+      "task": "T_wood",
+      "seed": 207,
+      "controller": "candidate_skill",
+      "success": true,
+      "steps": 36,
+      "safety_blocks": 0,
+      "decision_wall_seconds": 0.005250099973636679,
+      "skill_card": {
+        "skill_id": "minicraft.expert.T_wood",
+        "version": "0.1.0-alpha",
+        "status": "Candidate",
+        "implementation": "privileged_full_state_expert_wrapper",
+        "context": {
+          "environment": "MiniCraftEnv",
+          "task": "T_wood",
+          "requires_full_state": true
+        },
+        "expected_outcome": {
+          "scope": "episode_goal",
+          "condition": {
+            "field": "inv.wood",
+            "operator": ">=",
+            "value": 5
+          },
+          "confidence_status": "NOT_CALIBRATED"
+        },
+        "episodes_completed": 1,
+        "episodes_succeeded": 1,
+        "empirical_success_rate": 1.0,
+        "known_risks": [
+          "Uses privileged full-map state unavailable to the learned agent.",
+          "Expert replans with BFS each action; no compute advantage is established.",
+          "OOD robustness and held-out generalization are not validated."
+        ],
+        "failure_modes": [
+          "No reachable resource currently yields a noop while the episode continues.",
+          "Safety filtering may replace a proposed action with noop.",
+          "Hidden action-mapping shocks can invalidate expert movement assumptions.",
+          "Survival failure or episode timeout can prevent goal completion."
+        ],
+        "validation_note": "Candidate status only; no promotion threshold is locked."
+      }
+    },
+    {
+      "task": "T_wood",
+      "seed": 207,
+      "controller": "replay",
+      "success": false,
+      "steps": 116,
+      "safety_blocks": 0,
+      "decision_wall_seconds": 0.00011380006617400795,
+      "skill_card": null
+    },
+    {
+      "task": "T_wood",
+      "seed": 208,
+      "controller": "candidate_skill",
+      "success": true,
+      "steps": 79,
+      "safety_blocks": 0,
+      "decision_wall_seconds": 0.011125800010631792,
+      "skill_card": {
+        "skill_id": "minicraft.expert.T_wood",
+        "version": "0.1.0-alpha",
+        "status": "Candidate",
+        "implementation": "privileged_full_state_expert_wrapper",
+        "context": {
+          "environment": "MiniCraftEnv",
+          "task": "T_wood",
+          "requires_full_state": true
+        },
+        "expected_outcome": {
+          "scope": "episode_goal",
+          "condition": {
+            "field": "inv.wood",
+            "operator": ">=",
+            "value": 5
+          },
+          "confidence_status": "NOT_CALIBRATED"
+        },
+        "episodes_completed": 1,
+        "episodes_succeeded": 1,
+        "empirical_success_rate": 1.0,
+        "known_risks": [
+          "Uses privileged full-map state unavailable to the learned agent.",
+          "Expert replans with BFS each action; no compute advantage is established.",
+          "OOD robustness and held-out generalization are not validated."
+        ],
+        "failure_modes": [
+          "No reachable resource currently yields a noop while the episode continues.",
+          "Safety filtering may replace a proposed action with noop.",
+          "Hidden action-mapping shocks can invalidate expert movement assumptions.",
+          "Survival failure or episode timeout can prevent goal completion."
+        ],
+        "validation_note": "Candidate status only; no promotion threshold is locked."
+      }
+    },
+    {
+      "task": "T_wood",
+      "seed": 208,
+      "controller": "replay",
+      "success": false,
+      "steps": 59,
+      "safety_blocks": 0,
+      "decision_wall_seconds": 4.670002090279013E-05,
+      "skill_card": null
+    },
+    {
+      "task": "T_wood",
+      "seed": 209,
+      "controller": "candidate_skill",
+      "success": true,
+      "steps": 112,
+      "safety_blocks": 0,
+      "decision_wall_seconds": 0.015812500059837475,
+      "skill_card": {
+        "skill_id": "minicraft.expert.T_wood",
+        "version": "0.1.0-alpha",
+        "status": "Candidate",
+        "implementation": "privileged_full_state_expert_wrapper",
+        "context": {
+          "environment": "MiniCraftEnv",
+          "task": "T_wood",
+          "requires_full_state": true
+        },
+        "expected_outcome": {
+          "scope": "episode_goal",
+          "condition": {
+            "field": "inv.wood",
+            "operator": ">=",
+            "value": 5
+          },
+          "confidence_status": "NOT_CALIBRATED"
+        },
+        "episodes_completed": 1,
+        "episodes_succeeded": 1,
+        "empirical_success_rate": 1.0,
+        "known_risks": [
+          "Uses privileged full-map state unavailable to the learned agent.",
+          "Expert replans with BFS each action; no compute advantage is established.",
+          "OOD robustness and held-out generalization are not validated."
+        ],
+        "failure_modes": [
+          "No reachable resource currently yields a noop while the episode continues.",
+          "Safety filtering may replace a proposed action with noop.",
+          "Hidden action-mapping shocks can invalidate expert movement assumptions.",
+          "Survival failure or episode timeout can prevent goal completion."
+        ],
+        "validation_note": "Candidate status only; no promotion threshold is locked."
+      }
+    },
+    {
+      "task": "T_wood",
+      "seed": 209,
+      "controller": "replay",
+      "success": false,
+      "steps": 59,
+      "safety_blocks": 0,
+      "decision_wall_seconds": 6.520005990751088E-05,
+      "skill_card": null
+    }
+  ],
+  "trace_path": "results/phase1_skill_sweep_20261011/T_wood/comparison_trace.jsonl",
+  "source_trace_sha256": "ab45c4db459e66cebe8de9c02af03858ea96da2806c54c677f6b48bc7a713228",
+  "trace_sha256": "5c5634f711a6ebecb01102b3393fb522b644b5c0e1cfc4baad26d7bf171d2aa2",
+  "limits": [
+    "Train-seed smoke comparison only; not a held-out generalization result.",
+    "No promotion threshold or variant-distance protocol is locked.",
+    "Candidate uses privileged full-state BFS; replay is a fixed action cache.",
+    "Single small sample and wall-clock measurements are descriptive only."
+  ]
+}

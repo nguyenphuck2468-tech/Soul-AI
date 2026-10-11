@@ -23,3 +23,4 @@ CHANGELOG_SOUL.md — sửa tối thiểu cho RAWA (G3.0 transition mask, G3.1 i
 2026-10-11 — Run the one-command alpha pipeline end-to-end; dev seed 1003 is now recorded as seen for exploratory iteration.
 2026-10-11 — Add a Phase 1 Candidate skill interface over the existing MiniCraft expert, with explicit task-goal expectation, empirical episode counts, safety-filtered smoke runner, and no automatic promotion thresholds.
 2026-10-11 — Add a train-seed Candidate-versus-action-replay diagnostic; archive three one-seed-per-task traces as exploratory comparisons without promotion or generalization claims.
+2026-10-11 — Add `scripts/phase1_skill_sweep.py` and archive paired Candidate-versus-replay runs on train seeds 200–209 for all three tasks; results remain exploratory, with no held-out or promotion claim.

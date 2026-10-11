@@ -27,10 +27,12 @@ AI-generated execution plan and its B6 endpoint are not the project endpoint.
   it defaults to unique output under `work/` and labels the manifest smoke-only.
 - Phase 1 now has a Candidate skill wrapper around the existing privileged
   MiniCraft expert. It reports its task goal, status, risks, and descriptive
-  episode outcome, plus a fixed-action replay comparison. Three single-seed
-  train-seed samples favored replanning over replay (Candidate 1, replay 0),
-  but are not held-out generalization evidence and do not validate skill
-  maturity. See `docs/PHASE1_SKILL_ALPHA.md`.
+  episode outcome, plus fixed-action replay comparison and a three-task batch
+  sweep. Across train seeds 200–209, Candidate succeeded in 10/10 episodes
+  per task; replay succeeded in 1/10 for T_wood and 0/10 for T_tools and
+  T_iron. This remains exploratory train-seed evidence, not held-out
+  generalization, skill validation, or a compute-savings result. See
+  `docs/PHASE1_SKILL_ALPHA.md` and `results/phase1_skill_sweep_20261011/`.
 - `surprise()` is an uncalibrated raw masked prediction-error diagnostic.
   Predictive uncertainty remains a labeled zero placeholder. Neither is valid
   as a detector or intervention threshold yet.

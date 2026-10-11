@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "kind": "phase1_skill_replay_multi_seed_sweep",
+  "status": "EXPLORATORY_TRAIN_SEEDS_NO_PROMOTION",
+  "recorded_at_utc": "2026-10-11T19:40:23.130031+07:00",
+  "evaluation_seeds": [
+    200,
+    201,
+    202,
+    203,
+    204,
+    205,
+    206,
+    207,
+    208,
+    209
+  ],
+  "max_ticks": 300,
+  "tasks": {
+    "T_wood": {
+      "source_seed": 5,
+      "source_trace_sha256": "ab45c4db459e66cebe8de9c02af03858ea96da2806c54c677f6b48bc7a713228",
+      "candidate_skill_successes": 10,
+      "replay_successes": 1,
+      "episode_count_per_controller": 10,
+      "candidate_skill_success_fraction": 1.0,
+      "replay_success_fraction": 0.1,
+      "descriptive_A_skill_minus_replay": 0.9,
+      "manifest_path": "results/phase1_skill_sweep_20261011/T_wood/manifest.json"
+    },
+    "T_tools": {
+      "source_seed": 6,
+      "source_trace_sha256": "d843174928718cb9df1d032b56b9fca5e5af82354acbcfe981f4a5ccc2a2fc95",
+      "candidate_skill_successes": 10,
+      "replay_successes": 0,
+      "episode_count_per_controller": 10,
+      "candidate_skill_success_fraction": 1.0,
+      "replay_success_fraction": 0.0,
+      "descriptive_A_skill_minus_replay": 1.0,
+      "manifest_path": "results/phase1_skill_sweep_20261011/T_tools/manifest.json"
+    },
+    "T_iron": {
+      "source_seed": 7,
+      "source_trace_sha256": "f55da1f7f6aedb2fa24887d1a8f3306c046511de1d1e9fe99d2ee4876d7d8a95",
+      "candidate_skill_successes": 10,
+      "replay_successes": 0,
+      "episode_count_per_controller": 10,
+      "candidate_skill_success_fraction": 1.0,
+      "replay_success_fraction": 0.0,
+      "descriptive_A_skill_minus_replay": 1.0,
+      "manifest_path": "results/phase1_skill_sweep_20261011/T_iron/manifest.json"
+    }
+  },
+  "limits": [
+    "Exploratory train-seed sweep only; not held-out generalization.",
+    "Variant distance and promotion margins remain unlocked.",
+    "No skill promotion or compute-savings claim is made."
+  ]
+}

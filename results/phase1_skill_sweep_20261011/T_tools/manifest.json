@@ -1,0 +1,575 @@
+{
+  "schema_version": 1,
+  "kind": "phase1_skill_replay_comparison",
+  "status": "EXPLORATORY_TRAIN_SEEDS_NO_PROMOTION",
+  "recorded_at_utc": "2026-10-11T19:40:21.500449+07:00",
+  "task": "T_tools",
+  "source_seed": 6,
+  "evaluation_seeds": [
+    200,
+    201,
+    202,
+    203,
+    204,
+    205,
+    206,
+    207,
+    208,
+    209
+  ],
+  "source_action_count": 57,
+  "candidate_skill_success_fraction": 1.0,
+  "replay_success_fraction": 0.0,
+  "descriptive_A_skill_minus_replay": 1.0,
+  "episodes": [
+    {
+      "task": "T_tools",
+      "seed": 200,
+      "controller": "candidate_skill",
+      "success": true,
+      "steps": 97,
+      "safety_blocks": 0,
+      "decision_wall_seconds": 0.022625900033744983,
+      "skill_card": {
+        "skill_id": "minicraft.expert.T_tools",
+        "version": "0.1.0-alpha",
+        "status": "Candidate",
+        "implementation": "privileged_full_state_expert_wrapper",
+        "context": {
+          "environment": "MiniCraftEnv",
+          "task": "T_tools",
+          "requires_full_state": true
+        },
+        "expected_outcome": {
+          "scope": "episode_goal",
+          "condition": {
+            "field": "inv.stone_pickaxe",
+            "operator": ">=",
+            "value": 1
+          },
+          "confidence_status": "NOT_CALIBRATED"
+        },
+        "episodes_completed": 1,
+        "episodes_succeeded": 1,
+        "empirical_success_rate": 1.0,
+        "known_risks": [
+          "Uses privileged full-map state unavailable to the learned agent.",
+          "Expert replans with BFS each action; no compute advantage is established.",
+          "OOD robustness and held-out generalization are not validated."
+        ],
+        "failure_modes": [
+          "No reachable resource currently yields a noop while the episode continues.",
+          "Safety filtering may replace a proposed action with noop.",
+          "Hidden action-mapping shocks can invalidate expert movement assumptions.",
+          "Survival failure or episode timeout can prevent goal completion."
+        ],
+        "validation_note": "Candidate status only; no promotion threshold is locked."
+      }
+    },
+    {
+      "task": "T_tools",
+      "seed": 200,
+      "controller": "replay",
+      "success": false,
+      "steps": 189,
+      "safety_blocks": 0,
+      "decision_wall_seconds": 0.00015359987446572632,
+      "skill_card": null
+    },
+    {
+      "task": "T_tools",
+      "seed": 201,
+      "controller": "candidate_skill",
+      "success": true,
+      "steps": 49,
+      "safety_blocks": 0,
+      "decision_wall_seconds": 0.006527299992740154,
+      "skill_card": {
+        "skill_id": "minicraft.expert.T_tools",
+        "version": "0.1.0-alpha",
+        "status": "Candidate",
+        "implementation": "privileged_full_state_expert_wrapper",
+        "context": {
+          "environment": "MiniCraftEnv",
+          "task": "T_tools",
+          "requires_full_state": true
+        },
+        "expected_outcome": {
+          "scope": "episode_goal",
+          "condition": {
+            "field": "inv.stone_pickaxe",
+            "operator": ">=",
+            "value": 1
+          },
+          "confidence_status": "NOT_CALIBRATED"
+        },
+        "episodes_completed": 1,
+        "episodes_succeeded": 1,
+        "empirical_success_rate": 1.0,
+        "known_risks": [
+          "Uses privileged full-map state unavailable to the learned agent.",
+          "Expert replans with BFS each action; no compute advantage is established.",
+          "OOD robustness and held-out generalization are not validated."
+        ],
+        "failure_modes": [
+          "No reachable resource currently yields a noop while the episode continues.",
+          "Safety filtering may replace a proposed action with noop.",
+          "Hidden action-mapping shocks can invalidate expert movement assumptions.",
+          "Survival failure or episode timeout can prevent goal completion."
+        ],
+        "validation_note": "Candidate status only; no promotion threshold is locked."
+      }
+    },
+    {
+      "task": "T_tools",
+      "seed": 201,
+      "controller": "replay",
+      "success": false,
+      "steps": 204,
+      "safety_blocks": 0,
+      "decision_wall_seconds": 0.00016290000348817557,
+      "skill_card": null
+    },
+    {
+      "task": "T_tools",
+      "seed": 202,
+      "controller": "candidate_skill",
+      "success": true,
+      "steps": 27,
+      "safety_blocks": 0,
+      "decision_wall_seconds": 0.004461700023966841,
+      "skill_card": {
+        "skill_id": "minicraft.expert.T_tools",
+        "version": "0.1.0-alpha",
+        "status": "Candidate",
+        "implementation": "privileged_full_state_expert_wrapper",
+        "context": {
+          "environment": "MiniCraftEnv",
+          "task": "T_tools",
+          "requires_full_state": true
+        },
+        "expected_outcome": {
+          "scope": "episode_goal",
+          "condition": {
+            "field": "inv.stone_pickaxe",
+            "operator": ">=",
+            "value": 1
+          },
+          "confidence_status": "NOT_CALIBRATED"
+        },
+        "episodes_completed": 1,
+        "episodes_succeeded": 1,
+        "empirical_success_rate": 1.0,
+        "known_risks": [
+          "Uses privileged full-map state unavailable to the learned agent.",
+          "Expert replans with BFS each action; no compute advantage is established.",
+          "OOD robustness and held-out generalization are not validated."
+        ],
+        "failure_modes": [
+          "No reachable resource currently yields a noop while the episode continues.",
+          "Safety filtering may replace a proposed action with noop.",
+          "Hidden action-mapping shocks can invalidate expert movement assumptions.",
+          "Survival failure or episode timeout can prevent goal completion."
+        ],
+        "validation_note": "Candidate status only; no promotion threshold is locked."
+      }
+    },
+    {
+      "task": "T_tools",
+      "seed": 202,
+      "controller": "replay",
+      "success": false,
+      "steps": 32,
+      "safety_blocks": 0,
+      "decision_wall_seconds": 2.9300019377842546E-05,
+      "skill_card": null
+    },
+    {
+      "task": "T_tools",
+      "seed": 203,
+      "controller": "candidate_skill",
+      "success": true,
+      "steps": 208,
+      "safety_blocks": 0,
+      "decision_wall_seconds": 0.02711199995246716,
+      "skill_card": {
+        "skill_id": "minicraft.expert.T_tools",
+        "version": "0.1.0-alpha",
+        "status": "Candidate",
+        "implementation": "privileged_full_state_expert_wrapper",
+        "context": {
+          "environment": "MiniCraftEnv",
+          "task": "T_tools",
+          "requires_full_state": true
+        },
+        "expected_outcome": {
+          "scope": "episode_goal",
+          "condition": {
+            "field": "inv.stone_pickaxe",
+            "operator": ">=",
+            "value": 1
+          },
+          "confidence_status": "NOT_CALIBRATED"
+        },
+        "episodes_completed": 1,
+        "episodes_succeeded": 1,
+        "empirical_success_rate": 1.0,
+        "known_risks": [
+          "Uses privileged full-map state unavailable to the learned agent.",
+          "Expert replans with BFS each action; no compute advantage is established.",
+          "OOD robustness and held-out generalization are not validated."
+        ],
+        "failure_modes": [
+          "No reachable resource currently yields a noop while the episode continues.",
+          "Safety filtering may replace a proposed action with noop.",
+          "Hidden action-mapping shocks can invalidate expert movement assumptions.",
+          "Survival failure or episode timeout can prevent goal completion."
+        ],
+        "validation_note": "Candidate status only; no promotion threshold is locked."
+      }
+    },
+    {
+      "task": "T_tools",
+      "seed": 203,
+      "controller": "replay",
+      "success": false,
+      "steps": 274,
+      "safety_blocks": 0,
+      "decision_wall_seconds": 0.00027779988886322826,
+      "skill_card": null
+    },
+    {
+      "task": "T_tools",
+      "seed": 204,
+      "controller": "candidate_skill",
+      "success": true,
+      "steps": 78,
+      "safety_blocks": 0,
+      "decision_wall_seconds": 0.017081000114558265,
+      "skill_card": {
+        "skill_id": "minicraft.expert.T_tools",
+        "version": "0.1.0-alpha",
+        "status": "Candidate",
+        "implementation": "privileged_full_state_expert_wrapper",
+        "context": {
+          "environment": "MiniCraftEnv",
+          "task": "T_tools",
+          "requires_full_state": true
+        },
+        "expected_outcome": {
+          "scope": "episode_goal",
+          "condition": {
+            "field": "inv.stone_pickaxe",
+            "operator": ">=",
+            "value": 1
+          },
+          "confidence_status": "NOT_CALIBRATED"
+        },
+        "episodes_completed": 1,
+        "episodes_succeeded": 1,
+        "empirical_success_rate": 1.0,
+        "known_risks": [
+          "Uses privileged full-map state unavailable to the learned agent.",
+          "Expert replans with BFS each action; no compute advantage is established.",
+          "OOD robustness and held-out generalization are not validated."
+        ],
+        "failure_modes": [
+          "No reachable resource currently yields a noop while the episode continues.",
+          "Safety filtering may replace a proposed action with noop.",
+          "Hidden action-mapping shocks can invalidate expert movement assumptions.",
+          "Survival failure or episode timeout can prevent goal completion."
+        ],
+        "validation_note": "Candidate status only; no promotion threshold is locked."
+      }
+    },
+    {
+      "task": "T_tools",
+      "seed": 204,
+      "controller": "replay",
+      "success": false,
+      "steps": 300,
+      "safety_blocks": 0,
+      "decision_wall_seconds": 0.0002654001727933064,
+      "skill_card": null
+    },
+    {
+      "task": "T_tools",
+      "seed": 205,
+      "controller": "candidate_skill",
+      "success": true,
+      "steps": 300,
+      "safety_blocks": 0,
+      "decision_wall_seconds": 0.03155619995959569,
+      "skill_card": {
+        "skill_id": "minicraft.expert.T_tools",
+        "version": "0.1.0-alpha",
+        "status": "Candidate",
+        "implementation": "privileged_full_state_expert_wrapper",
+        "context": {
+          "environment": "MiniCraftEnv",
+          "task": "T_tools",
+          "requires_full_state": true
+        },
+        "expected_outcome": {
+          "scope": "episode_goal",
+          "condition": {
+            "field": "inv.stone_pickaxe",
+            "operator": ">=",
+            "value": 1
+          },
+          "confidence_status": "NOT_CALIBRATED"
+        },
+        "episodes_completed": 1,
+        "episodes_succeeded": 1,
+        "empirical_success_rate": 1.0,
+        "known_risks": [
+          "Uses privileged full-map state unavailable to the learned agent.",
+          "Expert replans with BFS each action; no compute advantage is established.",
+          "OOD robustness and held-out generalization are not validated."
+        ],
+        "failure_modes": [
+          "No reachable resource currently yields a noop while the episode continues.",
+          "Safety filtering may replace a proposed action with noop.",
+          "Hidden action-mapping shocks can invalidate expert movement assumptions.",
+          "Survival failure or episode timeout can prevent goal completion."
+        ],
+        "validation_note": "Candidate status only; no promotion threshold is locked."
+      }
+    },
+    {
+      "task": "T_tools",
+      "seed": 205,
+      "controller": "replay",
+      "success": false,
+      "steps": 300,
+      "safety_blocks": 0,
+      "decision_wall_seconds": 0.0006293999176705256,
+      "skill_card": null
+    },
+    {
+      "task": "T_tools",
+      "seed": 206,
+      "controller": "candidate_skill",
+      "success": true,
+      "steps": 27,
+      "safety_blocks": 0,
+      "decision_wall_seconds": 0.0033831000328063965,
+      "skill_card": {
+        "skill_id": "minicraft.expert.T_tools",
+        "version": "0.1.0-alpha",
+        "status": "Candidate",
+        "implementation": "privileged_full_state_expert_wrapper",
+        "context": {
+          "environment": "MiniCraftEnv",
+          "task": "T_tools",
+          "requires_full_state": true
+        },
+        "expected_outcome": {
+          "scope": "episode_goal",
+          "condition": {
+            "field": "inv.stone_pickaxe",
+            "operator": ">=",
+            "value": 1
+          },
+          "confidence_status": "NOT_CALIBRATED"
+        },
+        "episodes_completed": 1,
+        "episodes_succeeded": 1,
+        "empirical_success_rate": 1.0,
+        "known_risks": [
+          "Uses privileged full-map state unavailable to the learned agent.",
+          "Expert replans with BFS each action; no compute advantage is established.",
+          "OOD robustness and held-out generalization are not validated."
+        ],
+        "failure_modes": [
+          "No reachable resource currently yields a noop while the episode continues.",
+          "Safety filtering may replace a proposed action with noop.",
+          "Hidden action-mapping shocks can invalidate expert movement assumptions.",
+          "Survival failure or episode timeout can prevent goal completion."
+        ],
+        "validation_note": "Candidate status only; no promotion threshold is locked."
+      }
+    },
+    {
+      "task": "T_tools",
+      "seed": 206,
+      "controller": "replay",
+      "success": false,
+      "steps": 300,
+      "safety_blocks": 0,
+      "decision_wall_seconds": 0.00026540004182606936,
+      "skill_card": null
+    },
+    {
+      "task": "T_tools",
+      "seed": 207,
+      "controller": "candidate_skill",
+      "success": true,
+      "steps": 49,
+      "safety_blocks": 0,
+      "decision_wall_seconds": 0.0066479000088293105,
+      "skill_card": {
+        "skill_id": "minicraft.expert.T_tools",
+        "version": "0.1.0-alpha",
+        "status": "Candidate",
+        "implementation": "privileged_full_state_expert_wrapper",
+        "context": {
+          "environment": "MiniCraftEnv",
+          "task": "T_tools",
+          "requires_full_state": true
+        },
+        "expected_outcome": {
+          "scope": "episode_goal",
+          "condition": {
+            "field": "inv.stone_pickaxe",
+            "operator": ">=",
+            "value": 1
+          },
+          "confidence_status": "NOT_CALIBRATED"
+        },
+        "episodes_completed": 1,
+        "episodes_succeeded": 1,
+        "empirical_success_rate": 1.0,
+        "known_risks": [
+          "Uses privileged full-map state unavailable to the learned agent.",
+          "Expert replans with BFS each action; no compute advantage is established.",
+          "OOD robustness and held-out generalization are not validated."
+        ],
+        "failure_modes": [
+          "No reachable resource currently yields a noop while the episode continues.",
+          "Safety filtering may replace a proposed action with noop.",
+          "Hidden action-mapping shocks can invalidate expert movement assumptions.",
+          "Survival failure or episode timeout can prevent goal completion."
+        ],
+        "validation_note": "Candidate status only; no promotion threshold is locked."
+      }
+    },
+    {
+      "task": "T_tools",
+      "seed": 207,
+      "controller": "replay",
+      "success": false,
+      "steps": 39,
+      "safety_blocks": 0,
+      "decision_wall_seconds": 2.9600036214105785E-05,
+      "skill_card": null
+    },
+    {
+      "task": "T_tools",
+      "seed": 208,
+      "controller": "candidate_skill",
+      "success": true,
+      "steps": 73,
+      "safety_blocks": 0,
+      "decision_wall_seconds": 0.009062300043297,
+      "skill_card": {
+        "skill_id": "minicraft.expert.T_tools",
+        "version": "0.1.0-alpha",
+        "status": "Candidate",
+        "implementation": "privileged_full_state_expert_wrapper",
+        "context": {
+          "environment": "MiniCraftEnv",
+          "task": "T_tools",
+          "requires_full_state": true
+        },
+        "expected_outcome": {
+          "scope": "episode_goal",
+          "condition": {
+            "field": "inv.stone_pickaxe",
+            "operator": ">=",
+            "value": 1
+          },
+          "confidence_status": "NOT_CALIBRATED"
+        },
+        "episodes_completed": 1,
+        "episodes_succeeded": 1,
+        "empirical_success_rate": 1.0,
+        "known_risks": [
+          "Uses privileged full-map state unavailable to the learned agent.",
+          "Expert replans with BFS each action; no compute advantage is established.",
+          "OOD robustness and held-out generalization are not validated."
+        ],
+        "failure_modes": [
+          "No reachable resource currently yields a noop while the episode continues.",
+          "Safety filtering may replace a proposed action with noop.",
+          "Hidden action-mapping shocks can invalidate expert movement assumptions.",
+          "Survival failure or episode timeout can prevent goal completion."
+        ],
+        "validation_note": "Candidate status only; no promotion threshold is locked."
+      }
+    },
+    {
+      "task": "T_tools",
+      "seed": 208,
+      "controller": "replay",
+      "success": false,
+      "steps": 98,
+      "safety_blocks": 0,
+      "decision_wall_seconds": 9.2999980552122E-05,
+      "skill_card": null
+    },
+    {
+      "task": "T_tools",
+      "seed": 209,
+      "controller": "candidate_skill",
+      "success": true,
+      "steps": 78,
+      "safety_blocks": 0,
+      "decision_wall_seconds": 0.012341800043941475,
+      "skill_card": {
+        "skill_id": "minicraft.expert.T_tools",
+        "version": "0.1.0-alpha",
+        "status": "Candidate",
+        "implementation": "privileged_full_state_expert_wrapper",
+        "context": {
+          "environment": "MiniCraftEnv",
+          "task": "T_tools",
+          "requires_full_state": true
+        },
+        "expected_outcome": {
+          "scope": "episode_goal",
+          "condition": {
+            "field": "inv.stone_pickaxe",
+            "operator": ">=",
+            "value": 1
+          },
+          "confidence_status": "NOT_CALIBRATED"
+        },
+        "episodes_completed": 1,
+        "episodes_succeeded": 1,
+        "empirical_success_rate": 1.0,
+        "known_risks": [
+          "Uses privileged full-map state unavailable to the learned agent.",
+          "Expert replans with BFS each action; no compute advantage is established.",
+          "OOD robustness and held-out generalization are not validated."
+        ],
+        "failure_modes": [
+          "No reachable resource currently yields a noop while the episode continues.",
+          "Safety filtering may replace a proposed action with noop.",
+          "Hidden action-mapping shocks can invalidate expert movement assumptions.",
+          "Survival failure or episode timeout can prevent goal completion."
+        ],
+        "validation_note": "Candidate status only; no promotion threshold is locked."
+      }
+    },
+    {
+      "task": "T_tools",
+      "seed": 209,
+      "controller": "replay",
+      "success": false,
+      "steps": 300,
+      "safety_blocks": 0,
+      "decision_wall_seconds": 0.00022829986119177192,
+      "skill_card": null
+    }
+  ],
+  "trace_path": "results/phase1_skill_sweep_20261011/T_tools/comparison_trace.jsonl",
+  "source_trace_sha256": "d843174928718cb9df1d032b56b9fca5e5af82354acbcfe981f4a5ccc2a2fc95",
+  "trace_sha256": "432b3efa6a295977ebc4443cd898f93e685fec8a6d26f7ccacc42af7659ab3cc",
+  "limits": [
+    "Train-seed smoke comparison only; not a held-out generalization result.",
+    "No promotion threshold or variant-distance protocol is locked.",
+    "Candidate uses privileged full-state BFS; replay is a fixed action cache.",
+    "Single small sample and wall-clock measurements are descriptive only."
+  ]
+}

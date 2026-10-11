@@ -41,6 +41,16 @@ python -m scripts.phase1_replay_compare --task T_wood --source-trace results/pha
 Both controllers start from the same initial state for each seed. The script
 records raw outcomes and descriptive `A` without applying a threshold.
 
+For a paired exploratory sweep over all three tasks:
+
+```powershell
+python -m scripts.phase1_skill_sweep --seed-start 200 --seed-count 10
+```
+
+This compares each Candidate expert against its task's saved fixed-action
+trace over seeds 200–209 by default. The command archives per-step traces and
+per-task manifests under a unique `work/phase1_skill_sweeps/` directory.
+
 ## What is still needed before calling it a generalized skill
 
 The source report's held-out variant distance `d` and promotion margins remain
@@ -65,3 +75,11 @@ is an exploratory demonstration that fixed action traces can fail across new
 world seeds while the privileged expert replans; it does not establish the
 source report's held-out variant metric or skill generalization. Full traces
 and manifests are in `results/phase1_skill_replay_20261011/`.
+
+A follow-up paired sweep used train seeds 200–209 for each task. Candidate
+succeeded in 10/10 episodes for T_wood, T_tools, and T_iron; fixed replay
+succeeded in 1/10, 0/10, and 0/10 respectively. Descriptive `A` was +0.9,
++1.0, and +1.0. This is still exploratory train-seed evidence: it does not
+measure held-out variants, lock `d` or a promotion margin, validate a mature
+skill, or support a compute-savings claim. Full traces and manifests are in
+`results/phase1_skill_sweep_20261011/`.
