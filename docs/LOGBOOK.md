@@ -724,3 +724,8 @@ Quyết định: A5 CHƯA ĐẠT (6 lượt hợp lệ: run01-run06, tất cả 
 - Thêm `minicraft/env.py` và package export. Bản đồ 20×20 dùng một `numpy.random.Generator`; sinh đúng 48 cây, 32 đá, 16 nước, 8 dung nham, 4 quặng sắt; seed lỗi thử lại với bước +1,000,000; BFS chọn điểm xuất phát có đường đi an toàn đến ít nhất 5 cây và 1 quặng.
 - Implemented actions 0–8, hướng nhìn/di chuyển, blocked/interact, cuốc gỗ/đá, táo, zombie tối đa 3 con với cooldown/respawn, đói/máu, terminal death và milestone rewards theo mục B1. 7×7 patch/out-of-bounds code 6 và quan sát `self/inv/patch/mobs/events` có sẵn để B2 nối encoder.
 - Smoke-check seed 0: cùng seed tạo map/spawn giống nhau; shape `(20,20)` và số tile đúng (292 cỏ, 48 cây, 32 đá, 16 nước, 8 dung nham, 4 quặng); một noop đưa tick lên 1 và trả tuple hợp lệ. `git diff --check` sạch. B1 code đã implement; bộ kiểm thử đầy đủ sẽ được thêm ở B6.
+
+=== PHA B2 — STRUCTURED OBSERVATION ===
+- `MiniCraftEnv.observe()` trả đúng `self`, `inv`, `patch` 7×7, `mobs` trong tầm nhìn, và `events`. Out-of-bounds patch dùng code 6; tọa độ zombie ở ngoài 7×7 không được đưa vào danh sách quan sát.
+- Mở rộng `ObsEncoder` để mảng NumPy nhiều chiều tạo một feature riêng cho từng ô (`patch[y][x]`) và mask đánh dấu cả giá trị 0 lẫn các ô biên là có dữ liệu. Giữ biểu diễn cũ cho mảng 1-D để không đổi schema các quan sát hiện hành.
+- Thêm `tests/test_minicraft.py` kiểm tra encode patch và tương thích biểu diễn 1-D cũ. B2 đã implement; chạy trên Codespace sẽ được ghi nhận khi xác nhận bước này.

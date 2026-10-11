@@ -151,12 +151,20 @@ class ObsEncoder:
             return
 
         if isinstance(node, np.ndarray):
-            # Mang phang: moi phan tu lay chieu so thuc cua no.
+            # Arrays with spatial dimensions are features, not a single
+            # shape/count feature: preserve each cell under a stable path.
             if node.dtype.kind in 'fiu':
                 if node.size == 1:
                     self._walk(prefix, float(node.reshape(-1)[0]),
                                values, mask, text, depth + 1)
+                elif node.ndim > 1:
+                    for index in np.ndindex(node.shape):
+                        suffix = ''.join(f'[{i}]' for i in index)
+                        self._walk(f'{prefix}{suffix}', node[index].item(),
+                                   values, mask, text, depth + 1)
                 else:
+                    # Keep the existing compact representation for 1-D
+                    # arrays used by older observations/checkpoints.
                     self._put(prefix, float(node.size), values, mask)
             return
 
