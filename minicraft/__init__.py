@@ -16,9 +16,11 @@ from .experts import (
     expert_tools_action,
     expert_wood_action,
 )
+from .safety import MiniCraftSafetyController, SafetyDecision
 
 __all__ = [
     "GRASS", "TREE", "STONE", "WATER", "LAVA", "IRON_ORE", "MiniCraftEnv",
     "MiniCraftExpert", "expert_action", "expert_wood_action",
     "expert_tools_action", "expert_iron_action",
+    "MiniCraftSafetyController", "SafetyDecision",
 ]

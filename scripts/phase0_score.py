@@ -16,7 +16,7 @@ import subprocess
 import numpy as np
 import torch
 
-from minicraft import MiniCraftEnv
+from minicraft import MiniCraftEnv, MiniCraftSafetyController
 from soul.config import Config
 from soul.soul import Soul
 from wm_api.soul_adapter import SoulAdapter
@@ -88,6 +88,9 @@ def score(checkpoint: str | Path, output: str | Path, seeds: list[int],
     episodes = []
     raw_rows = []
     action_counts = np.zeros(9, dtype=np.int64)
+    candidate_action_counts = np.zeros(9, dtype=np.int64)
+    safety_block_count = 0
+    safety = MiniCraftSafetyController()
 
     for seed in seeds:
         for episode_index in range(episodes_per_seed):
@@ -95,7 +98,8 @@ def score(checkpoint: str | Path, output: str | Path, seeds: list[int],
             env = MiniCraftEnv(seed=env_seed,
                                max_ticks=max_ticks)
             obs = env.observe()
-            targets, target_masks, target_texts, current_values, masks, actions = [], [], [], [], [], []
+            targets, target_masks, target_texts, current_values, masks = [], [], [], [], []
+            actions, candidate_actions, safety_decisions = [], [], []
             contexts = []
             local_feature_indices: list[int] | None = None
             live_h, live_z = soul.model.dynamics.initial_state(1, soul.device)
@@ -110,8 +114,12 @@ def score(checkpoint: str | Path, output: str | Path, seeds: list[int],
                         slot for slot in soul.enc.schema.values()
                         if slot < soul.cfg.obs.max_features)
                     local_feature_indices = numeric_indices
-                action = int(action_rng.integers(0, 9))
+                candidate_action = int(action_rng.integers(0, 9))
+                decision = safety.filter(obs, candidate_action)
+                action = decision.applied_action
+                candidate_action_counts[candidate_action] += 1
                 action_counts[action] += 1
+                safety_block_count += int(decision.blocked)
                 next_obs, _, done, _ = env.step(action)
                 next_encoded = soul.enc.encode(next_obs)
                 target_vec = next_encoded['values'].astype(np.float32, copy=True)
@@ -138,6 +146,8 @@ def score(checkpoint: str | Path, output: str | Path, seeds: list[int],
                 current_values.append(current['values'].copy())
                 masks.append(next_encoded['mask'].copy())
                 actions.append(action)
+                candidate_actions.append(candidate_action)
+                safety_decisions.append(decision)
                 previous_action = action_input
                 obs = next_obs
                 if done:
@@ -249,12 +259,13 @@ def score(checkpoint: str | Path, output: str | Path, seeds: list[int],
                                target[target_index, idx[group_idx]]) ** 2) *
                              group_mask).sum() / group_denom))
                     raw_rows.append({
-                        'schema_version': 1, 'split': 'dev',
+                        'schema_version': 2, 'split': 'dev',
                         'seed': int(seed), 'environment_seed': env_seed,
                         'episode': episode_index, 'start_tick': start,
                         'horizon': horizon,
                         'metric_mode': 'reality_anchored_and_open_loop',
                         'actions': actions[start:start + horizon],
+                        'candidate_actions': candidate_actions[start:start + horizon],
                         'feature_names': [feature_names.get(int(slot), f'feature_{slot}')
                                           for slot in idx],
                         'prediction': anchored_prediction[idx].astype(float).tolist(),
@@ -338,6 +349,12 @@ def score(checkpoint: str | Path, output: str | Path, seeds: list[int],
                     if shuffle_errors and horizon_metrics['1']['model_mse'] is not None
                     else None,
                 'action_shuffle_mse_samples': shuffle_errors,
+                'candidate_action_counts': np.bincount(
+                    candidate_actions, minlength=9).tolist(),
+                'applied_action_counts': np.bincount(
+                    actions, minlength=9).tolist(),
+                'safety_blocks': int(sum(decision.blocked
+                                         for decision in safety_decisions)),
             })
 
     git_revision = subprocess.run(
@@ -364,6 +381,7 @@ def score(checkpoint: str | Path, output: str | Path, seeds: list[int],
             name: hashlib.sha256(Path(name).read_bytes()).hexdigest()
             for name in ('scripts/phase0_score.py', 'soul/obs.py',
                          'soul/model.py', 'minicraft/env.py',
+                         'minicraft/safety.py',
                          'configs/phase0_protocol_draft.yaml')
         },
         'runtime': {
@@ -372,6 +390,9 @@ def score(checkpoint: str | Path, output: str | Path, seeds: list[int],
             'torch_threads': torch.get_num_threads(),
         },
         'action_counts': action_counts.tolist(),
+        'candidate_action_counts': candidate_action_counts.tolist(),
+        'applied_action_counts': action_counts.tolist(),
+        'safety_blocks': safety_block_count,
         'raw_predictions_path': str(raw_output),
         'episodes': episodes,
         'equal_episode_mean': {

@@ -1,8 +1,9 @@
 """Collect fixed-policy MiniCraft transitions for Phase 0 model fitting.
 
-Only train seeds are accepted. Collection policy is uniform random and records
-structured observations, integer actions, rewards, terminal flags, and seed
-provenance. It does not train a model or touch dev/Confirm seeds.
+Only train seeds are accepted. Candidate actions are seeded uniform random;
+the MiniCraft hard-safety filter produces the applied action. Both are recorded
+with the safety decision, observations, rewards, terminal flags, and provenance.
+It does not train a model or touch dev/Confirm seeds.
 """
 
 import argparse
@@ -11,7 +12,7 @@ from pathlib import Path
 
 import numpy as np
 
-from minicraft import MiniCraftEnv
+from minicraft import MiniCraftEnv, MiniCraftSafetyController
 
 
 TRAIN_MIN, TRAIN_MAX = 0, 999
@@ -30,6 +31,7 @@ def collect(path: str | Path, seeds: list[int], steps_per_seed: int,
     output = Path(path)
     output.parent.mkdir(parents=True, exist_ok=True)
     rows = 0
+    safety = MiniCraftSafetyController()
     with output.open('w', encoding='utf-8', newline='\n') as f:
         for seed in seeds:
             env = MiniCraftEnv(seed=int(seed), max_ticks=max_ticks)
@@ -40,16 +42,26 @@ def collect(path: str | Path, seeds: list[int], steps_per_seed: int,
                 if env.done:
                     env = MiniCraftEnv(seed=int(seed), max_ticks=max_ticks)
                     obs = env.observe()
-                action = int(rng.integers(0, 9))
+                candidate_action = int(rng.integers(0, 9))
+                decision = safety.filter(obs, candidate_action)
+                action = decision.applied_action
                 next_obs, reward, done, info = env.step(action)
                 record = {
-                    'schema_version': 1,
+                    'schema_version': 2,
                     'split': 'train',
                     'seed': int(seed),
                     'episode': episode,
                     'tick': int(info['tick']),
+                    'candidate_action': candidate_action,
                     'observation': obs,
                     'action': action,
+                    'safety': {
+                        'blocked': decision.blocked,
+                        'reason': decision.reason,
+                        'mode': decision.mode,
+                        'allowed_actions': list(decision.allowed_actions),
+                        'expiry_tick': decision.expiry_tick,
+                    },
                     'reward': float(reward),
                     'done': bool(done),
                     'next_observation': next_obs,

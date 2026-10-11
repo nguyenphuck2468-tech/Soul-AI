@@ -26,7 +26,9 @@ environment:
   actions: 9 discrete actions (0..8); action is the transition input.
   task: deterministic-mean open-loop prediction; compare against real observations.
   action_policy: >-
-    seeded uniform random; same policy for train collection and dev scoring.
+    seeded uniform-random candidates passed through the same MiniCraft hard
+    safety filter for train collection and exploratory dev scoring; persist both
+    candidate and applied actions and report controller interventions.
   snapshot_counterfactuals: required capability; not evaluated by this draft.
 
 model:
@@ -65,6 +67,8 @@ provenance:
     - tick
     - action
     - action_counts
+    - candidate_and_applied_action_counts
+    - safety_filter_decisions
     - feature_schema_hash
     - model_revision
     - raw_predictions_targets_masks

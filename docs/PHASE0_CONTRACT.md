@@ -85,14 +85,18 @@ calibration against held-out train/dev outcomes before use.
 - Train seeds 0–999: collection and model fitting only.
 - Dev seeds 1000–1999: exploratory diagnostics and implementation iteration.
 - Confirm: no range exists; do not create, infer, or access Confirm seeds.
-- Record seed, episode, tick, integer action, split, checkpoint hash, feature
+- Record seed, episode, tick, candidate and applied action, safety decision,
+  split, checkpoint hash, feature
   schema hash, model config, code revision, dirty-tree indicator and status
   hash, action counts, and raw predictions, targets, masks, and persistence
   values. A commit hash alone does not identify modified working-tree code;
   source-file hashes cover the scorer and model/environment files listed in
   the report, including the protocol draft, while the dirty-tree status hash
   records paths, not their contents.
-- `scripts/phase0_collect.py` writes train-only transition JSONL;
+- `scripts/phase0_collect.py` writes train-only transition JSONL with seeded
+  uniform candidates filtered through the same hard-safety controller as the
+  dev scorer; both candidate and applied actions plus the filter decision are
+  retained. The recorded applied action is the world-model input;
   `scripts/phase0_train.py` fits and saves the schema/config with the checkpoint;
   `scripts/phase0_score.py` rejects non-dev seeds and reports exploratory
   anchored/open-loop model-vs-persistence at horizons 1, 5, 20, and 100, group
@@ -118,17 +122,27 @@ The scorer's smoke run on dev seeds 1000–1001 was a pipeline diagnostic using 
 persistence and did not measure a trained model. Treat those two seeds as
 already seen in dev iteration; do not use that output as formal evidence.
 
-## SafetyController contract for MiniCraft (specification only)
+## SafetyController contract for MiniCraft (minimal runtime implementation)
 
 Inputs: structured observation, hard constraints, alert severity, candidate
 action, current mode/context. Outputs: safety mode, allowed action set, and an
 expiry tick. Every source of action must pass through the filter before
 execution; a world-model proposal never commits directly.
 
-The only hard constraint proposed for the first simulator version is to forbid
-a directional move when the corresponding visible adjacent `patch` cell is
-lava (tile ID `LAVA`): actions 1/2/3/4 map to north/south/west/east. Action
-`noop` (0) remains an always-available fallback.
+`minicraft.safety.MiniCraftSafetyController` implements the first hard
+constraint: forbid a directional move when the corresponding visible adjacent
+`patch` cell is lava (tile ID `LAVA`): actions 1/2/3/4 map to north/south/west/east.
+Action `noop` (0) remains an always-available fallback. `filter()` returns the
+candidate and applied action, allowed set, block reason and per-action mode;
+the result is directly serializable with the dataclass fields. This controller
+does not persist a safety mode, so its expiry is `None`.
+
+This check assumes the simulator's action mapping has not changed. The
+`confirm_inverted_move` shock changes movement semantics without exposing that
+change in the structured observation, so this observation-only rule cannot
+guarantee lava avoidance during that shock. Treat this as a known limitation
+for later OOD/safety design, not as a safety claim.
+
 The filter may reject or permit a candidate, but does not invent a route,
 search the map, change the task, or create a multi-step plan. It applies equally
 to expert/skill, policy, and future WM actions and logs the input, decision,
