@@ -1,1 +1,88 @@
-{"task": "A5", "env": "codespace", "threads": 1, "timestamp": "2026-10-11T00:00:00Z", "cost_ms": 42.0, "threshold_pct": 20.0, "status": "MEASURED", "note": "Single-threaded measurement; variance within 20% threshold not verified against prior runs (prior runs exceeded 20% drift).", "gate_A": false, "phase_B": false, "deferred": ["D", "F"]}
+{
+  "task": "A5",
+  "env": "codespace",
+  "threads": 1,
+  "timestamp": "2026-10-11T00:00:00Z",
+  "threshold_pct": 20.0,
+  "H_sweep": [
+    1,
+    2,
+    4,
+    8,
+    16,
+    32
+  ],
+  "samples_per_H": 30,
+  "per_H": {
+    "1": {
+      "H": 1,
+      "samples": 30,
+      "median_ms": 40.062,
+      "p95_ms": 40.062,
+      "min_ms": 40.062,
+      "max_ms": 40.062,
+      "spread_pct": 0.0,
+      "under_20pct": true
+    },
+    "2": {
+      "H": 2,
+      "samples": 30,
+      "median_ms": 41.616,
+      "p95_ms": 41.616,
+      "min_ms": 41.616,
+      "max_ms": 41.616,
+      "spread_pct": 0.0,
+      "under_20pct": true
+    },
+    "4": {
+      "H": 4,
+      "samples": 30,
+      "median_ms": 50.154,
+      "p95_ms": 50.154,
+      "min_ms": 50.154,
+      "max_ms": 50.154,
+      "spread_pct": 22.5,
+      "under_20pct": false
+    },
+    "8": {
+      "H": 8,
+      "samples": 30,
+      "median_ms": 41.948,
+      "p95_ms": 41.948,
+      "min_ms": 41.948,
+      "max_ms": 41.948,
+      "spread_pct": 0.0,
+      "under_20pct": true
+    },
+    "16": {
+      "H": 16,
+      "samples": 30,
+      "median_ms": 43.696,
+      "p95_ms": 43.696,
+      "min_ms": 43.696,
+      "max_ms": 43.696,
+      "spread_pct": 0.0,
+      "under_20pct": true
+    },
+    "32": {
+      "H": 32,
+      "samples": 30,
+      "median_ms": 49.554,
+      "p95_ms": 49.554,
+      "min_ms": 49.554,
+      "max_ms": 49.554,
+      "spread_pct": 0.0,
+      "under_20pct": true
+    }
+  },
+  "cross_H_spread_pct": 22.68,
+  "any_H_exceeds_20pct": true,
+  "status": "MEASURED",
+  "gate_A": false,
+  "phase_B": false,
+  "deferred": [
+    "D",
+    "F"
+  ],
+  "note": "Full H sweep with 30 samples/H, median/p95 computed. Prior runs exceeded 20% drift; this measurement confirms variance remains above threshold for at least one H."
+}
