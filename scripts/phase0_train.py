@@ -19,19 +19,15 @@ from minicraft import MiniCraftSafetyController
 TRAIN_MIN, TRAIN_MAX = 0, 999
 
 
-def train(data_path: str | Path, checkpoint_path: str | Path,
-          updates: int = 1000, hidden_dim: int = 64, latent_dim: int = 16,
-          seq_len: int = 16, batch_size: int = 16, seed: int = 0,
-          device: str | None = None) -> dict:
-    rows = [json.loads(line) for line in Path(data_path).read_text(
-        encoding='utf-8').splitlines() if line.strip()]
-    if not rows:
-        raise ValueError('training JSONL is empty')
-    if any(row.get('split') != 'train'
-           or not TRAIN_MIN <= int(row.get('seed', -1)) <= TRAIN_MAX
-           for row in rows):
-        raise ValueError('training input must contain train split seeds 0..999 only')
+def _canonical_observation(observation) -> str:
+    return json.dumps(observation, ensure_ascii=False, sort_keys=True,
+                      separators=(',', ':'), allow_nan=False)
+
+
+def _validate_transition_rows(rows: list[dict]) -> dict:
+    """Validate safety logs and episode continuity before building replay."""
     safety = MiniCraftSafetyController()
+    grouped = OrderedDict()
     for row_index, row in enumerate(rows):
         if row.get('schema_version') != 2:
             raise ValueError(f'transition {row_index} must use collector schema_version 2')
@@ -53,8 +49,49 @@ def train(data_path: str | Path, checkpoint_path: str | Path,
         if (safety_record.get('blocked') is not expected.blocked
                 or safety_record.get('reason') != expected.reason
                 or safety_record.get('mode') != expected.mode
-                or safety_record.get('allowed_actions') != list(expected.allowed_actions)):
+                or safety_record.get('allowed_actions') != list(expected.allowed_actions)
+                or safety_record.get('expiry_tick') != expected.expiry_tick):
             raise ValueError(f'transition {row_index} safety decision record is inconsistent')
+        if not isinstance(row.get('done'), bool):
+            raise ValueError(f'transition {row_index} done flag must be boolean')
+        if not isinstance(row.get('tick'), int) or isinstance(row.get('tick'), bool):
+            raise ValueError(f'transition {row_index} tick must be an integer')
+        if row['tick'] < 1:
+            raise ValueError(f'transition {row_index} tick must be positive')
+        key = (int(row['seed']), int(row['episode']))
+        grouped.setdefault(key, []).append((row_index, row))
+
+    for key, entries in grouped.items():
+        for position, (row_index, row) in enumerate(entries):
+            if position and entries[position - 1][1]['done']:
+                raise ValueError(f'episode {key} contains transitions after done')
+            if position:
+                prev_row_index, previous = entries[position - 1]
+                if row['tick'] != previous['tick'] + 1:
+                    raise ValueError(
+                        f'episode {key} has non-contiguous ticks at rows '
+                        f'{prev_row_index} and {row_index}')
+                if _canonical_observation(previous.get('next_observation')) != \
+                        _canonical_observation(row.get('observation')):
+                    raise ValueError(
+                        f'episode {key} observation chain breaks at rows '
+                        f'{prev_row_index} and {row_index}')
+    return grouped
+
+
+def train(data_path: str | Path, checkpoint_path: str | Path,
+          updates: int = 1000, hidden_dim: int = 64, latent_dim: int = 16,
+          seq_len: int = 16, batch_size: int = 16, seed: int = 0,
+          device: str | None = None) -> dict:
+    rows = [json.loads(line) for line in Path(data_path).read_text(
+        encoding='utf-8').splitlines() if line.strip()]
+    if not rows:
+        raise ValueError('training JSONL is empty')
+    if any(row.get('split') != 'train'
+           or not TRAIN_MIN <= int(row.get('seed', -1)) <= TRAIN_MAX
+           for row in rows):
+        raise ValueError('training input must contain train split seeds 0..999 only')
+    validated_groups = _validate_transition_rows(rows)
     if updates < 1 or seq_len < 1 or batch_size < 1:
         raise ValueError('updates, seq_len and batch_size must be positive')
 
@@ -75,11 +112,9 @@ def train(data_path: str | Path, checkpoint_path: str | Path,
         soul.enc.encode(row['observation'])
         soul.enc.encode(row['next_observation'])
 
-    grouped = OrderedDict()
-    for row in rows:
-        grouped.setdefault((int(row['seed']), int(row['episode'])), []).append(row)
     accepted, skipped = 0, 0
-    for episode_rows in grouped.values():
+    for entries in validated_groups.values():
+        episode_rows = [row for _, row in entries]
         if len(episode_rows) < seq_len + 1:
             skipped += 1
             continue
