@@ -52,6 +52,10 @@ class MiniCraftMappedSkill:
         self._cached_actions: list[int] = []
         self._cached_signature = None
         self._cached_subgoal = 'initialize'
+        self._pending_expected: dict[str, Any] | None = None
+        self._pending_action: int | None = None
+        self.expectation_checks = 0
+        self.expectation_mismatches = 0
 
     def _update_map(self, observation: dict[str, Any]) -> None:
         x, y = int(observation['self']['x']), int(observation['self']['y'])
@@ -291,14 +295,61 @@ class MiniCraftMappedSkill:
                     subgoal = f'explore_for_{subgoal}'
                     self._cached_subgoal = subgoal
 
+        expected_outcome = self._expected_transition(observation, int(action), subgoal)
+        self._pending_expected = expected_outcome
+        self._pending_action = int(action)
         return MappedSkillProposal(
             skill_id=f'minicraft.mapped.{self.task}',
             version=self.version,
             task=self.task,
             candidate_action=int(action),
-            expected_outcome=self._expected_transition(observation, int(action), subgoal),
+            expected_outcome=expected_outcome,
             confidence_status='HAND_CODED_UNCALIBRATED',
             skill_status=self.status,
             map_coverage=float(np.mean(self.map >= 0)),
             selected_subgoal=subgoal,
         )
+
+    def observe_outcome(self, observation: dict[str, Any], *,
+                        applied_action: int | None = None) -> dict[str, Any]:
+        """Compare the last one-step expectation with reality and invalidate plans.
+
+        This is a cheap, hand-coded expectation check. It is not an OOD or
+        uncertainty detector and does not invoke a world model.
+        """
+        expected = self._pending_expected
+        proposed = self._pending_action
+        self._pending_expected = None
+        self._pending_action = None
+        if expected is None or not expected['expected_fields']:
+            return {'checked': False, 'matched': None, 'mismatched_fields': []}
+
+        mismatches = []
+        for dotted_path, expected_value in expected['expected_fields'].items():
+            actual = observation
+            for key in dotted_path.split('.'):
+                actual = actual[key]
+            if actual != expected_value:
+                mismatches.append({
+                    'field': dotted_path,
+                    'expected': expected_value,
+                    'actual': actual,
+                })
+        if applied_action is not None and proposed != applied_action:
+            mismatches.append({
+                'field': 'applied_action',
+                'expected': proposed,
+                'actual': applied_action,
+            })
+        matched = not mismatches
+        self.expectation_checks += 1
+        self.expectation_mismatches += int(not matched)
+        if not matched:
+            self._cached_actions.clear()
+            self._cached_signature = None
+        return {
+            'checked': True,
+            'matched': matched,
+            'mismatched_fields': mismatches,
+            'cached_plan_invalidated': not matched,
+        }

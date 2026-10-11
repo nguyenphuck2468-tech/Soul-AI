@@ -120,7 +120,9 @@ The mapped skill also emits a one-step expectation for the state fields
 affected by its selected action. Those declared fields matched the next
 observation 65/65 times for T_wood, 151/151 for T_tools, and 323/323 for
 T_iron in this batch. This is a direct, hand-coded simulator rule and not a
-calibrated detector or a learned world-model prediction.
+calibrated detector or a learned world-model prediction. `observe_outcome()`
+reports mismatched fields and invalidates the remaining cached route when the
+expectation or applied action differs; no world-model call is made.
 
 ## Distillation attempt
 

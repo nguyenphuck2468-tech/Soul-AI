@@ -49,7 +49,8 @@ AI-generated execution plan and its B6 endpoint are not the project endpoint.
   `results/phase1_distillation_20261011/`.
 - The mapped Candidate now reports a one-step expected state signature;
   checked fields matched the next observation on all 539 recorded checks for
-  seeds 400–409. This expectation is hand-coded and uncalibrated.
+  seeds 400–409. Its cheap monitor reports deviations and invalidates cached
+  plans; the expectation is hand-coded and uncalibrated.
 - Candidate action-proposal wall time on those seeds was approximately
   0.124–0.136 ms/step versus 0.0007–0.0009 ms/step for fixed replay. Replay
   usually failed, and measurement excludes simulation, safety, and learned

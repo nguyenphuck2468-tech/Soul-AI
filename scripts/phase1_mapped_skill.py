@@ -57,15 +57,13 @@ def _episode(task: str, seed: int, max_ticks: int, use_mapped: bool):
         decision = safety.filter(obs, candidate)
         next_obs, reward, done, info = env.step(decision.applied_action)
         expectation_match = None
-        if expected_outcome is not None and expected_outcome['expected_fields']:
-            expectation_match = True
-            for dotted_path, expected_value in expected_outcome['expected_fields'].items():
-                actual = next_obs
-                for key in dotted_path.split('.'):
-                    actual = actual[key]
-                expectation_match &= actual == expected_value
-            expectation_checks += 1
-            expectation_matches += int(expectation_match)
+        expectation_result = None
+        if skill is not None:
+            expectation_result = skill.observe_outcome(
+                next_obs, applied_action=decision.applied_action)
+            expectation_match = expectation_result['matched']
+            expectation_checks += int(expectation_result['checked'])
+            expectation_matches += int(expectation_result['checked'] and expectation_match)
         rows.append({
             'task': task,
             'seed': seed,
@@ -78,6 +76,7 @@ def _episode(task: str, seed: int, max_ticks: int, use_mapped: bool):
             'map_coverage': coverage,
             'expected_outcome': expected_outcome,
             'expectation_match': expectation_match,
+            'expectation_monitor': expectation_result,
             'reward': float(reward),
             'done': bool(done),
             'task_success': bool(info['task_success'][task]),

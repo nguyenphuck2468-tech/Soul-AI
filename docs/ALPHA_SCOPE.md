@@ -28,7 +28,7 @@ non-evidentiary and does not validate model quality or the project hypothesis.
 | Paired outcomes and proposal-time diagnostics | Done | candidate-only/replay-only/ties and local proposal timings recorded; descriptive only |
 | Reproducible batch command | Done | `python -m scripts.phase1_skill_sweep`; unique `work/` outputs by default |
 | Observation-only task skill | Done (Candidate) | `minicraft/mapped_skill.py` accumulates a map from observed 7x7 patches and explores/plans without a full-state API; train smoke 400–409 succeeded 10/10 per task |
-| Skill one-step expectation | Done (hand-coded, uncalibrated) | Predicts selected state fields after one action; matched 65/65, 151/151, and 323/323 checked fields on the same smoke episodes |
+| Skill one-step expectation trigger | Done (hand-coded, uncalibrated) | Reports mismatched fields and invalidates cached route; matched 65/65, 151/151, and 323/323 checked fields on the smoke batch |
 | Learned/compressed skill | Not done | Behavior-cloning decision tree was tried; it scored 4/10 T_wood and 0/10 T_tools/T_iron on train evaluation seeds, so it is not presented as a usable skill |
 | Held-out variant family and distance `d` | Not defined | Must be specified from the source project direction before generalization evaluation |
 | Locked promotion and performance margins | Not defined | Keep open; do not promote or use Confirm |
