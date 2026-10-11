@@ -5,5 +5,6 @@ Confirm: NOT ACCESSED
 Ngưỡng: TO_LOCK
 P1-P4: PROPOSED, chưa phê duyệt (xem BLOCKED.md)
 Hash protocol: (chưa có)
-Pha A: A1–A4 VERIFIED; A5 BLOCKED (chờ môi trường đo khác)
-Gate A: NOT PASSED; chưa bắt đầu pha B
+Pha A: A1–A5 VERIFIED
+Gate A: PASSED (A5 run83; raw/provenance lưu trong results/)
+Pha B: chưa bắt đầu; Confirm vẫn NOT ACCESSED

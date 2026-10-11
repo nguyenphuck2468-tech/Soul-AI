@@ -54,3 +54,8 @@ A2 hoàn tất với sáu tệp đầu ra và sáu nhận xét trong `docs/LOGBO
 - Diagnostic run79 ghi 180 mẫu ở `results/A5_diag_run79_threadwall.jsonl`. CPU time biến thiên gần bằng wall time ở H=1,2,4,16,32; tương quan 0.973–1.000, còn `cpu.pressure` thấp và `cpu.stat` ghi `nr_throttled=0`. Do đó scheduling không đủ giải thích spike; nguyên nhân còn lại chưa xác định.
 - GitHub báo Codespace hiện tại 2 core/8 GB; có lựa chọn 4 core/16 GB (`standardLinux32gb`). Việc đổi cấu hình có thể restart Codespace và ảnh hưởng tính phí. Chưa tự đổi để tránh thay đổi tài nguyên/ảnh hưởng phiên đang mở.
 - Quyết định hiện tại: giữ ngưỡng 20%, không lặp thêm A5 trên cùng cấu hình; chủ dự án đang chuyển Codespace lên 4 core/16 GB. Chạy lại phép đo sau khi máy mới sẵn sàng; việc nâng máy là thử nghiệm kế tiếp, không bảo đảm A5 sẽ đạt.
+
+### Cập nhật 2026-10-11 — A5/Gate A đã qua; chuyển sang pha B
+- Codespace đã được chủ dự án nâng lên `standardLinux32gb` (4 CPU/16 GB). Run80 và run81 lần lượt đạt 5/6 horizon; raw được giữ nguyên, không chọn lọc/xóa lượt trượt.
+- Run83 trên checkout sạch, cùng source commit và config, đạt cả 6 horizon với độ lệch cực đại 19.63%; toàn bộ raw/stat/provenance đã kiểm toán và ghi ở `docs/LOGBOOK.md` cùng `results/A5_cost_codespace_run83.jsonl`.
+- A1–A4 đã VERIFIED; theo điều kiện cổng trong kế hoạch, A5 run83 hoàn tất Gate A. Tag `gate-A` sẽ được gắn trên commit ghi nhận kết quả. Confirm chưa truy cập; pha B có thể bắt đầu theo đặc tả mục 6, còn C–K vẫn PROPOSED.
