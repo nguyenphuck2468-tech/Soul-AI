@@ -173,3 +173,11 @@ Quyết định: A5 CHƯA ĐẠT (6 lượt hợp lệ: run01-run06, tất cả 
 - Môi trường đầu phép đo: 2026-10-11T03:50:29Z; Codespace 2 vCPU, load 1.32/1.09/0.97, RAM 7.8 GiB (4.7 GiB used, 3.0 GiB available), swap 0; Torch threads=1. `ps` thấy MainThread PID 685 dùng 11.3% CPU và sshd 1.8%; không đóng tiến trình.
 - Kiểm toán raw: 6 record measured, 30 mẫu/H, dữ liệu tăng dần; median, p95 (`xs[27]`), deviation và cờ pass tính lại khớp. H=1: 68.56% FAIL (0.318/0.374 ms); H=2: 16.12% PASS (0.503/0.539 ms); H=4: 35.05% FAIL (0.846/0.927 ms); H=8: 86.87% FAIL (1.545/2.233 ms); H=16: 159.20% FAIL (5.266/9.490 ms); H=32: 85.99% FAIL (6.975/11.670 ms). Run08 đạt 1/6.
 - Hai lần đo sạch run07-run08 đều cho thấy A5 CHƯA ĐẠT; chưa xác định nguyên nhân và không chứng minh biến thiên không thể khắc phục. Giữ tiêu chí; không gắn gate-A, không bắt pha B; D/F deferred. Tiếp tục run09.
+
+
+=== A5 GHI CHÚ (Codespace, 2026-10-11) — LƯỢT 09 (run09) ===
+- Lệnh: `PYTHONPATH=. /workspaces/Soul-AI/.venv/bin/python scripts/measure_cost.py --out results/A5_cost_codespace_run09.jsonl --threads 1`.
+- Chạy trong snapshot sạch từ commit `0153959c64f273d16e07cd08a79d1b46726c09fd`; working tree sạch trước đo. Đủ revision, `working_tree_dirty=false`, source hashes trong JSONL; script SHA-256 `7fa4b3e6cedb99449492a1e8cf3e909789d5f68c65e839c62c33588e66969fc6`.
+- Môi trường 03:57:00Z: Codespace 2 CPU, load 0.46/0.75/0.88, RAM 7.8 GiB (4.7 GiB used, 3.0 GiB available), swap 0, Torch threads=1. `ps`: PID 685 MainThread 10.9%, sshd 1.0%; không đóng tiến trình.
+- Kiểm toán độc lập JSONL: 6 measured record, 30 mẫu/H, dữ liệu tăng dần; median, p95 (`xs[27]`), deviation và stability_pass tính lại đều khớp. H=1: 54.13% FAIL (0.323/0.473 ms); H=2: 17.19% PASS (0.499/0.550 ms); H=4: 49.32% FAIL (0.845/1.212 ms); H=8: 23.79% FAIL (1.420/1.522 ms); H=16: 53.95% FAIL (2.667/3.631 ms); H=32: 50.68% FAIL (5.123/7.492 ms).
+- Run09 đạt 1/6; A5 vẫn CHƯA ĐẠT. Giữ nguyên ngưỡng; không gắn gate-A, không bắt pha B; D/F deferred. Tiếp tục run10, chưa xác định nguyên nhân biến thiên.
