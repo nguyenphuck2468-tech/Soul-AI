@@ -111,10 +111,10 @@ Trạng thái recurrent nằm trực tiếp trên `Soul`: `_h` có shape `(1,Hid
 |---|---|---|
 | `WorldModel` | Protocol: reset, observe, snapshot, restore, imagine, surprise. | Hợp đồng mỏng; không bắt buộc cấu trúc nội bộ của model. |
 | `LatentSnapshot(payload,tick)` | Payload nội bộ và tick → dataclass. | `SoulAdapter` payload gồm bản sao `_h`, `_z`, `_prev_action`, `_goal`; tensor latent được clone. |
-| `ImagineResult(pred_obs,uncertainty,horizon,wall_seconds)` | Kết quả rollout → dataclass. | `pred_obs` là `(H,F)` slot giá trị đã decode, `uncertainty` hiện là vector zero `(H,)`, horizon và thời gian đo. |
+| `ImagineResult(pred_obs,uncertainty,horizon,wall_seconds,uncertainty_status)` | Kết quả rollout → dataclass. | `pred_obs` là `(H,F)` slot giá trị đã decode; `uncertainty` hiện là vector zero `(H,)` và status `NOT_IMPLEMENTED_PLACEHOLDER`; horizon và thời gian đo. |
 | `SoulAdapter` | Một `Soul` → triển khai `WorldModel`. | Reset gọi `Soul.reset_state`; observe gọi `Soul.observe`; imagine gọi `Dynamics.imagine_sequence` rồi decoder; restore clone state về device Soul và khôi phục tick. |
 
-Action protocol là số nguyên: adapter one-hot mã hóa action nếu `action_dim > 1`, còn với `action_dim == 1` chuyển thành scalar float. Cách này tạo action input phù hợp cho RSSM, nhưng không thay đổi định dạng output của policy. `surprise(obs)` hiện ném `NotImplementedError` vì Soul chưa giữ dự đoán bước trước để so với thực tế; uncertainty cũng chưa được ước lượng.
+Action protocol là số nguyên: adapter one-hot mã hóa action nếu `action_dim > 1`, còn với `action_dim == 1` chuyển thành scalar float. Cách này tạo action input phù hợp cho RSSM, nhưng không thay đổi định dạng output của policy. `surprise(obs)` trả raw masked one-step MSE sau `observe()` với status `UNCALIBRATED_RAW_MASKED_MSE`; đây chỉ là reality-violation diagnostic, không phải uncertainty hay ngưỡng can thiệp đã hiệu chuẩn.
 
 ## Bổ sung A5 — đo chi phí
 
