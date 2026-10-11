@@ -364,7 +364,7 @@ def score(checkpoint: str | Path, output: str | Path, seeds: list[int],
         ['git', 'status', '--porcelain'], capture_output=True, text=True,
         check=False).stdout.strip()
     report = {
-        'schema_version': 1,
+        'schema_version': 2,
         'kind': 'phase0_dev_score',
         'status': 'EXPLORATORY_NO_THRESHOLDS_LOCKED',
         'checkpoint': str(checkpoint),
