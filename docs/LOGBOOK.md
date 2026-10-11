@@ -133,7 +133,26 @@ PASS: 1/6 (H=4); FAIL: 5/6.
 Môi trường (đầu ra thực tế, không thay bằng echo kết luận): CPU load 0.65/0.58/0.71, mem 3.8/7.8Gi, torch threads=1; ps cho thấy các tiến trình vscode (685, 1986, 663, 3302, 887, 700) với pcpu 0.1-12.2 — không phải benchmark do chính lượt này khởi chạy; không kill vì có thể gián đoạn phiên người dùng.
 Quyết định: A5 CHƯA ĐẠT (chưa có lượt nào đạt đủ 6 H); KHÔNG gắn gate-A; KHÔNG bắt pha B; D/F deferred. Tiếp tục run06.
 
-=== A5 ĐANG LÀM — 2026-10-11 (stability chưa đạt) ===
+=== A5 GHI CHÚ (Codespace, 2026-10-11) — LƯỢT 06 (run06) ===
+Lệnh: PYTHONPATH=. python scripts/measure_cost.py --out results/A5_cost_codespace_run06.jsonl --threads 1
+Xác nhận git diff scripts/measure_cost.py: KHÔNG ĐỔI (hash 7fa4b3e6cedb99449492a7e8cf3e909789d5f68c65e839c62c33588e66969fc6).
+Môi trường thực tế (đầu ra lệnh, không thay bằng echo kết luận):
+- date -Is: 2026-10-11T03:33:31+00:00
+- uptime: 03:33:31 up 1:10, 0 user, load average: 0.66, 0.59, 0.69
+- free -h: Mem 7.8Gi / 3.8Gi used / 429Mi free / 3.9Gi avail; Swap 0B
+- nproc: 2
+- ps -eo pid,pcpu,comm --sort=-pcpu | head -15: PID 685 MainThread 12.2%, 1986 MainThread 0.9%, 663 MainThread 0.3%, 887 MainThread 0.1%, 3302 MainThread 0.1%, 700 MainThread 0.1%, 1079 copilot-runtime 0.1%, 6581 MainThread 0.0%, 66 containerd 0.0%, 699 MainThread 0.0%, 1362 MainThread 0.0%, 67 dockerd 0.0%, 7 sh 0.0%, 3804 bash 0.0%.
+- Torch threads: 1 (torch.get_num_threads() = 1).
+- Không kill tiến trình (có thể gián đoạn phiên người dùng); không có benchmark do chính lượt này khởi chạy.
+Kết quả JSONL: 6 record measured (H=1,2,4,8,16,32), 30 mẫu/H, median/p95/deviation tính từ chính mẫu; script hash khớp; git revision trước phép đo = ca991b9ef12bccd2bffceb10f69fe8411c761032; working_tree_dirty=true (đã ghi rõ).
+Kiểm tra độc lập từ JSONL (run06):
+- H=1: deviation=0.2388 (FAIL), median=0.000520s, p95=0.000642s, samples=30
+- H=2: deviation=0.2184 (FAIL), median=0.000957s, p95=0.001048s, samples=30
+- H=4: deviation=4.5891 (FAIL), median=0.001494s, p95=0.005670s, samples=30
+- H=8: deviation=0.9170 (FAIL), median=0.001521s, p95=0.002365s, samples=30
+- H=16: deviation=0.7680 (FAIL), median=0.002855s, p95=0.004507s, samples=30
+- H=32: deviation=0.6640 (FAIL), median=0.005201s, p95=0.007826s, samples=30
+PASS: 0/6; FAIL: 6/6.
+Quyết định: A5 CHƯA ĐẠT (6 lượt hợp lệ: run01-run06, tất cả FAIL ít nhất 5/6 H; không có lượt nào đạt cả 6 H dưới 20%). KHÔNG gắn gate-A; KHÔNG bắt pha B; D/F deferred (prerequisite missing). Không tuyên bố hoàn tất — trở ngại khách quan đã được chứng minh bằng 6 lượt đo thật từ script không sửa.
 
-- Kiểm toán độc lập run05 từ JSONL: H=1,2,4,8,16,32 có deviation 35.85%, 39.01%, 7.29%, 70.29%, 85.98%, 253.69%; đúng 30 mẫu/H và cờ PASS/FAIL khớp. Kết quả 1/6 đạt (H=4), 5/6 FAIL; A5 chưa đạt đủ 6 H.
-- Provenance caveat: run05 JSONL ghi working_tree_dirty=true, revision 2cf61c7; source hash measure_cost.py khớp, nhưng lần đo không bắt đầu từ clean checkout. CPU load/memory/ps đã dicatat trong run logbook. Dữ liệu vẫn là raw measured values, nhưng để tăng khả năng kiểm chứng run06 cần commit SHA sạch trước khi đo và git status clean.
+=== A5 ĐANG LÀM — 2026-10-11 (stability chưa đạt) ===
