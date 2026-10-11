@@ -686,3 +686,9 @@ Quyết định: A5 CHƯA ĐẠT (6 lượt hợp lệ: run01-run06, tất cả 
 - Đã thêm CLI `--interop-threads` (mặc định 0 = giữ nguyên) để khóa inter-op mà không dùng wrapper một lần; metadata hiện lưu intra/inter-op, CPU affinity và OMP/MKL/OpenBLAS env, ngoài hash model dynamics.
 - Lệnh chuẩn tái lập run75 sẽ là `PYTHONPATH=. python scripts/measure_cost.py --out results/<run>.jsonl --threads 1 --interop-threads 1` cùng env thread ghi nhận; affinity phải chọn/ghi rõ. Công thức 5 warm-up, 30 reps, 20% và tất cả mẫu thô giữ nguyên.
 - Kiểm tra sau thay đổi: `python -m pytest tests/test_wm_api.py tests/test_measure_cost.py -q` → 7 passed; `git diff --check` với CRLF được cấu hình → sạch.
+
+=== A5 GHI CHÚ (Codespace, 2026-10-11) — run77 sau tối ưu ===
+- Lệnh tái lập có khóa intra/inter-op: `OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 PYTHONPATH=. python scripts/measure_cost.py --out results/A5_cost_codespace_run77.jsonl --threads 1 --interop-threads 1`; chạy trong checkout sạch `0f5a3d6bd779a7473c3b51050f3f95930b80691c`, pin CPU0 đối diện extension host PID685 trên CPU1.
+- JSONL đủ 6 H × 30 + 2 deferred records; stats, cờ, revision, clean-tree và cả hash model/script khớp. Metadata ghi intra/inter-op=1, affinity `[0]`, env OMP/MKL=1.
+- H=1 19.30% PASS (0.317/0.341 ms); H=2 16.96% PASS (0.474/0.510 ms); H=4 34.97% FAIL (0.733/0.791 ms); H=8 56.92% FAIL (1.258/1.753 ms); H=16 54.03% FAIL (2.278/3.424 ms); H=32 52.84% FAIL (4.384/6.367 ms). Run77 đạt 2/6; A5 CHƯA ĐẠT.
+- Cgroup pressure trong lúc chạy lại tăng: some avg10 1.74→2.93, full avg10 1.07→1.52. Mã tối ưu làm median H=1..32 thấp hơn run75; H≥4 vẫn trượt do maximum spread. Chưa được phép bật Gate A.
