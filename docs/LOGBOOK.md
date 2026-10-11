@@ -156,3 +156,10 @@ PASS: 0/6; FAIL: 6/6.
 Quyết định: A5 CHƯA ĐẠT (6 lượt hợp lệ: run01-run06, tất cả FAIL ít nhất 5/6 H; không có lượt nào đạt cả 6 H dưới 20%). KHÔNG gắn gate-A; KHÔNG bắt pha B; D/F deferred (prerequisite missing). Không tuyên bố hoàn tất — trở ngại khách quan đã được chứng minh bằng 6 lượt đo thật từ script không sửa.
 
 === A5 ĐANG LÀM — 2026-10-11 (stability chưa đạt) ===
+=== A5 GHI CHÚ (Codespace, 2026-10-11) — LƯỢT 07 (run07, worktree a5-run07) ===
+Lệnh: PYTHONPATH=. python scripts/measure_cost.py --out results/A5_cost_codespace_run07.jsonl --threads 1 (chạy trong worktree /tmp/Soul-AI-a5-run07 từ origin/main 3292a56)
+Xác nhận git diff scripts/measure_cost.py: KHÔNG ĐỔI (hash 7fa4b3e6... khớp).
+Môi trường thực tế (đầu ra lệnh): date -Is 2026-10-11T03:40:41+00:00; uptime 03:40:41 up 1:17 load 0.66; free -h Mem 7.8Gi/3.8Gi; nproc 2; ps PID 685 MainThread 11.9%, 1986 0.8%, 663 0.2%, 887 0.1%, 3302 0.1%, 700 0.1%, 1079 copilot-runtime 0.1% — không kill.
+Kết quả JSONL: 6 record measured (H=1,2,4,8,16,32), 30 mẫu/H; script hash khớp; git rev trước phép đo = 3292a561b8cc2bf25c0634772ebb1d754acfb4be; working_tree_dirty=false.
+Kiểm tra độc lập từ JSONL (run07): FAIL [1,4,8,16,32] deviations [8.7106, 1.5896, 0.8974, 1.0329, 1.6657]; PASS [2] deviation 0.1976. PASS chỉ H=2 (deviation 19.76% < 20%); 5/6 FAIL.
+Quyết định: A5 CHƯA ĐẠT (7 lượt hợp lệ: run01-run07, không có lượt nào đạt cả 6 H dưới 20%). KHÔNG gắn gate-A; KHÔNG bắt pha B; D/F deferred. Không tuyên bố hoàn tất.
