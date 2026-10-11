@@ -1,0 +1,5 @@
+usage: verify.py [-h] [--quick]
+
+options:
+  -h, --help  show this help message and exit
+  --quick     run only fast invariant smoke checks; not a learning benchmark

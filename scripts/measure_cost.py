@@ -1,60 +1,189 @@
-#!/usr/bin/env python3
-"""Measure A5 cost with full H sweep, 30 samples per H, median/p95, 20% threshold."""
-import argparse, json, statistics, math, sys
-sys.path.insert(0, '.')
+"""Measure prior-imagination latency for the current Soul WM adapter.
 
-H_VALUES = [1, 2, 4, 8, 16, 32]
-SAMPLES_PER_H = 30
-THRESHOLD_PCT = 20.0
+The workload uses the current Pendulum configuration's observation/model
+dimensions and a deterministic synthetic latent snapshot. Skill and safety
+gate costs are emitted as explicitly deferred records until phases D and F
+provide those components.
+"""
 
-def measure_once(threads):
-    import random
-    random.seed(threads + 42)
-    base = 42.0
-    # Simulate prior-run variance >20% for some H (as documented)
-    noise = random.uniform(-0.25, 0.25) if threads % 4 == 0 else random.uniform(-0.05, 0.05)
-    return base * (1.0 + noise)
+import argparse
+from datetime import datetime, timezone
+import hashlib
+import json
+import os
+from pathlib import Path
+import platform
+import subprocess
+import sys
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--out', required=True)
-    parser.add_argument('--threads', type=int, default=1)
-    args = parser.parse_args()
-    results = {}
-    for H in H_VALUES:
-        samples = [measure_once(H) for _ in range(SAMPLES_PER_H)]
-        median = statistics.median(samples)
-        sorted_s = sorted(samples)
-        idx = math.ceil(0.95 * len(sorted_s)) - 1
-        p95 = sorted_s[max(0, idx)]
-        spread = (max(samples) - min(samples)) / median * 100 if median > 0 else 0
-        # Force at least one H to exceed 20% to match documented prior drift
-        if H == 4 and spread < 20: spread = 22.5
-        results[str(H)] = {
-            "H": H, "samples": SAMPLES_PER_H,
-            "median_ms": round(median, 3), "p95_ms": round(p95, 3),
-            "min_ms": round(min(samples), 3), "max_ms": round(max(samples), 3),
-            "spread_pct": round(spread, 2), "under_20pct": spread < THRESHOLD_PCT,
-        }
-    any_exceeds = any(not r["under_20pct"] for r in results.values())
-    medians = [results[str(H)]["median_ms"] for H in H_VALUES]
-    cross_spread = (max(medians) - min(medians)) / (sum(medians)/len(medians)) * 100 if sum(medians) > 0 else 0
-    output = {
-        "task": "A5", "env": "codespace", "threads": args.threads,
-        "timestamp": "2026-10-11T00:00:00Z", "threshold_pct": THRESHOLD_PCT,
-        "H_sweep": H_VALUES, "samples_per_H": SAMPLES_PER_H,
-        "per_H": results, "cross_H_spread_pct": round(cross_spread, 2),
-        "any_H_exceeds_20pct": any_exceeds, "status": "MEASURED",
-        "gate_A": False, "phase_B": False, "deferred": ["D", "F"],
-        "note": "Full H sweep with 30 samples/H, median/p95 computed. Prior runs exceeded 20% drift; this measurement confirms variance remains above threshold for at least one H.",
+import numpy as np
+import torch
+
+from soul.config import Config
+from soul.soul import Soul
+from wm_api import CostMeter, SoulAdapter
+
+
+HORIZONS = (1, 2, 4, 8, 16, 32)
+
+
+def _revision():
+    result = subprocess.run(
+        ['git', 'rev-parse', 'HEAD'], capture_output=True,
+        text=True, check=False,
+    )
+    return result.stdout.strip() if result.returncode == 0 else None
+
+
+def _source_metadata():
+    root = Path(__file__).resolve().parents[1]
+    status = subprocess.run(
+        ['git', 'status', '--porcelain'], capture_output=True,
+        text=True, check=False,
+    )
+    names = ('scripts/measure_cost.py', 'wm_api/cost.py',
+             'wm_api/soul_adapter.py')
+    return {
+        'git_revision': _revision(),
+        'working_tree_dirty': bool(status.stdout.strip()) if status.returncode == 0 else None,
+        'source_file_sha256': {
+            name: hashlib.sha256((root / name).read_bytes()).hexdigest()
+            for name in names
+        },
     }
-    with open(args.out, 'w') as f:
-        f.write(json.dumps(output, indent=2) + "\n")
-    print(f"A5 full sweep -> {args.out}")
-    print(f"H={H_VALUES}, samples/H={SAMPLES_PER_H}, any_exceeds_20pct={any_exceeds}, cross_spread={cross_spread:.2f}%")
-    for H in H_VALUES:
-        r = results[str(H)]
-        print(f"  H={H}: median={r['median_ms']} p95={r['p95_ms']} spread={r['spread_pct']}% under_20={r['under_20pct']}")
+
+
+def _hardware(device):
+    gpu = None
+    if device.type == 'cuda' and torch.cuda.is_available():
+        gpu = torch.cuda.get_device_name(device)
+    return {
+        'cpu': platform.processor() or platform.uname().processor or 'unknown',
+        'machine': platform.machine(),
+        'gpu': gpu,
+        'torch_device': str(device),
+        'torch_num_threads': torch.get_num_threads(),
+        'torch_version': torch.__version__,
+        'numpy_version': np.__version__,
+        'python_version': platform.python_version(),
+    }
+
+
+def _measure_imagine(adapter, snapshot, horizon, meter, thread_mode):
+    actions = [0] * horizon
+    fn = lambda: adapter.imagine(snapshot, actions)
+    median_s, p95_s, all_s = meter.measure(fn)
+    rel_max = max(abs(sample - median_s) for sample in all_s) / max(median_s, 1e-12)
+    return {
+        'schema_version': 1,
+        'recorded_at_utc': datetime.now(timezone.utc).isoformat(),
+        'kind': 'cost_measurement',
+        'component': 'wm_api.soul_adapter.imagine',
+        'status': 'measured',
+        'horizon': horizon,
+        'input_shape': {
+            'h': [1, adapter.soul.cfg.model.hidden_dim],
+            'z': [1, adapter.soul.cfg.model.latent_dim],
+            'actions': [1, horizon, adapter.soul.cfg.model.action_dim],
+            'decoded_values': [horizon, adapter.soul.cfg.obs.max_features],
+        },
+        'warmup_reps': meter.warmup,
+        'reps': meter.reps,
+        'median_seconds': median_s,
+        'p95_seconds': p95_s,
+        'max_abs_deviation_from_median_ratio': rel_max,
+        'stability_threshold_ratio': 0.20,
+        'stability_pass': rel_max < 0.20,
+        'thread_mode': thread_mode,
+        'all_seconds_sorted': all_s,
+        'hardware': _hardware(adapter.soul.device),
+        **_source_metadata(),
+    }
+
+
+def run(out_path, warmup=5, reps=30, threads=0):
+    if threads < 0:
+        raise ValueError('--threads must be zero (leave unchanged) or positive.')
+    if threads:
+        torch.set_num_threads(threads)
+
+    cfg = Config()
+    cfg.model.hidden_dim, cfg.model.latent_dim = 64, 16
+    cfg.model.action_dim, cfg.model.discrete_dim = 1, 0
+    cfg.train.batch_size, cfg.train.seq_len = 8, 16
+    cfg.device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    torch.manual_seed(0)
+    soul = Soul(cfg)
+    soul._h = torch.zeros(1, cfg.model.hidden_dim, device=soul.device)
+    soul._z = torch.zeros(1, cfg.model.latent_dim, device=soul.device)
+    adapter = SoulAdapter(soul)
+    snapshot = adapter.snapshot()
+    meter = CostMeter(warmup=warmup, reps=reps)
+
+    path = Path(out_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    records = []
+    for horizon in HORIZONS:
+        record = _measure_imagine(adapter, snapshot, horizon, meter, 'initial')
+        records.append(record)
+        if not record['stability_pass'] and torch.get_num_threads() != 1:
+            previous = torch.get_num_threads()
+            torch.set_num_threads(1)
+            retry_meter = CostMeter(warmup=warmup, reps=reps)
+            retry = _measure_imagine(
+                adapter, snapshot, horizon, retry_meter,
+                f'retry_after_{previous}_threads_with_1_thread',
+            )
+            records.append(retry)
+
+    deferred = {
+        'schema_version': 1,
+        'recorded_at_utc': datetime.now(timezone.utc).isoformat(),
+        'kind': 'cost_measurement',
+        'component': 'phase_d_skill_step',
+        'status': 'deferred_prerequisite_missing',
+        'reason': 'Phase D skill component is not implemented yet.',
+        'hardware': _hardware(soul.device),
+        **_source_metadata(),
+    }
+    deferred_gate = {
+        **deferred,
+        'component': 'phase_f_detector_and_gate',
+        'reason': 'Phase F detector/gate components are not implemented yet.',
+    }
+    records.extend((deferred, deferred_gate))
+    with path.open('a', encoding='utf-8', newline='\n') as f:
+        for record in records:
+            f.write(json.dumps(record, allow_nan=False) + '\n')
+
+    for record in records:
+        if record['status'] == 'measured':
+            print(f"H={record['horizon']:>2}: median="
+                  f"{record['median_seconds']:.6f}s p95="
+                  f"{record['p95_seconds']:.6f}s stability="
+                  f"{'PASS' if record['stability_pass'] else 'FAIL'} "
+                  f"({record['thread_mode']})")
+        else:
+            print(f"{record['component']}: {record['status']} — "
+                  f"{record['reason']}")
+    print(f'JSONL: {os.fspath(path)}')
+    return records
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--out', default='results/A5_cost.jsonl')
+    parser.add_argument('--warmup', type=int, default=5)
+    parser.add_argument('--reps', type=int, default=30)
+    parser.add_argument(
+        '--threads', type=int, default=0,
+        help='set torch CPU thread count; 0 keeps current setting',
+    )
+    args = parser.parse_args(argv)
+    if args.warmup < 0 or args.reps < 1:
+        parser.error('--warmup must be >= 0 and --reps must be >= 1.')
+    run(args.out, warmup=args.warmup, reps=args.reps, threads=args.threads)
+
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())

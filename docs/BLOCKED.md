@@ -24,3 +24,23 @@ P2 phương pháp thống kê: chưa chốt.
 P3 quy tắc dừng/rollback: chưa chốt.
 P4 tiêu chí chấp nhận Confirm: chưa chốt.
 Quyết định: không phê duyệt, không đặt số.
+
+### Cập nhật 2026-10-11 — A1 đã giải quyết
+- Các lỗi test cũ thuộc fixture: một mẫu tách tập không khai báo seed; hai mock evaluator dùng decoder dưới ba giá trị, không khớp hợp đồng Pendulum hiện hành. Đã cập nhật fixture và giữ nguyên kiểm tra semantic.
+- Đã chạy `.venv\Scripts\python.exe -m pytest tests -q`: 34 passed.
+- Demo tối thiểu hoàn tất; xem kết quả đầy đủ ở `docs/LOGBOOK.md`.
+- A1 không còn bị chặn. Ghi chú ban đầu được giữ làm lịch sử.
+
+### Ghi chú A2 — 2026-10-11
+- `diag_actioncausal.py` và `diag_final.py` không có CLI parser; `--help` không được gọi vì sẽ khởi chạy training mặc định (1200 và 3000 cập nhật).
+- Lượt action-causality mặc định được ngắt do chi phí CPU cao; bản kiểm tra nhỏ chạy được và ghi ở `results/A2_diag_actioncausal.txt`, nhưng không thay thế baseline mặc định.
+- A2 vẫn đang làm; chưa có điều kiện thất bại test lặp lại cần quyết định.
+
+### Cập nhật A2 — 2026-10-11
+A2 hoàn tất với sáu tệp đầu ra và sáu nhận xét trong `docs/LOGBOOK.md`. Các lệnh là smoke run nhỏ, không thay thế benchmark mặc định và không thay đổi trạng thái G3.1/Confirm.
+
+### Cập nhật 2026-10-11 — Gate A còn chặn tại A5
+- A1–A4 đã hoàn thành; A5 chưa qua yêu cầu ổn định <20% so với median. Lượt ban đầu với Torch threads=2 không đạt horizon nào; lượt threads=1 ban đầu chỉ H=2 đạt; lượt threads=1 lặp lại cũng không đạt horizon nào. Chi tiết và dữ liệu thô: `docs/LOGBOOK.md`, `results/A5_cost*.jsonl`.
+- A5 yêu cầu cố định số luồng và giảm ứng dụng nặng khi độ lệch vượt ngưỡng. Đã cố định Torch ở một luồng nhưng vẫn có outlier lớn; chưa xác định nguyên nhân. Mẫu chênh lệch CPU 5 giây gần nhất ghi nhận Taskmgr hoạt động nhiều nhất (0.67 CPU-giây/5 giây); các tiến trình kế tiếp thấp hơn. Đây chỉ là một mẫu quan sát, không chứng minh nguyên nhân.
+- Bước còn lại để thử mở khóa: chạy lại phép đo trong lúc máy ít tải, sau khi người dùng tự đóng/thoát ứng dụng đang dùng tài nguyên. Không tự đóng ứng dụng vì có thể làm gián đoạn phiên làm việc. Giữ nguyên ngưỡng 20%; nếu vẫn không đạt, A5 và Gate A tiếp tục chưa đạt.
+- Chưa gắn tag `gate-A` và chưa bắt đầu pha B. Skill step pha D và detector/gate pha F vẫn chưa đo được do thiếu thành phần tương ứng.

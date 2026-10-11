@@ -50,10 +50,10 @@ def measure(soul, ks=(1, 5, 10), rng=None):
         t = lambda a: torch.as_tensor(a, dtype=torch.float32)
         v_, m_, tx = t(b['values']), t(b['masks']), t(b['texts'])
         ac, va = t(b['actions']), t(b['valid'])
-        seq = v_.shape[1]
+        seq = ac.shape[1]
         if seq - 1 < K:
             continue
-        oi = torch.cat([v_, m_, tx], -1)
+        oi = torch.cat([v_, m_, tx], -1)[:, :seq]
         o = soul.model.dynamics.observe_sequence(
             oi, ac, soul.model.encoder, va)
         h, z = o['h_seq'][:, 0], o['z_seq'][:, 0]
@@ -91,8 +91,8 @@ def latent_stats(soul, rng):
     t = lambda a: torch.as_tensor(a, dtype=torch.float32)
     v_, m_, tx = t(b['values']), t(b['masks']), t(b['texts'])
     ac, va = t(b['actions']), t(b['valid'])
-    seq = v_.shape[1]
-    oi = torch.cat([v_, m_, tx], -1)
+    seq = ac.shape[1]
+    oi = torch.cat([v_, m_, tx], -1)[:, :seq]
     with torch.no_grad():
         o = soul.model.dynamics.observe_sequence(
             oi, ac, soul.model.encoder, va)

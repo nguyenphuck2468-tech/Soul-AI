@@ -1,0 +1,7 @@
+usage: diag_prior.py [-h] [--seed SEED] [--steps STEPS] [--at AT [AT ...]]
+
+options:
+  -h, --help        show this help message and exit
+  --seed SEED
+  --steps STEPS
+  --at AT [AT ...]

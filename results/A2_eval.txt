@@ -1,0 +1,14 @@
+Evaluation (fixed baselines; not a promotion benchmark)
+config: episodes=1, env_steps=20, updates=1, warmup=8, plan_samples=0
+
+========================================================================
+Seed 0 — train 1 optimizer updates
+========================================================================
+  baseline zero: -2.981 +- 0.000
+  Soul deterministic: -3.273 +- 0.000
+  actual updates: 1; train: 6.1s
+
+========================================================================
+SUMMARY
+========================================================================
+JSONL records appended to: results\A2_eval.jsonl

@@ -16,8 +16,8 @@ from soul.g31.evaluator import (
 
 def test_split_disjoint():
     eps = [
-        {'episode_id': 1, 'split': 'train'},
-        {'episode_id': 2, 'split': 'pilot'},
+        {'episode_id': 1, 'split': 'train', 'episode_seed': 1001},
+        {'episode_id': 2, 'split': 'pilot', 'episode_seed': 2001},
     ]
     check_split_disjoint(eps)
 
@@ -63,15 +63,15 @@ def test_evaluator_uses_prior_not_posterior():
 
 def test_no_recursive_imagination():
     class Dynamics:
-        def initial_state(self, batch, device): return torch.zeros(batch, 1), torch.zeros(batch, 1)
+        def initial_state(self, batch, device): return torch.zeros(batch, 3), torch.zeros(batch, 3)
         def step(self, h, z, action): return h + 1, z + 2, z
     class Encoder:
-        def __call__(self, obs): return torch.full((1, 1), float(obs[0, 0])), torch.zeros(1, 1)
+        def __call__(self, obs): return torch.as_tensor(obs, dtype=torch.float32).reshape(1, 3), torch.zeros(1, 3)
         def encode(self, obs):
             return {'values': np.asarray([obs[0]], dtype=np.float32),
                     'mask': np.ones(1, dtype=np.float32), 'text': np.zeros(1, dtype=np.float32)}
     class Decoder:
-        def __call__(self, h, z): return {'obs': torch.full((1, 2), 99.0)}
+        def __call__(self, h, z): return {'obs': torch.tensor([[0.5, 0.0, 0.5]])}
     class Model:
         def __init__(self):
             self.dynamics, self.encoder, self.decoder = Dynamics(), Encoder(), Decoder()
@@ -81,13 +81,13 @@ def test_no_recursive_imagination():
     _, next_state = evaluate_one_step(
         model, state, [1, 0, 0], [0.0], obs_next=[0.2, 0.8, 0.4],
         feature_encoder=model.encoder)
-    assert next_state.z.item() == 0.2
-    assert next_state.z.item() != 99.0
+    np.testing.assert_allclose(next_state.z[0, 0].item(), 0.2)
+    assert next_state.z[0, 0].item() != 0.5
 
 
 def test_evaluator_keeps_model_parameters_unchanged_and_is_deterministic():
     class Dynamics:
-        def initial_state(self, batch, device): return torch.zeros(batch, 1), torch.zeros(batch, 1)
+        def initial_state(self, batch, device): return torch.zeros(batch, 3), torch.zeros(batch, 3)
         def step(self, h, z, action): return h + action, z + action, z
     class Encoder:
         def __call__(self, obs): return torch.zeros(1, 1), torch.zeros(1, 1)
@@ -95,7 +95,7 @@ def test_evaluator_keeps_model_parameters_unchanged_and_is_deterministic():
             return {'values': np.asarray([obs[0]], dtype=np.float32),
                     'mask': np.ones(1, dtype=np.float32), 'text': np.zeros(1, dtype=np.float32)}
     class Decoder:
-        def __call__(self, h, z): return {'obs': z.clone()}
+        def __call__(self, h, z): return {'obs': torch.tensor([[0.0, 0.0, 0.0]])}
     class Model:
         def __init__(self):
             self.weight = torch.nn.Parameter(torch.tensor([3.0]))

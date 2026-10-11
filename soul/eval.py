@@ -87,8 +87,6 @@ def _evaluate_soul(soul, seed, episodes, steps, env_fn=PendulumEnv):
         None if soul._h is None else soul._h.clone(),
         None if soul._z is None else soul._z.clone(),
         None if soul._prev_action is None else soul._prev_action.copy(),
-        None if soul._pending_action is None else soul._pending_action.copy(),
-        None if soul._state_observation is None else soul._state_observation.copy(),
         None if soul._goal is None else soul._goal.copy(),
         soul._cur_ep,
         soul.ep_reward,
@@ -121,8 +119,8 @@ def _evaluate_soul(soul, seed, episodes, steps, env_fn=PendulumEnv):
                     episode_returns.append(float(total_reward))
                 mode_returns[mode] = _summarize(episode_returns)
     finally:
-        (soul._h, soul._z, soul._prev_action, soul._pending_action,
-         soul._state_observation, soul._goal, soul._cur_ep,
+        (soul._h, soul._z, soul._prev_action,
+         soul._goal, soul._cur_ep,
          soul.ep_reward, soul.ep_len) = runtime_state
     return mode_returns
 

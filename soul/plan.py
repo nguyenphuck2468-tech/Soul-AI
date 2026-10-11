@@ -111,8 +111,8 @@ def open_loop(soul, ks=(1, 5, 10, 20), n_batches=6, rng=None):
         t = lambda a: torch.as_tensor(a, device=soul.device, dtype=torch.float32)
         v_, m_, tx = t(b['values']), t(b['masks']), t(b['texts'])
         ac, va = t(b['actions']), t(b['valid'])
-        seq = v_.shape[1]
-        oi = torch.cat([v_, m_, tx], -1)
+        seq = ac.shape[1]
+        oi = torch.cat([v_, m_, tx], -1)[:, :seq]
         o = soul.model.dynamics.observe_sequence(oi, ac,
                                                  soul.model.encoder, va)
         h, z = o['h_seq'][:, 0], o['z_seq'][:, 0]
@@ -176,8 +176,8 @@ def counterfactual(soul, n_batches=4, rng=None):
         t = lambda a: torch.as_tensor(a, device=dev, dtype=torch.float32)
         v_, m_, tx = t(b['values']), t(b['masks']), t(b['texts'])
         ac, va = t(b['actions']), t(b['valid'])
-        seq = v_.shape[1]
-        oi = torch.cat([v_, m_, tx], -1)
+        seq = ac.shape[1]
+        oi = torch.cat([v_, m_, tx], -1)[:, :seq]
         o = soul.model.dynamics.observe_sequence(oi, ac,
                                                  soul.model.encoder, va)
         for k in range(min(3, seq - 1)):
@@ -231,7 +231,7 @@ def cem_first_action(soul, h, z, horizon, iters, pop, elite, act_lo, act_hi):
     B = pop
     for _ in range(iters):
         cand = (mu + sd * torch.randn(B, horizon, 1, device=dev)).clamp(
-            act_lo, act_hi)
+            max(act_lo, -1.0), min(act_hi, 1.0))
         hh = h.expand(B, -1).contiguous()
         zz = z.expand(B, -1).contiguous()
         tot = torch.zeros(B, device=dev)
@@ -239,17 +239,14 @@ def cem_first_action(soul, h, z, horizon, iters, pop, elite, act_lo, act_hi):
             candidate = cand[:, t].clone()
             continuous_dim = (
                 candidate.shape[-1] - soul.cfg.model.discrete_dim)
-            candidate[..., :continuous_dim].clamp_(
-                soul.cfg.model.action_low,
-                soul.cfg.model.action_high,
-            )
+            candidate[..., :continuous_dim].clamp_(-1.0, 1.0)
             hh, m_, _ = soul.model.dynamics.step(hh, zz, candidate)
             zz = m_
             tot = tot + gamma ** t * soul.model.reward_head(hh, zz).squeeze(-1)
         idx = torch.topk(tot, elite).indices
         el = cand[idx]
         mu = mu + 0.3 * (el.mean(0, keepdim=True) - mu)
-        sd = sd + 0.3 * (el.std(0, keepdim=True) - sd)
+        sd = sd + 0.3 * (el.std(0, keepdim=True, unbiased=False) - sd)
         first = el[0, :1]
     return first
 
@@ -266,7 +263,9 @@ def cem_control(soul, seeds: List[int], steps, horizon, iters, pop, elite,
         for _t in range(steps):
             # CEM uses the same live observation filter as Soul.act, but
             # keeps its sequence-search action separate from the live actor.
-            soul._filter_observation(env._obs(), commit=True)
+            # Run the same live observation filter as the actor, then
+            # replace its proposed action with the CEM search result.
+            soul.act(env._obs(), deterministic=True)
             a_t = cem_first_action(soul, soul._h, soul._z, horizon, iters,
                                    pop, elite, act_lo, act_hi)
             a = a_t.cpu().numpy().reshape(-1)

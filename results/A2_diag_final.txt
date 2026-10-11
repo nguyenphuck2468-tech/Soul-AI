@@ -1,0 +1,50 @@
+C:\Users\Admin\Documents\Codex\2026-10-11\ran-terminal-command-echo-status-check\work\Soul-AI\soul\diag_final.py:187: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+Consider using tensor.detach() first. (Triggered internally at C:\actions-runner\_work\pytorch\pytorch\torch\csrc\autograd\generated\python_variable_methods.cpp:821.)
+  print(f'  std hanh dong mau          = {float(acts_s.std()):.4f}')
+
+======================================================================
+1. Huan 1 buoc
+======================================================================
+  xong (9s)
+
+======================================================================
+2. Phan thuong (tin hieu advantage co that chua)
+======================================================================
+  std doan = 0.0226   std that = 0.8293
+  R2 = -101.6%
+
+======================================================================
+3. Policy co phan ung voi TRANG THAI khong?
+======================================================================
+    vi tri x  hanh dong a
+       -2.00      -0.2383
+       -1.00      -0.2336
+       -0.50      -0.2311
+        0.00      -0.2299
+        0.50      -0.2293
+        1.00      -0.2291
+        2.00      -0.2291
+  corr(x, a) = +0.8778   (can AM: a ≈ -2·x de dua x ve 0)
+  do lech a giua cac trang thai = 0.0091
+
+======================================================================
+4. Diem cua episode thuc te
+======================================================================
+  policy (tiet dinh)  :   -13.401 +- 0.000
+  policy (ngau nhien)  :    -7.041 +- 0.000
+  khong dieu khien a=0 :   -11.786 +- 0.000
+
+  -> policy thang khong dieu khien? KHONG  (-1.615)
+
+======================================================================
+5. TIN HIEU ADVANTAGE trong tuong tuong co that khong?
+======================================================================
+  std reward tuong tuong = 0.1016   (that 1.9289)
+  std muc tieu (return) = 0.3269
+  std gia tri (critic)  = 0.0506
+  std advantage         = 0.3314
+  corr(advantage, hanh dong) = +0.0496
+  std hanh dong mau          = 1.1472
+  std mean cua policy        = 0.0244
+  std logstd cua policy      = 0.0808
+  (thoi gian 9s)

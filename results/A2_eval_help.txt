@@ -1,0 +1,20 @@
+usage: eval.py [-h] [--seeds SEEDS [SEEDS ...]] [--steps STEPS]
+               [--episodes EPISODES] [--env-steps ENV_STEPS]
+               [--warmup-episodes WARMUP_EPISODES]
+               [--updates-per-collect UPDATES_PER_COLLECT]
+               [--plan-samples PLAN_SAMPLES] [--out OUT]
+
+Evaluate Soul against fixed Pendulum controllers.
+
+options:
+  -h, --help            show this help message and exit
+  --seeds SEEDS [SEEDS ...]
+  --steps STEPS         exact number of optimizer updates (default: 3000)
+  --episodes EPISODES
+  --env-steps ENV_STEPS
+  --warmup-episodes WARMUP_EPISODES
+  --updates-per-collect UPDATES_PER_COLLECT
+  --plan-samples PLAN_SAMPLES
+                        stochastic collection planner candidates; 0 uses the
+                        actor directly
+  --out OUT

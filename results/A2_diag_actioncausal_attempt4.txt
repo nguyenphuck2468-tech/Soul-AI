@@ -1,0 +1,9 @@
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "C:\Users\Admin\Documents\Codex\2026-10-11\ran-terminal-command-echo-status-check\work\Soul-AI\soul\diag_actioncausal.py", line 80, in measure
+    out = s.model.dynamics.observe_sequence(
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Admin\Documents\Codex\2026-10-11\ran-terminal-command-echo-status-check\work\Soul-AI\soul\model.py", line 215, in observe_sequence
+    a_t = torch.zeros_like(actions[:, 0]) if t == 0 else actions[:, t]
+                                                         ~~~~~~~^^^^^^
+IndexError: index 16 is out of bounds for dimension 1 with size 16
