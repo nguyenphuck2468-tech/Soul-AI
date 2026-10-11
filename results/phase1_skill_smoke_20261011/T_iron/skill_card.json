@@ -1,0 +1,35 @@
+{
+  "skill_id": "minicraft.expert.T_iron",
+  "version": "0.1.0-alpha",
+  "status": "Candidate",
+  "implementation": "privileged_full_state_expert_wrapper",
+  "context": {
+    "environment": "MiniCraftEnv",
+    "task": "T_iron",
+    "requires_full_state": true
+  },
+  "expected_outcome": {
+    "scope": "episode_goal",
+    "condition": {
+      "field": "inv.iron",
+      "operator": ">=",
+      "value": 1
+    },
+    "confidence_status": "NOT_CALIBRATED"
+  },
+  "episodes_completed": 1,
+  "episodes_succeeded": 1,
+  "empirical_success_rate": 1.0,
+  "known_risks": [
+    "Uses privileged full-map state unavailable to the learned agent.",
+    "Expert replans with BFS each action; no compute advantage is established.",
+    "OOD robustness and held-out generalization are not validated."
+  ],
+  "failure_modes": [
+    "No reachable resource currently yields a noop while the episode continues.",
+    "Safety filtering may replace a proposed action with noop.",
+    "Hidden action-mapping shocks can invalidate expert movement assumptions.",
+    "Survival failure or episode timeout can prevent goal completion."
+  ],
+  "validation_note": "Candidate status only; no promotion threshold is locked."
+}

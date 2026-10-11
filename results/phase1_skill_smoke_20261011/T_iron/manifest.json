@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "phase1_skill_smoke",
+  "status": "NON_EVIDENTIARY_SMOKE_ONLY",
+  "recorded_at_utc": "2026-10-11T12:33:50.223959+00:00",
+  "git_revision": "dd906a6be15bff15dfbd517a0cf9f3ac676883bc",
+  "split": "train",
+  "seed": 7,
+  "task": "T_iron",
+  "steps": 227,
+  "task_success": true,
+  "skill_status": "Candidate",
+  "empirical_success_rate": 1.0,
+  "trace_sha256": "f55da1f7f6aedb2fa24887d1a8f3306c046511de1d1e9fe99d2ee4876d7d8a95",
+  "skill_card_sha256": "a58a05b8966ed97f883dba170a8ecb651cbb92c9c5f9a51f03446a050623a331",
+  "limits": [
+    "One episode only; not a success-rate estimate.",
+    "The wrapped expert uses privileged full-state BFS.",
+    "Candidate skill is not calibrated, generalized, or compute-validated."
+  ]
+}

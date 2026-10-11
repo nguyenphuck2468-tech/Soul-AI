@@ -18,6 +18,7 @@ from .experts import (
 )
 from .safety import MiniCraftSafetyController, SafetyDecision
 from .counterfactual import CounterfactualOutcome, branch_actions
+from .skills import MiniCraftExpertSkill, SkillProposal, SkillStatus
 
 __all__ = [
     "GRASS", "TREE", "STONE", "WATER", "LAVA", "IRON_ORE", "MiniCraftEnv",
@@ -25,4 +26,5 @@ __all__ = [
     "expert_tools_action", "expert_iron_action",
     "MiniCraftSafetyController", "SafetyDecision",
     "CounterfactualOutcome", "branch_actions",
+    "MiniCraftExpertSkill", "SkillProposal", "SkillStatus",
 ]

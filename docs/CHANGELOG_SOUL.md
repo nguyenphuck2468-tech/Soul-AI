@@ -21,3 +21,4 @@ CHANGELOG_SOUL.md — sửa tối thiểu cho RAWA (G3.0 transition mask, G3.1 i
 2026-10-11 — Complete and archive a non-evidentiary alpha run-through across collection, training, provenance-gated dev scoring, and cost measurement; dev seed 1002 is now marked seen.
 2026-10-11 — Add `scripts/phase0_alpha_run.py` for a one-command smoke pipeline with tiny defaults, isolated work/ outputs, and a non-evidentiary manifest; defer PyTorch imports so CLI help stays light.
 2026-10-11 — Run the one-command alpha pipeline end-to-end; dev seed 1003 is now recorded as seen for exploratory iteration.
+2026-10-11 — Add a Phase 1 Candidate skill interface over the existing MiniCraft expert, with explicit task-goal expectation, empirical episode counts, safety-filtered smoke runner, and no automatic promotion thresholds.

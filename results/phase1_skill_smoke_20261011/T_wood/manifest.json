@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "phase1_skill_smoke",
+  "status": "NON_EVIDENTIARY_SMOKE_ONLY",
+  "recorded_at_utc": "2026-10-11T12:33:31.698986+00:00",
+  "git_revision": "dd906a6be15bff15dfbd517a0cf9f3ac676883bc",
+  "split": "train",
+  "seed": 5,
+  "task": "T_wood",
+  "steps": 104,
+  "task_success": true,
+  "skill_status": "Candidate",
+  "empirical_success_rate": 1.0,
+  "trace_sha256": "ab45c4db459e66cebe8de9c02af03858ea96da2806c54c677f6b48bc7a713228",
+  "skill_card_sha256": "198741aa36c3247a041edf5b6567da3227544e1b2b274d426a7f12e5379b40ff",
+  "limits": [
+    "One episode only; not a success-rate estimate.",
+    "The wrapped expert uses privileged full-state BFS.",
+    "Candidate skill is not calibrated, generalized, or compute-validated."
+  ]
+}
