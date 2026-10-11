@@ -7,3 +7,4 @@ CHANGELOG_SOUL.md — sửa tối thiểu cho RAWA (G3.0 transition mask, G3.1 i
 2026-10-11 — `soul/soul.py`: `observe(record=False)` cho phép evaluator tiến trạng thái runtime mà không ghi episode đánh giá vào replay hoặc memory; mặc định vẫn ghi như trước.
 2026-10-11 — `soul/train.py` health metric căn observation theo độ dài action, đúng quy ước replay và Trainer.learn(). `soul/plan.py` open-loop/counterfactual cũng bỏ observation lookahead trước khi gọi observe_sequence.
 2026-10-11 — `soul/eval.py` bỏ snapshot các thuộc tính runtime không tồn tại trên Soul hiện tại; evaluator vẫn khôi phục những trường runtime thực sự có mặt. `soul/plan.py` dùng `Soul.act` để cập nhật belief online và clip CEM action khớp Pendulum [-1,1]; xử lý std CEM không chệch để elite=1 không sinh NaN.
+2026-10-11 — thêm `wm_api/cost.py` và `scripts/measure_cost.py` để đo latency rollout và ghi provenance/độ ổn định vào JSONL.

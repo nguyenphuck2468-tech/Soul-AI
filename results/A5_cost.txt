@@ -1,0 +1,10 @@
+H= 1: median=0.000616s p95=0.000660s stability=FAIL (initial)
+H= 1: median=0.000554s p95=0.000618s stability=FAIL (retry_after_2_threads_with_1_thread)
+H= 2: median=0.000936s p95=0.001151s stability=FAIL (initial)
+H= 4: median=0.001730s p95=0.002902s stability=FAIL (initial)
+H= 8: median=0.002666s p95=0.003570s stability=FAIL (initial)
+H=16: median=0.005033s p95=0.005688s stability=FAIL (initial)
+H=32: median=0.009854s p95=0.014634s stability=FAIL (initial)
+phase_d_skill_step: deferred_prerequisite_missing — Phase D skill component is not implemented yet.
+phase_f_detector_and_gate: deferred_prerequisite_missing — Phase F detector/gate components are not implemented yet.
+JSONL: results\A5_cost.jsonl

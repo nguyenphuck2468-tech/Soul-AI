@@ -49,3 +49,10 @@ Quyết định: DỪNG A1, không hạ tiêu chuẩn, chưa sửa. Chờ chủ 
 - Uncertainty trả vector zero như placeholder đã định trong kế hoạch; `surprise` ném `NotImplementedError` có giải thích vì Soul không giữ prior prediction của bước trước.
 - Thêm bốn kiểm tra snapshot/restore, tính lặp lại với cùng seed, không làm đổi live state khi imagine và mã hóa action one-hot. Lệnh targeted: `pytest tests/test_wm_api.py -q` — 4 passed; full suite `pytest tests -q` — 38 passed (`results/A4_pytest.txt`).
 - Bổ sung phần `wm_api` hiện hành vào `docs/ARCH_NOTES.md`.
+
+=== A5 ĐANG LÀM — 2026-10-11 (stability chưa đạt) ===
+- Thêm `wm_api/cost.py` và `scripts/measure_cost.py`. `CostMeter` dùng 5 warm-up + 30 lần lặp theo mặc định; script đo `SoulAdapter.imagine` với H={1,2,4,8,16,32}, ghi median/p95/từng mẫu, shape, CPU/device/thread count, phiên bản phần mềm, revision và source hash vào `results/A5_cost*.jsonl`.
+- Lượt đầu với mặc định torch 2 threads: H=1..32 median khoảng 0.000616, 0.000936, 0.001730, 0.002666, 0.005033, 0.009854 giây; mọi H vượt tiêu chí ổn định max deviation <20%.
+- Lượt khóa 1 thread (`results/A5_cost_threads1.jsonl`): median khoảng 0.000556, 0.000882, 0.001433, 0.002560, 0.004960, 0.009443 giây; chỉ H=2 đạt <20%, các H khác không đạt. Giữ nguyên mẫu thô; không điều chỉnh tiêu chí sau khi xem số.
+- Pha D skill step và pha F detector/gate hiện chưa có module để đo; JSONL ghi rõ `deferred_prerequisite_missing`.
+- A5 CHƯA ĐẠT; không tạo tag `gate-A`. Cần xử lý dao động đo và chạy lại; phần chi phí D/F chỉ đo được sau khi các thành phần đó tồn tại.

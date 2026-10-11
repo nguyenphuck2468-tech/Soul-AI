@@ -115,3 +115,10 @@ Trạng thái recurrent nằm trực tiếp trên `Soul`: `_h` có shape `(1,Hid
 | `SoulAdapter` | Một `Soul` → triển khai `WorldModel`. | Reset gọi `Soul.reset_state`; observe gọi `Soul.observe`; imagine gọi `Dynamics.imagine_sequence` rồi decoder; restore clone state về device Soul và khôi phục tick. |
 
 Action protocol là số nguyên: adapter one-hot mã hóa action nếu `action_dim > 1`, còn với `action_dim == 1` chuyển thành scalar float. Cách này tạo action input phù hợp cho RSSM, nhưng không thay đổi định dạng output của policy. `surprise(obs)` hiện ném `NotImplementedError` vì Soul chưa giữ dự đoán bước trước để so với thực tế; uncertainty cũng chưa được ước lượng.
+
+## Bổ sung A5 — đo chi phí
+
+| API | Đầu vào → đầu ra | Trạng thái / giới hạn hiện tại |
+|---|---|---|
+| `wm_api.cost.CostMeter(warmup=5,reps=30).measure(fn)` | Hàm không tham số → `(median_seconds,p95_seconds,all_seconds_sorted)`. | Đo bằng `time.perf_counter`; thống kê là latency của một lần gọi `fn`. |
+| `scripts.measure_cost.run(out_path,...)` | Đường dẫn và số lần warm-up/lặp → JSONL cho rollout imagination theo H. | Hiện đo adapter của Soul trên latent/action shape tổng hợp; ghi hardware, cấu hình thread, source hash, git revision và độ ổn định. Chi phí skill pha D, detector/gate pha F được ghi trạng thái deferred cho đến khi có module để đo. |
