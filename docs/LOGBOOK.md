@@ -189,3 +189,11 @@ Quyết định: A5 CHƯA ĐẠT (6 lượt hợp lệ: run01-run06, tất cả 
 - Môi trường lúc 03:58:16Z: Codespace 2 CPU, load 1.51/0.98/0.95, RAM 7.8 GiB (4.8 GiB used, 3.0 GiB available), swap 0, Torch threads=1. `ps`: PID 685 MainThread 10.8%, sshd 1.0%; không đóng tiến trình.
 - Kiểm toán raw: 6 record measured, 30 mẫu/H, median/p95 (`xs[27]`)/deviation/stability_pass tính lại khớp. H=1: 11.03% PASS (0.470/0.509 ms); H=2: 13.07% PASS (0.490/0.553 ms); H=4: 30.73% FAIL (1.107/1.269 ms); H=8: 23.58% FAIL (1.426/1.585 ms); H=16: 41.75% FAIL (2.707/3.200 ms); H=32: 53.01% FAIL (5.125/6.018 ms).
 - Run10 đạt 2/6, tốt hơn các lượt trước nhưng A5 vẫn CHƯA ĐẠT. Giữ ngưỡng; không gắn gate-A, không bắt pha B; D/F deferred. Tiếp tục run11.
+
+
+=== A5 GHI CHÚ (Codespace, 2026-10-11) — LƯỢT 11 (run11, CPU affinity thử nghiệm) ===
+- Lệnh đo: `taskset -c 0 env PYTHONPATH=. /workspaces/Soul-AI/.venv/bin/python scripts/measure_cost.py --out results/A5_cost_codespace_run11.jsonl --threads 1`; không sửa script hoặc ngưỡng. `taskset -c 0` là thay đổi môi trường có ghi nhận, không gộp kết quả với lượt không pin CPU.
+- Snapshot sạch từ commit `b0bf8adb5effa278f4eca615b880aa2e38c8d35f`; JSONL: 6 horizon, 30 mẫu/H, `working_tree_dirty=false`, revision/source hashes khớp.
+- Môi trường 03:59:45Z: 2 CPU, load 1.98/1.32/1.07, RAM 7.8 GiB (4.8 GiB used, 3.0 GiB available), swap 0. Trước đo, PID 685 MainThread đã ở CPU 0 với 10.7% CPU; do đó pin benchmark về CPU 0 không tách nó khỏi tiến trình này.
+- Tính lại mọi median, p95 (`xs[27]`), deviation/cờ pass từ raw samples: khớp. H=1: 12.37% PASS (0.310/0.337 ms); H=2: 343.02% FAIL (0.866/2.920 ms); H=4: 121.67% FAIL (1.640/2.666 ms); H=8: 89.08% FAIL (3.361/4.834 ms); H=16: 267.84% FAIL (4.524/12.714 ms); H=32: 44.49% FAIL (5.126/7.292 ms).
+- Run11 đạt 1/6; thử affinity CPU 0 không giải quyết biến thiên, vì tiến trình MainThread đang ở cùng CPU. A5 vẫn CHƯA ĐẠT; tiếp tục run12 trên CPU 1 như một phép đo riêng có ghi nhận affinity.
