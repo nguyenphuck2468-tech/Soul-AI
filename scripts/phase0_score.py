@@ -371,6 +371,8 @@ def score(checkpoint: str | Path, output: str | Path, seeds: list[int],
         'checkpoint_sha256': hashlib.sha256(Path(checkpoint).read_bytes()).hexdigest(),
         'feature_schema_sha256': schema_hash,
         'unseen_feature_overflow': int(soul.enc.overflow),
+        'unseen_feature_overflow_by_path': dict(sorted(
+            soul.enc.overflow_by_path.items())),
         'split': 'dev', 'seeds': [int(seed) for seed in seeds],
         'code_revision': git_revision,
         'working_tree_dirty': bool(git_status),

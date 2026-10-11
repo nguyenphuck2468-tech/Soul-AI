@@ -60,6 +60,7 @@ class ObsEncoder:
         # Dem so con so bi bo vi het ngan sach. Doc so nay de biet mo hinh
         # dang bo mat thong tin gi — im lang bo thi khong bao gio biet.
         self.overflow = 0
+        self.overflow_by_path: Dict[str, int] = {}
 
     # -- schema ---------------------------------------------------------
     @property
@@ -69,6 +70,8 @@ class ObsEncoder:
     def load_schema(self, schema: Dict[str, int]):
         """Nap lai tuong o tu checkpoint cu (xem soul.load)."""
         self._schema = {str(k): int(v) for k, v in schema.items()}
+        self.overflow = 0
+        self.overflow_by_path = {}
 
     def freeze_schema(self):
         """Stop assigning feature slots to fields absent from the fitted schema."""
@@ -80,6 +83,7 @@ class ObsEncoder:
             return idx
         if self._schema_frozen or len(self._schema) >= self.cfg.max_features:
             self.overflow += 1
+            self.overflow_by_path[path] = self.overflow_by_path.get(path, 0) + 1
             return -1
         idx = len(self._schema)
         self._schema[path] = idx

@@ -55,7 +55,7 @@ metrics:
   prediction_modes: [reality_anchored, open_loop]
   feature_groups: [self, inventory, local_map, mobs, events, other]
   empty_target_origin: exclude_and_count
-  report: [per_episode_scores, equal_episode_mean, per_feature_scores, per_feature_group_scores, observed_feature_counts]
+  report: [per_episode_scores, equal_episode_mean, per_feature_scores, per_feature_group_scores, observed_feature_counts, unseen_feature_overflow_by_path]
   action_conditioning: paired change in model error after within-episode action permutation
   uncertainty_calibration: DEFERRED
   thresholds: TO_LOCK_AFTER_PROTOCOL_REVIEW; no threshold encoded here

@@ -111,8 +111,8 @@ calibration against held-out train/dev outcomes before use.
   `scripts/phase0_score.py` rejects non-dev seeds and reports exploratory
   anchored/open-loop model-vs-persistence at horizons 1, 5, 20, and 100, group
   diagnostics, and an action-shuffle diagnostic without applying thresholds.
-  It writes raw per-origin predictions to a JSONL sidecar and reports
-  unseen-feature overflow. Derived episode
+  It writes raw per-origin predictions to a JSONL sidecar and reports unseen
+  feature overflow both as a total and by observation path. Derived episode
   seeds must be unique; overlapping ranges are rejected. `scripts/phase0_measure_cost.py`
   measures the same MiniCraft adapter call at those horizons with runtime and
   source provenance; it does not supply a skill-cost denominator before a skill
