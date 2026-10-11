@@ -51,15 +51,21 @@ encoding.
 ## World-model task
 
 The minimum task is action-conditioned prediction of future structured
-observations from the current observation and action sequence, anchored to the real
-observation trajectory. Use fixed encoder slots fitted from train
+observations from the current observation and action sequence. Report two
+distinct modes: (a) **reality-anchored H-step prediction**, where each real
+intermediate observation is encoded before the next transition and the final
+observation remains held out; and (b) **open-loop H-step prediction**, where
+the model receives no intermediate observations. Use fixed encoder slots fitted from train
 only; dev scoring freezes that schema. Compare per-episode numeric-feature MSE
-to persistence (repeat current observed values), giving each episode equal
-weight. Report feature-wise errors and observed-feature counts as diagnostics.
+for both modes to persistence (repeat the origin observation), giving each
+episode equal weight. Report feature-wise errors and observed-feature counts as
+diagnostics. The `model_mse` output key is retained as a compatibility alias for
+the reality-anchored score; new consumers should use the explicit
+`anchored_model_mse` and `open_loop_model_mse` fields.
 
-Report prediction by horizon where the evaluation implementation supports it;
-do not use recursively imagined states as real targets. Action permutation is a
-diagnostic for action sensitivity, not a quality baseline. Reward prediction,
+Do not use recursively imagined states as real targets. Action permutation is a
+diagnostic for action sensitivity, not a quality baseline; it does not by itself
+show causal action use or compare against a calibrated null. Reward prediction,
 policy quality, planning, uncertainty calibration, adaptive compute, and
 OOD/generalization claims are outside this minimum measurement until their
 contracts are specified.

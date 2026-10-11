@@ -1,8 +1,9 @@
 """Score MiniCraft world-model predictions on dev seeds.
 
 Uses a train-only checkpoint whose encoder schema was frozen during training.
-Reports model and persistence error per episode, plus an action-shuffle
-diagnostic. No threshold is applied and uncertainty is explicitly unavailable.
+Reports reality-anchored and open-loop multi-step prediction errors, persistence,
+and an action-shuffle diagnostic. No threshold is applied and uncertainty is
+explicitly unavailable.
 """
 
 import argparse
@@ -73,7 +74,7 @@ def score(checkpoint: str | Path, output: str | Path, seeds: list[int],
             env = MiniCraftEnv(seed=env_seed,
                                max_ticks=max_ticks)
             obs = env.observe()
-            predictions, targets, current_values, masks, actions = [], [], [], [], []
+            targets, target_masks, target_texts, current_values, masks, actions = [], [], [], [], [], []
             contexts = []
             local_feature_indices: list[int] | None = None
             live_h, live_z = soul.model.dynamics.initial_state(1, soul.device)
@@ -98,22 +99,21 @@ def score(checkpoint: str | Path, output: str | Path, seeds: list[int],
                     adapter._encode_action(action), device=soul.device
                 ).unsqueeze(0)
                 with torch.no_grad():
+                    q_mu, _ = soul.model.encoder(torch.as_tensor(
+                        current_vec, device=soul.device).unsqueeze(0))
                     if previous_action is not None:
                         live_h, _, _ = soul.model.dynamics.step(
                             live_h, live_z, previous_action)
-                    q_mu, _ = soul.model.encoder(torch.as_tensor(
-                        current_vec, device=soul.device).unsqueeze(0))
                     live_z = q_mu
                     contexts.append((live_h.detach().clone(), live_z.detach().clone()))
-                    h1, mu, _ = soul.model.dynamics.step(live_h, live_z, action_input)
-                    pred = soul.model.decoder(h1, mu)['obs'].squeeze(0).cpu().numpy()
 
-                predictions.append(pred)
                 if local_feature_indices is None:
                     local_feature_indices = sorted(
                         slot for slot in soul.enc.schema.values()
                         if slot < soul.cfg.obs.max_features)
                 targets.append(target_vec[:soul.cfg.obs.max_features])
+                target_masks.append(next_encoded['mask'].copy())
+                target_texts.append(next_encoded['text'].copy())
                 current_values.append(current['values'].copy())
                 masks.append(next_encoded['mask'].copy())
                 actions.append(action)
@@ -122,26 +122,28 @@ def score(checkpoint: str | Path, output: str | Path, seeds: list[int],
                 if done:
                     break
 
-            pred = np.asarray(predictions, dtype=np.float32)
             target = np.asarray(targets, dtype=np.float32)
+            target_mask = np.asarray(target_masks, dtype=np.float32)
+            target_text = np.asarray(target_texts, dtype=np.float32)
             current_values = np.asarray(current_values, dtype=np.float32)
             mask = np.asarray(masks, dtype=np.float32)
             if numeric_indices is None:
                 raise RuntimeError('no numeric observation fields found')
             idx = np.asarray([i for i in (local_feature_indices or [])
-                              if i < pred.shape[1]], dtype=np.int64)
+                              if i < target.shape[1]], dtype=np.int64)
             if idx.size == 0:
                 raise ValueError('train-frozen encoder schema has no numeric fields')
             horizon_metrics = {}
             for horizon in (1, 5, 20, 100):
-                model_errors, persistence_errors = [], []
+                model_errors, open_loop_errors, persistence_errors = [], [], []
                 feature_model_sum = np.zeros(len(idx), dtype=np.float64)
+                feature_open_loop_sum = np.zeros(len(idx), dtype=np.float64)
                 feature_persistence_sum = np.zeros(len(idx), dtype=np.float64)
                 feature_counts = np.zeros(len(idx), dtype=np.int64)
                 for start in range(max(0, len(actions) - horizon + 1)):
                     h_roll, z_roll = (contexts[start][0].clone(),
                                       contexts[start][1].clone())
-                    prediction = None
+                    open_loop_prediction = None
                     with torch.no_grad():
                         for offset in range(horizon):
                             action_input = torch.as_tensor(
@@ -149,18 +151,52 @@ def score(checkpoint: str | Path, output: str | Path, seeds: list[int],
                                 device=soul.device).unsqueeze(0)
                             h_roll, z_roll, _ = soul.model.dynamics.step(
                                 h_roll, z_roll, action_input)
-                            prediction = soul.model.decoder(h_roll, z_roll)['obs']
-                    prediction = prediction.squeeze(0).cpu().numpy()
+                            open_loop_prediction = soul.model.decoder(
+                                h_roll, z_roll)['obs']
+                    open_loop_prediction = open_loop_prediction.squeeze(0).cpu().numpy()
                     target_index = start + horizon - 1
                     weights = mask[target_index, idx]
                     denom = max(float(weights.sum()), 1.0)
+
+                    # Reality-anchored rollout: after each intermediate real
+                    # observation, update the latent with its posterior before
+                    # applying the next action. The final observation remains
+                    # held out as the prediction target.
+                    h_anchor = contexts[start][0].clone()
+                    z_anchor = contexts[start][1].clone()
+                    anchored_prediction = None
+                    with torch.no_grad():
+                        for offset in range(horizon):
+                            action_input = torch.as_tensor(
+                                adapter._encode_action(actions[start + offset]),
+                                device=soul.device).unsqueeze(0)
+                            h_anchor, prior_mu, _ = soul.model.dynamics.step(
+                                h_anchor, z_anchor, action_input)
+                            if offset < horizon - 1:
+                                observed = torch.as_tensor(
+                                    np.concatenate([
+                                        target[start + offset],
+                                        target_mask[start + offset],
+                                        target_text[start + offset],
+                                    ]), dtype=torch.float32, device=soul.device
+                                ).unsqueeze(0)
+                                z_anchor, _ = soul.model.encoder(observed)
+                            else:
+                                anchored_prediction = soul.model.decoder(
+                                    h_anchor, prior_mu)['obs']
+                    anchored_prediction = anchored_prediction.squeeze(0).cpu().numpy()
+
                     model_errors.append(float(
-                        (((prediction[idx] - target[target_index, idx]) ** 2)
+                        (((anchored_prediction[idx] - target[target_index, idx]) ** 2)
+                         * weights).sum() / denom))
+                    open_loop_errors.append(float(
+                        (((open_loop_prediction[idx] - target[target_index, idx]) ** 2)
                          * weights).sum() / denom))
                     persistence_errors.append(float(
                         (((current_values[start, idx] - target[target_index, idx]) ** 2)
                          * weights).sum() / denom))
-                    feature_model_sum += ((prediction[idx] - target[target_index, idx]) ** 2) * weights
+                    feature_model_sum += ((anchored_prediction[idx] - target[target_index, idx]) ** 2) * weights
+                    feature_open_loop_sum += ((open_loop_prediction[idx] - target[target_index, idx]) ** 2) * weights
                     feature_persistence_sum += np.square(
                         current_values[start, idx] - target[target_index, idx]) * weights
                     feature_counts += weights.astype(np.int64)
@@ -172,7 +208,8 @@ def score(checkpoint: str | Path, output: str | Path, seeds: list[int],
                         'actions': actions[start:start + horizon],
                         'feature_names': [feature_names.get(int(slot), f'feature_{slot}')
                                           for slot in idx],
-                        'prediction': prediction[idx].astype(float).tolist(),
+                        'prediction': anchored_prediction[idx].astype(float).tolist(),
+                        'open_loop_prediction': open_loop_prediction[idx].astype(float).tolist(),
                         'target': target[target_index, idx].astype(float).tolist(),
                         'persistence': current_values[start, idx].astype(float).tolist(),
                         'observed_mask': weights.astype(int).tolist(),
@@ -180,6 +217,8 @@ def score(checkpoint: str | Path, output: str | Path, seeds: list[int],
                 horizon_metrics[str(horizon)] = {
                     'origins': len(model_errors),
                     'model_mse': float(np.mean(model_errors)) if model_errors else None,
+                    'anchored_model_mse': float(np.mean(model_errors)) if model_errors else None,
+                    'open_loop_model_mse': float(np.mean(open_loop_errors)) if open_loop_errors else None,
                     'persistence_mse': (float(np.mean(persistence_errors))
                                         if persistence_errors else None),
                     'per_feature': {
@@ -187,6 +226,12 @@ def score(checkpoint: str | Path, output: str | Path, seeds: list[int],
                             'model_mse': (float(feature_model_sum[position] /
                                                 feature_counts[position])
                                           if feature_counts[position] else None),
+                            'anchored_model_mse': (float(feature_model_sum[position] /
+                                                         feature_counts[position])
+                                                   if feature_counts[position] else None),
+                            'open_loop_model_mse': (float(feature_open_loop_sum[position] /
+                                                          feature_counts[position])
+                                                    if feature_counts[position] else None),
                             'persistence_mse': (float(feature_persistence_sum[position] /
                                                       feature_counts[position])
                                                 if feature_counts[position] else None),
@@ -282,7 +327,7 @@ def score(checkpoint: str | Path, output: str | Path, seeds: list[int],
         'uncertainty': 'NOT_IMPLEMENTED',
         'limits': [
             'Structured-state prototype only; not pixel input or Dreamer 4.',
-            'This is deterministic-mean open-loop prediction and does not establish adaptive-compute gains.',
+            'Anchored and open-loop prediction metrics are diagnostics and do not establish adaptive-compute gains.',
             'Action-shuffle is diagnostic and has not been independently calibrated.',
         ],
     }
