@@ -1,11 +1,43 @@
-Cập nhật: 2026-10-11 bởi Codex, chờ chủ dự án xác nhận
-G3.1: INCONCLUSIVE
-G3.2: CLOSED
-Confirm: NOT ACCESSED
-Ngưỡng: TO_LOCK
-P1-P4: PROPOSED, chưa phê duyệt (xem BLOCKED.md)
-Hash protocol: (chưa có)
-Pha A: A1–A5 VERIFIED
-Gate A: PASSED (A5 run83; raw/provenance lưu trong results/)
-Pha B: B1–B6 VERIFIED; Gate B: PASSED (2026-10-11, tag `gate-B`)
-Tiếp theo: rà và khóa bản nháp Phase 0 theo v2.6 (`docs/PHASE0_CONTRACT.md`, `configs/phase0_protocol_draft.yaml`). Collector/train/scorer đã có; pipeline smoke 60 train transitions, 5 updates, dev seeds 1000–1001 cho thấy model MSE kém persistence nên chỉ xác nhận code chạy. Hai dev seed này đã được dùng exploratory. Chưa có thí nghiệm Phase 0 chính thức, chưa đo uncertainty; Confirm vẫn NOT ACCESSED.
+# Soul-AI project status
+
+Updated: 2026-10-11
+
+## Direction
+
+The target remains the user's cross-checked long-term project direction and
+v2.6 report: a world model that shifts from expensive planner to supervisor as
+skills mature, while increasing intervention again under OOD/risk. The earlier
+AI-generated execution plan and its B6 endpoint are not the project endpoint.
+
+## Current phase
+
+- Phase 0 protocol and implementation are still drafts; no formal Phase 0
+  experiment or adaptive-compute claim has been completed.
+- MiniCraft now provides structured observations, deterministic state
+  snapshots/cloning, one-step state-matched counterfactual branches, and a
+  minimal visible-lava safety filter.
+- Collection, training, scoring, and local adapter cost-measurement scripts
+  exist. Collection uses at most one episode per train seed; training audits
+  safety logs and episode continuity. The scorer reports anchored and open-loop
+  metrics, feature groups, and schema overflow paths.
+- `surprise()` is an uncalibrated raw masked prediction-error diagnostic.
+  Predictive uncertainty remains a labeled zero placeholder. Neither is valid
+  as a detector or intervention threshold yet.
+- Cost measurements are local adapter wall time; integrated pipeline cost and
+  `rho(h)` await a skill-step implementation.
+
+## Data and gates
+
+- Train seeds: 0–999. Dev seeds: 1000–1999. Dev 1000–1001 were used for an
+  explicitly non-evidentiary smoke run and are already seen.
+- Confirm has no range and remains unused.
+- Do not treat the 60-transition, 5-update smoke checkpoint as model-quality
+  evidence; it underperformed persistence.
+- Phase 5 values such as `delta`, `h_OOD`, headroom margins, `rho/sigma`
+  sweeps, and `R_max` remain open because the source report supplies no numeric
+  values.
+
+## Repository state
+
+Recent implementation is committed and pushed to `origin/main`; check `git log`
+for the current head. The pre-existing untracked `work/` directory is retained.
