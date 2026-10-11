@@ -7,4 +7,4 @@ P1-P4: PROPOSED, chưa phê duyệt (xem BLOCKED.md)
 Hash protocol: (chưa có)
 Pha A: A1–A5 VERIFIED
 Gate A: PASSED (A5 run83; raw/provenance lưu trong results/)
-Pha B: B1 implement; B2/B3 VERIFIED; B4 implement + kiểm thử đang chờ chạy; B5/B6 chưa bắt đầu; Confirm vẫn NOT ACCESSED
+Pha B: B1 implement; B2–B4 VERIFIED; B5 implementation started; B6 pending; Confirm vẫn NOT ACCESSED
