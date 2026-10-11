@@ -1,14 +1,14 @@
 seeds:
   train:
-    dải: [0, 999]
-    trạng_thái: KHÓA
-    mô_tả: thu dữ liệu, huấn luyện WM và skill
+    range: [0, 999]
+    status: KHÓA
+    description: thu dữ liệu, huấn luyện WM và skill
   dev:
-    dải: [1000, 1999]
-    trạng_thái: KHÓA
-    mô_tả: chỉnh tham số, kiểm tra headroom
+    range: [1000, 1999]
+    status: KHÓA
+    description: chỉnh tham số, kiểm tra headroom
   confirm:
-    dải: null
-    trạng_thái: CHƯA CHỐT
-    mô_tả: chỉ kết luận, chạm đúng một lần; chủ dự án chốt khi khóa protocol (3A); phải tách hẳn train và dev
-    lưu_ý: khi dải Confirm chưa chốt, tệp này không được chứa bất kỳ seed Confirm nào
+    range: null
+    status: CHƯA CHỐT
+    description: chỉ kết luận, chạm đúng một lần; chủ dự án chốt khi khóa protocol (3A); phải tách hẳn train và dev
+    note: khi dải Confirm chưa chốt, tệp này không được chứa bất kỳ seed Confirm nào

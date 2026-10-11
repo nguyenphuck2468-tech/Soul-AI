@@ -1,0 +1,59 @@
+# MẪU — chưa khóa. Chỉ tạo khi 3A hoàn thành (mục 3A v2.1).
+# Tệp khóa: kết quả bước 1–6 của 3A được ghi vào đây, commit riêng,
+# kèm hash tài liệu ghi trong docs/STATUS.md.
+# Mọi tham chiếu "khóa giao thức" ở các pha khác = hoàn thành 3A + tệp này.
+
+protocol_version: "v2.1"
+locked_at: null  # chỉ điền khi chủ dự án phê duyệt
+hash_document: null  # hash của tài liệu phê duyệt (ví dụ SHA-256)
+
+# Bước 1–6 (mục 3A) — phải hoàn thành trước khi điền:
+# 1. Hoàn thiện metric/aggregation/comparison
+# 2. Hoàn thiện Statistical Analysis Plan riêng
+# 3. Chốt fail-closed, abort, rerun, rollback
+# 4. Chốt provenance dataset/checkpoint + phiên bản evaluator
+# 5. Chốt tiêu chí chấp nhận bằng lý do độc lập với kết quả pilot
+# 6. Chủ dự án phê duyệt protocol và ghi nhận phiên bản/hash
+
+metric:
+  P: null  # chỉ số hiệu năng nhiệm vụ; định nghĩa trong pha G (mục 7–12, chưa có)
+  delta: null  # δ cho Pareto; chỉ đặt khi khóa protocol
+
+aggregation:
+  method: null  # phương pháp tổng hợp; không chọn chỉ dựa trên pilot
+
+comparison:
+  baseline_always_wm: null  # baseline luôn dùng WM
+  baseline_skill_only: null  # baseline chỉ dùng skill
+  pairing: null  # ghép cặp (ví dụ B1 − A cho G3.1)
+
+statistical_plan:
+  unit_of_analysis: null
+  method: null
+  assumptions: null
+  uncertainty: null
+  scope: null
+
+fail_closed:
+  abort_condition: null
+  rerun_condition: null
+  rollback_condition: null
+
+provenance:
+  dataset_train: "artifacts/g31/train.jsonl"  # SHA-256 520a02ea...
+  dataset_pilot: "artifacts/g31/pilot.jsonl"  # SHA-256 26d63b1e...
+  checkpoint_verified: "artifacts/g31/g31_verified_train_checkpoint.pt"  # SHA-256 0fd3fbc...
+  evaluator_version: null  # phiên bản evaluator đã khóa
+
+acceptance_criteria:
+  independent_of_pilot: null  # phải độc lập với kết quả pilot
+  approved_by: null  # chủ dự án
+
+confirm_access:
+  granted: false
+  granted_by: null
+  granted_at: null
+  seed_range: null  # dải Confirm; phải tách hẳn train/dev
+
+# Ghi chú: hiện tại G3.1 INCONCLUSIVE, Confirm NOT ACCESSED, ngưỡng TO_LOCK.
+# Không chạm Confirm cho đến khi tệp này hoàn thành và chủ dự án cấp quyền.
