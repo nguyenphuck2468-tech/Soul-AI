@@ -23,6 +23,8 @@ AI-generated execution plan and its B6 endpoint are not the project endpoint.
   before reading dev data. Older smoke checkpoints lack this metadata and must
   be regenerated before scoring. The scorer reports anchored and open-loop
   metrics, feature groups, and schema overflow paths.
+- `python -m scripts.phase0_alpha_run` provides a small end-to-end run-through;
+  it defaults to unique output under `work/` and labels the manifest smoke-only.
 - `surprise()` is an uncalibrated raw masked prediction-error diagnostic.
   Predictive uncertainty remains a labeled zero placeholder. Neither is valid
   as a detector or intervention threshold yet.
@@ -32,10 +34,11 @@ AI-generated execution plan and its B6 endpoint are not the project endpoint.
 
 ## Data and gates
 
-- Train seeds: 0–999. Dev seeds: 1000–1999. Dev 1000–1002 were used for
+- Train seeds: 0–999. Dev seeds: 1000–1999. Dev 1000–1003 were used for
   explicitly non-evidentiary smoke runs and are already seen. The latest
   alpha end-to-end run completed collection, fitting, provenance-gated scoring,
-  and CPU cost measurement; details are in
+  and CPU cost measurement through `scripts/phase0_alpha_run.py`; the archived
+  seed-1002 run details are in
   `results/phase0_alpha_smoke_20261011_manifest.json`.
 - Confirm has no range and remains unused.
 - Do not treat either smoke checkpoint as model-quality evidence. The older

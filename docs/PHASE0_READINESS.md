@@ -40,8 +40,10 @@ been collected.
    details without inventing values from the report. The register now separates
    the Phase 0 prerequisite measurement from Phase 5's OOD, headroom, Pareto,
    and intervention thresholds.
-2. Keep code development/smoke data on train and dev only. Dev seeds 1000–1002
-   have already been touched by explicitly non-evidentiary pipeline smoke runs.
+2. Use `python -m scripts.phase0_alpha_run` for a small end-to-end run-through;
+   it writes to a unique directory under `work/` by default and marks its
+   manifest non-evidentiary. Keep smoke data on train and dev only. Dev seeds
+   1000–1003 have already been touched by explicitly non-evidentiary smoke runs.
 3. Review the schema-frozen multi-horizon scorer; specify and calibrate a real
    uncertainty method before exposing uncertainty to any detector.
 4. Run formal train fitting and dev evaluation once task distribution,
