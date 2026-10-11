@@ -245,3 +245,11 @@ Quyết định: A5 CHƯA ĐẠT (6 lượt hợp lệ: run01-run06, tất cả 
 - Môi trường 04:06:34Z: 2 CPU, load 0.87/1.06/1.05; RAM 7.8 GiB (4.8 GiB used, 3.0 GiB available), swap 0; Torch threads=1. PID 685 MainThread 10.1%, PSR0; không đóng tiến trình.
 - Tính lại raw median/p95 (`xs[27]`)/deviation/pass đều khớp. H=1 41.81% FAIL (0.367/0.462 ms); H=2 36.88% FAIL (0.760/0.896 ms); H=4 45.11% FAIL (0.812/1.051 ms); H=8 42.85% FAIL (1.447/2.053 ms); H=16 50.92% FAIL (3.282/4.851 ms); H=32 96.93% FAIL (5.371/8.748 ms).
 - Run17 đạt 0/6; A5 CHƯA ĐẠT. Tiếp tục run18, không điều chỉnh ngưỡng.
+
+
+=== A5 GHI CHÚ (Codespace, 2026-10-11) — LƯỢT 18 (run18) ===
+- Lệnh: `PYTHONPATH=. /workspaces/Soul-AI/.venv/bin/python scripts/measure_cost.py --out results/A5_cost_codespace_run18.jsonl --threads 1`.
+- Checkout sạch từ `28af5e577f70d398ff0373a27611e0cb4c8adafe`; JSONL có đủ 6 H × 30 mẫu, provenance/source hash khớp và `working_tree_dirty=false`.
+- Môi trường 04:07:40Z: 2 CPU, load 1.83/1.35/1.15, RAM 7.8 GiB (4.8 GiB used, 3.0 GiB available), swap 0; Torch threads=1. PID 685 MainThread 10.0%, PSR0; không đóng tiến trình.
+- Tính lại raw median/p95 (`xs[27]`)/deviation/pass đều khớp. H=1 20.38% FAIL (0.309/0.352 ms); H=2 38.59% FAIL (0.562/0.727 ms); H=4 10.03% PASS (0.802/0.865 ms); H=8 52.44% FAIL (1.507/2.118 ms); H=16 62.40% FAIL (2.653/3.753 ms); H=32 44.25% FAIL (5.139/7.110 ms).
+- Run18 đạt 1/6, A5 vẫn CHƯA ĐẠT. Tiếp tục run19, giữ nguyên tiêu chí.
