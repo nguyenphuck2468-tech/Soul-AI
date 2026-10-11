@@ -729,3 +729,7 @@ Quyết định: A5 CHƯA ĐẠT (6 lượt hợp lệ: run01-run06, tất cả 
 - `MiniCraftEnv.observe()` trả đúng `self`, `inv`, `patch` 7×7, `mobs` trong tầm nhìn, và `events`. Out-of-bounds patch dùng code 6; tọa độ zombie ở ngoài 7×7 không được đưa vào danh sách quan sát.
 - Mở rộng `ObsEncoder` để mảng NumPy nhiều chiều tạo một feature riêng cho từng ô (`patch[y][x]`) và mask đánh dấu cả giá trị 0 lẫn các ô biên là có dữ liệu. Giữ biểu diễn cũ cho mảng 1-D để không đổi schema các quan sát hiện hành.
 - Thêm `tests/test_minicraft.py` kiểm tra encode patch và tương thích biểu diễn 1-D cũ. Chạy trong clone sạch trên Codespace 4-core tại commit `32e0fbc`: `python -m pytest tests/test_minicraft.py -q` → 2 passed. B2 VERIFIED.
+
+=== PHA B3 — STATE SNAPSHOT / RESTORE / CLONE ===
+- Thêm `get_state()` deep-copy đầy đủ grid, agent/inventory, zombie + respawn timer, survival/milestone counters, episode flags, map seed và `rng.bit_generator.state`; `set_state()` xác thực snapshot và tạo lại RNG đúng trạng thái; `clone()` trả environment độc lập.
+- Bổ sung kiểm thử restore replay cùng chuỗi hành động và xác nhận snapshot/clone không chia sẻ grid/tick. Kết quả Codespace sẽ được ghi sau khi chạy kiểm thử B3.

@@ -468,6 +468,98 @@ class MiniCraftEnv:
             },
         }
 
+    # -- exact state snapshots -----------------------------------------
+    def get_state(self) -> dict[str, Any]:
+        """Return a deep snapshot of the whole episode, including RNG state."""
+        return deepcopy({
+            "schema_version": 1,
+            "size": self.size,
+            "seed": self.seed,
+            "world_seed": self.world_seed,
+            "max_ticks": self.max_ticks,
+            "grid": self.grid,
+            "x": self.x,
+            "y": self.y,
+            "facing": self.facing,
+            "health": self.health,
+            "food": self.food,
+            "inventory": self.inventory,
+            "tick": self.tick,
+            "done": self.done,
+            "death": self.death,
+            "death_reason": self.death_reason,
+            "hunger_clock": self._hunger_clock,
+            "starvation_clock": self._starvation_clock,
+            "healing_clock": self._healing_clock,
+            "milestones_paid": self._milestones_paid,
+            "last_result": self._last_result,
+            "last_damage": self._last_damage,
+            "zombies": self.zombies,
+            "respawn_timers": self._respawn_timers,
+            "rng_state": self.rng.bit_generator.state,
+        })
+
+    def set_state(self, state: dict[str, Any]) -> None:
+        """Restore an episode snapshot without sharing mutable objects."""
+        if not isinstance(state, dict) or state.get("schema_version") != 1:
+            raise ValueError("unsupported MiniCraft state snapshot")
+        snapshot = deepcopy(state)
+        if int(snapshot.get("size", -1)) != self.size:
+            raise ValueError("snapshot world size does not match this environment")
+        grid = np.asarray(snapshot.get("grid"))
+        if grid.shape != (self.size, self.size) or grid.dtype.kind not in "iu":
+            raise ValueError("snapshot grid must be a 20x20 integer array")
+        if not np.isin(grid, (GRASS, TREE, STONE, WATER, LAVA, IRON_ORE, 7)).all():
+            raise ValueError("snapshot grid contains an unknown tile")
+
+        x, y = int(snapshot["x"]), int(snapshot["y"])
+        if not self._inside(x, y):
+            raise ValueError("snapshot agent position is outside the map")
+        facing = int(snapshot["facing"])
+        if facing not in DIRECTIONS:
+            raise ValueError("snapshot facing is invalid")
+        inventory = {key: int(snapshot["inventory"][key]) for key in INVENTORY_KEYS}
+        if any(value < 0 for value in inventory.values()):
+            raise ValueError("snapshot inventory values cannot be negative")
+
+        self.seed = int(snapshot["seed"])
+        self.world_seed = int(snapshot["world_seed"])
+        self.max_ticks = int(snapshot["max_ticks"])
+        if self.max_ticks < 1:
+            raise ValueError("snapshot max_ticks must be positive")
+        self.grid = grid.astype(np.int8, copy=True)
+        self.x, self.y, self.facing = x, y, facing
+        self.health = int(snapshot["health"])
+        self.food = int(snapshot["food"])
+        if not 0 <= self.health <= MAX_HEALTH or not 0 <= self.food <= MAX_FOOD:
+            raise ValueError("snapshot health or food is outside its valid range")
+        self.inventory = inventory
+        self.tick = int(snapshot["tick"])
+        self.done = bool(snapshot["done"])
+        self.death = bool(snapshot["death"])
+        self.death_reason = snapshot["death_reason"]
+        self._hunger_clock = int(snapshot["hunger_clock"])
+        self._starvation_clock = int(snapshot["starvation_clock"])
+        self._healing_clock = int(snapshot["healing_clock"])
+        self._milestones_paid = set(snapshot["milestones_paid"])
+        self._last_result = str(snapshot["last_result"])
+        self._last_damage = int(snapshot["last_damage"])
+        self.zombies = [dict(mob) for mob in snapshot["zombies"]]
+        self._respawn_timers = {
+            int(slot): int(timer)
+            for slot, timer in snapshot["respawn_timers"].items()
+        }
+        if set(self._respawn_timers) != set(range(MAX_ZOMBIES)):
+            raise ValueError("snapshot must contain a respawn timer for each zombie slot")
+        self.rng = np.random.default_rng()
+        self.rng.bit_generator.state = deepcopy(snapshot["rng_state"])
+
+    def clone(self) -> "MiniCraftEnv":
+        """Return an independent environment at exactly the current state."""
+        clone = type(self).__new__(type(self))
+        clone.set_state(self.get_state())
+        return clone
+
     # -- small utilities ------------------------------------------------
     def _inside(self, x: int, y: int) -> bool:
         return 0 <= x < self.size and 0 <= y < self.size
