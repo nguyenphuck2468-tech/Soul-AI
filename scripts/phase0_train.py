@@ -157,6 +157,8 @@ def train(data_path: str | Path, checkpoint_path: str | Path,
         'checkpoint_sha256': hashlib.sha256(checkpoint.read_bytes()).hexdigest(),
         'seed_min': min(int(row['seed']) for row in rows),
         'seed_max': max(int(row['seed']) for row in rows),
+        'collection_seeds': sorted({int(row['seed']) for row in rows}),
+        'fit_seeds': sorted({int(row['seed']) for row in training_rows}),
         'code_revision': git_revision,
         'working_tree_dirty': bool(git_status),
         'working_tree_status_sha256': hashlib.sha256(
