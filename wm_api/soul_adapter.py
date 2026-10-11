@@ -146,6 +146,7 @@ class SoulAdapter(WorldModel):
             uncertainty=np.zeros(horizon, dtype=np.float32),
             horizon=horizon,
             wall_seconds=time.perf_counter() - started,
+            uncertainty_status='NOT_IMPLEMENTED_PLACEHOLDER',
         )
 
     def surprise(self, obs: Any) -> float:

@@ -18,6 +18,7 @@ class ImagineResult:
     uncertainty: np.ndarray
     horizon: int
     wall_seconds: float
+    uncertainty_status: str = 'NOT_IMPLEMENTED'
 
 
 class WorldModel(Protocol):
