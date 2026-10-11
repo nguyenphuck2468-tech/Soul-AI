@@ -103,4 +103,15 @@ Trạng thái recurrent nằm trực tiếp trên `Soul`: `_h` có shape `(1,Hid
 
 ### Chỗ chưa rõ
 
-- **CHƯA RÕ:** tài liệu mã không định nghĩa adapter môi trường tổng quát, chuẩn hóa action dùng chung, hay giao thức snapshot/restore của latent. Các hàm `plan.py` hiện tại chỉ được đọc như script Pendulum. Vì các hợp đồng đó chưa tồn tại trong tám module, ghi chú không gán cho chúng một interface đã có.
+- **CHƯA RÕ trong tám module đã khảo sát:** chuẩn hóa action dùng chung cho mọi môi trường và giao thức snapshot/restore không nằm trong các lớp ở trên. A4 bổ sung một adapter riêng trong `wm_api/`; giới hạn của adapter đó ghi ở mục sau.
+
+## Bổ sung A4 — `wm_api/`
+
+| API | Đầu vào → đầu ra | Trạng thái / giới hạn hiện tại |
+|---|---|---|
+| `WorldModel` | Protocol: reset, observe, snapshot, restore, imagine, surprise. | Hợp đồng mỏng; không bắt buộc cấu trúc nội bộ của model. |
+| `LatentSnapshot(payload,tick)` | Payload nội bộ và tick → dataclass. | `SoulAdapter` payload gồm bản sao `_h`, `_z`, `_prev_action`, `_goal`; tensor latent được clone. |
+| `ImagineResult(pred_obs,uncertainty,horizon,wall_seconds)` | Kết quả rollout → dataclass. | `pred_obs` là `(H,F)` slot giá trị đã decode, `uncertainty` hiện là vector zero `(H,)`, horizon và thời gian đo. |
+| `SoulAdapter` | Một `Soul` → triển khai `WorldModel`. | Reset gọi `Soul.reset_state`; observe gọi `Soul.observe`; imagine gọi `Dynamics.imagine_sequence` rồi decoder; restore clone state về device Soul và khôi phục tick. |
+
+Action protocol là số nguyên: adapter one-hot mã hóa action nếu `action_dim > 1`, còn với `action_dim == 1` chuyển thành scalar float. Cách này tạo action input phù hợp cho RSSM, nhưng không thay đổi định dạng output của policy. `surprise(obs)` hiện ném `NotImplementedError` vì Soul chưa giữ dự đoán bước trước để so với thực tế; uncertainty cũng chưa được ước lượng.

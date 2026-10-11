@@ -43,3 +43,9 @@ Quyết định: DỪNG A1, không hạ tiêu chuẩn, chưa sửa. Chờ chủ 
 === A3 HOÀN TẤT — 2026-10-11 ===
 - Đọc đủ tám module `config.py`, `obs.py`, `model.py`, `memory.py`, `trainer.py`, `imagine.py`, `plan.py`, `soul.py`.
 - Tạo `docs/ARCH_NOTES.md` với lớp/hàm công khai, hợp đồng shape/type, trạng thái nội bộ và các điểm gắn đã thấy trong mã; thêm câu trả lời cho ba câu hỏi A3. Giao thức adapter/snapshot tổng quát được ghi CHƯA RÕ vì chưa có trong các module.
+
+=== A4 HOÀN TẤT — 2026-10-11 ===
+- Thêm `wm_api/base.py`, `wm_api/soul_adapter.py` và package exports. Adapter triển khai protocol, snapshot/restore clone recurrent state, action scalar được mã hóa theo action_dim, imagine tái sử dụng `Dynamics.imagine_sequence` và decoder.
+- Uncertainty trả vector zero như placeholder đã định trong kế hoạch; `surprise` ném `NotImplementedError` có giải thích vì Soul không giữ prior prediction của bước trước.
+- Thêm bốn kiểm tra snapshot/restore, tính lặp lại với cùng seed, không làm đổi live state khi imagine và mã hóa action one-hot. Lệnh targeted: `pytest tests/test_wm_api.py -q` — 4 passed; full suite `pytest tests -q` — 38 passed (`results/A4_pytest.txt`).
+- Bổ sung phần `wm_api` hiện hành vào `docs/ARCH_NOTES.md`.
