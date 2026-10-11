@@ -1,0 +1,1 @@
+{"task": "A5", "env": "codespace", "threads": 1, "timestamp": "2026-10-11T00:00:00Z", "cost_ms": 42.0, "threshold_pct": 20.0, "status": "MEASURED", "note": "Single-threaded measurement; variance within 20% threshold not verified against prior runs (prior runs exceeded 20% drift).", "gate_A": false, "phase_B": false, "deferred": ["D", "F"]}
