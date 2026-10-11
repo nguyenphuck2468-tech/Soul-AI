@@ -69,6 +69,10 @@ def _hardware(device):
         'torch_num_threads': torch.get_num_threads(),
         'torch_num_interop_threads': torch.get_num_interop_threads(),
         'process_cpu_affinity': affinity,
+        'thread_environment': {
+            name: os.environ.get(name)
+            for name in ('OMP_NUM_THREADS', 'MKL_NUM_THREADS', 'OPENBLAS_NUM_THREADS')
+        },
         'torch_version': torch.__version__,
         'numpy_version': np.__version__,
         'python_version': platform.python_version(),
@@ -107,11 +111,13 @@ def _measure_imagine(adapter, snapshot, horizon, meter, thread_mode):
     }
 
 
-def run(out_path, warmup=5, reps=30, threads=0):
-    if threads < 0:
-        raise ValueError('--threads must be zero (leave unchanged) or positive.')
+def run(out_path, warmup=5, reps=30, threads=0, interop_threads=0):
+    if threads < 0 or interop_threads < 0:
+        raise ValueError('thread counts must be zero (leave unchanged) or positive.')
     if threads:
         torch.set_num_threads(threads)
+    if interop_threads and torch.get_num_interop_threads() != interop_threads:
+        torch.set_num_interop_threads(interop_threads)
 
     cfg = Config()
     cfg.model.hidden_dim, cfg.model.latent_dim = 64, 16
@@ -185,10 +191,17 @@ def main(argv=None):
         '--threads', type=int, default=0,
         help='set torch CPU thread count; 0 keeps current setting',
     )
+    parser.add_argument(
+        '--interop-threads', type=int, default=0,
+        help='set torch inter-op thread count; 0 keeps current setting',
+    )
     args = parser.parse_args(argv)
     if args.warmup < 0 or args.reps < 1:
         parser.error('--warmup must be >= 0 and --reps must be >= 1.')
-    run(args.out, warmup=args.warmup, reps=args.reps, threads=args.threads)
+    if args.threads < 0 or args.interop_threads < 0:
+        parser.error('--threads and --interop-threads must be >= 0.')
+    run(args.out, warmup=args.warmup, reps=args.reps,
+        threads=args.threads, interop_threads=args.interop_threads)
 
 
 if __name__ == '__main__':

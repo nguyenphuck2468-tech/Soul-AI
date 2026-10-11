@@ -21,3 +21,5 @@ def test_cost_metadata_records_thread_and_affinity_configuration():
     assert metadata['torch_num_interop_threads'] == torch.get_num_interop_threads()
     assert metadata['process_cpu_affinity'] is None or isinstance(
         metadata['process_cpu_affinity'], list)
+    assert set(metadata['thread_environment']) == {
+        'OMP_NUM_THREADS', 'MKL_NUM_THREADS', 'OPENBLAS_NUM_THREADS'}

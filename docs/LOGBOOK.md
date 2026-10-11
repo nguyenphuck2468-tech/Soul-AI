@@ -681,3 +681,8 @@ Quyết định: A5 CHƯA ĐẠT (6 lượt hợp lệ: run01-run06, tất cả 
 === A5 — THỬ MKLDNN (run76, chẩn đoán) ===
 - Cùng source commit và config 1 intra/inter-op thread; CPU0 là core đối diện PID685 tại thời điểm bắt đầu; output ở `/tmp` nên các record báo tree sạch. Chỉ thay cờ backend trong process, không sửa model/source.
 - MKLDNN bật: đạt H=1,H=8 (2/6); tắt: 0/6. Metrics của cả 12 record tính lại độc lập; không chọn tắt backend vì không cải thiện stability tổng thể. Raw: `results/A5_diag_run76_mkldnn_on.jsonl`, `results/A5_diag_run76_mkldnn_off.jsonl`.
+
+=== A5 RUNNER THREAD CONFIG — 2026-10-11 ===
+- Đã thêm CLI `--interop-threads` (mặc định 0 = giữ nguyên) để khóa inter-op mà không dùng wrapper một lần; metadata hiện lưu intra/inter-op, CPU affinity và OMP/MKL/OpenBLAS env, ngoài hash model dynamics.
+- Lệnh chuẩn tái lập run75 sẽ là `PYTHONPATH=. python scripts/measure_cost.py --out results/<run>.jsonl --threads 1 --interop-threads 1` cùng env thread ghi nhận; affinity phải chọn/ghi rõ. Công thức 5 warm-up, 30 reps, 20% và tất cả mẫu thô giữ nguyên.
+- Kiểm tra sau thay đổi: `python -m pytest tests/test_wm_api.py tests/test_measure_cost.py -q` → 7 passed; `git diff --check` với CRLF được cấu hình → sạch.
