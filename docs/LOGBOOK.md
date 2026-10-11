@@ -55,6 +55,37 @@ Quyết định: DỪNG A1, không hạ tiêu chuẩn, chưa sửa. Chờ chủ 
 - Thêm bốn kiểm tra snapshot/restore, tính lặp lại với cùng seed, không làm đổi live state khi imagine và mã hóa action one-hot. Lệnh targeted: `pytest tests/test_wm_api.py -q` — 4 passed; full suite `pytest tests -q` — 38 passed (`results/A4_pytest.txt`).
 - Bổ sung phần `wm_api` hiện hành vào `docs/ARCH_NOTES.md`.
 
+=== A5 GHI CHÚ (Codespace, 2026-10-11) — LƯỢT 02 (run02) ===
+Lệnh: PYTHONPATH=. python scripts/measure_cost.py --out results/A5_cost_codespace_run02.jsonl --threads 1
+Xác nhận git diff scripts/measure_cost.py: KHÔNG ĐỔI (hash 7fa4b3e6... khớp).
+Kết quả JSONL: 6 horizon (H=1,2,4,8,16,32), 30 mẫu/H, median/p95/deviation tính từ chính mẫu (không dùng số cũ).
+Kiểm tra độc lập từ JSONL (run02):
+- H=1: deviation=0.2134 (FAIL), median=0.000310s, p95=0.000351s, samples=30
+- H=2: deviation=0.8072 (FAIL), median=0.000512s, p95=0.000892s, samples=30
+- H=4: deviation=0.3929 (FAIL), median=0.001289s, p95=0.001413s, samples=30
+- H=8: deviation=1.2682 (FAIL), median=0.001475s, p95=0.002127s, samples=30
+- H=16: deviation=0.6196 (FAIL), median=0.002802s, p95=0.004498s, samples=30
+- H=32: deviation=0.9496 (FAIL), median=0.005111s, p95=0.005858s, samples=30
+PASS: 0/6; FAIL: 6/6. Cross-H không đạt.
+Môi trường: CPU load 0.72, mem 3.8/7.8Gi, torch threads=1, không có benchmark khác.
+Quyết định: A5 CHƯA ĐẠT; KHÔNG gắn gate-A; KHÔNG bắt pha B; D/F deferred.
+
+=== A5 GHI CHÚ (Codespace, 2026-10-11) — LƯỢT 03 (run03) ===
+Lệnh: PYTHONPATH=. python scripts/measure_cost.py --out results/A5_cost_codespace_run03.jsonl --threads 1
+Xác nhận git diff scripts/measure_cost.py: KHÔNG ĐỔI (hash 7fa4b3e6... khớp).
+Kết quả JSONL: 6 horizon, 30 mẫu/H, median/p95/deviation từ chính mẫu.
+Kiểm tra độc lập từ JSONL (run03):
+- H=1: deviation=2.4675 (FAIL), median=0.000534s, p95=0.000750s, samples=30
+- H=2: deviation=0.2999 (FAIL), median=0.000807s, p95=0.000980s, samples=30
+- H=4: deviation=0.3488 (FAIL), median=0.001598s, p95=0.002038s, samples=30
+- H=8: deviation=0.8591 (FAIL), median=0.001573s, p95=0.002889s, samples=30
+- H=16: deviation=1.1264 (FAIL), median=0.003146s, p95=0.004859s, samples=30
+- H=32: deviation=0.8857 (FAIL), median=0.005192s, p95=0.008519s, samples=30
+PASS: 0/6; FAIL: 6/6.
+Môi trường: CPU load 0.85, mem 3.9/7.8Gi, torch threads=1, không có benchmark khác.
+Trở ngại khách quan: Độ dao động đo nội tại của Codespace (không thể khắc phục bằng hành động người dùng — không thiếu quyền/phần cứng, không lỗi môi trường sửa được, không có tiến trình benchmark để tắt). A5 không đạt sau 3 lượt hợp lệ.
+Quyết định: A5 CHƯA ĐẠT; KHÔNG gắn gate-A; KHÔNG bắt pha B; D/F deferred (prerequisite missing). Không tuyên bố hoàn tất.
+
 === A5 ĐANG LÀM — 2026-10-11 (stability chưa đạt) ===
 - Thêm `wm_api/cost.py` và `scripts/measure_cost.py`. `CostMeter` dùng 5 warm-up + 30 lần lặp theo mặc định; script đo `SoulAdapter.imagine` với H={1,2,4,8,16,32}, ghi median/p95/từng mẫu, shape, CPU/device/thread count, phiên bản phần mềm, revision và source hash vào `results/A5_cost*.jsonl`.
 - Lượt đầu với mặc định torch 2 threads: H=1..32 median khoảng 0.000616, 0.000936, 0.001730, 0.002666, 0.005033, 0.009854 giây; mọi H vượt tiêu chí ổn định max deviation <20%.
