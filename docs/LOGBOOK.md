@@ -647,3 +647,9 @@ Quyết định: A5 CHƯA ĐẠT (6 lượt hợp lệ: run01-run06, tất cả 
 - Môi trường 05:14:57Z: 2 CPU, load 1.56/1.09/1.02; RAM 7.8 GiB (5.2 GiB used, 2.5 GiB available), swap 0; Torch threads=1. PID 685 MainThread 7.3%, PSR0; không đóng.
 - Tính lại từ raw: H=1 14.78% PASS (0.311/0.349 ms); H=2 33.74% FAIL (0.497/0.569 ms); H=4 40.33% FAIL (0.967/1.270 ms); H=8 45.17% FAIL (2.560/2.892 ms); H=16 61.63% FAIL (2.702/3.830 ms); H=32 38.16% FAIL (7.369/9.142 ms). Median, p95 (`xs[27]`), deviation and flags independently recalculated and matched on all 30 samples/horizon.
 - Run69 đạt 1/6; A5 CHƯA ĐẠT. Tiếp tục run70.
+
+=== A5 GHI CHÚ (Codespace, 2026-10-11) — run70 affinity CPU0 (điều tra) ===
+- Lệnh: `taskset -c 0 env PYTHONPATH=. /workspaces/Soul-AI/.venv/bin/python scripts/measure_cost.py --out results/A5_cost_codespace_run70.jsonl --threads 1` trên checkout sạch commit `9c5986e747c0eb0a6ad7d73d3d0b73028a62fe15`; script SHA giữ nguyên, raw 6 H × 30 mẫu và 2 deferred records.
+- Trước đo: CPU pressure `some avg10=1.55 avg60=0.67 avg300=0.47`; VS Code extensionHost PID685 đang ở CPU0, 7.0% CPU. Sau đo pressure tăng lên `some avg10=2.08 avg60=0.85 avg300=0.51` (full avg10 1.17); phép pin CPU0 không tách benchmark khỏi tiến trình nền.
+- Raw tính lại: H=1 40.54% FAIL (0.341/0.463 ms); H=2 17.53% PASS (0.496/0.553 ms); H=4 47.50% FAIL (0.873/1.216 ms); H=8 95.44% FAIL (1.461/2.801 ms); H=16 79.64% FAIL (4.505/6.752 ms); H=32 50.85% FAIL (5.190/7.724 ms). Khớp với JSONL.
+- Kết luận: pin CPU0 không sửa nhiễu; CPU0 có tiến trình VS Code đang chạy và cgroup pressure tăng trong lượt đo. Không tuyên bố do model; thử riêng pin CPU1 ở lượt kế tiếp.
