@@ -2,7 +2,7 @@
   "schema_version": 1,
   "kind": "phase1_skill_replay_multi_seed_sweep",
   "status": "EXPLORATORY_TRAIN_SEEDS_NO_PROMOTION",
-  "recorded_at_utc": "2026-10-11T19:42:53.870861+07:00",
+  "recorded_at_utc": "2026-10-11T19:47:12.286839+07:00",
   "evaluation_seeds": [
     200,
     201,
@@ -26,12 +26,19 @@
       "candidate_skill_success_fraction": 1.0,
       "replay_success_fraction": 0.1,
       "descriptive_A_skill_minus_replay": 0.9,
+      "paired_success_outcomes": {
+        "candidate_only_success": 9,
+        "replay_only_success": 0,
+        "both_same_outcome": 1,
+        "discordant_pairs": 9,
+        "note": "Descriptive paired counts; no inferential test or threshold."
+      },
       "decision_compute": {
         "scope": "controller_action_proposal_only",
-        "candidate_total_wall_seconds": 0.17541569950117264,
-        "replay_total_wall_seconds": 0.0010983998363371938,
-        "candidate_mean_wall_seconds_per_step": 0.00013431523698405256,
-        "replay_mean_wall_seconds_per_step": 8.635218839128882E-07,
+        "candidate_total_wall_seconds": 0.13812670003972016,
+        "replay_total_wall_seconds": 0.0010100003564730287,
+        "candidate_mean_wall_seconds_per_step": 0.00010576317001509967,
+        "replay_mean_wall_seconds_per_step": 7.940254374787962E-07,
         "candidate_mean_steps_per_episode": 130.6,
         "replay_mean_steps_per_episode": 127.2,
         "timing_note": "Local descriptive wall time; excludes environment simulation, safety filtering, serialization, and any trained world-model supervision or intervention."
@@ -47,12 +54,19 @@
       "candidate_skill_success_fraction": 1.0,
       "replay_success_fraction": 0.0,
       "descriptive_A_skill_minus_replay": 1.0,
+      "paired_success_outcomes": {
+        "candidate_only_success": 10,
+        "replay_only_success": 0,
+        "both_same_outcome": 0,
+        "discordant_pairs": 10,
+        "note": "Descriptive paired counts; no inferential test or threshold."
+      },
       "decision_compute": {
         "scope": "controller_action_proposal_only",
-        "candidate_total_wall_seconds": 0.12225449972902425,
-        "replay_total_wall_seconds": 0.0016239995893556625,
-        "candidate_mean_wall_seconds_per_step": 0.00012399036483673858,
-        "replay_mean_wall_seconds_per_step": 7.976422344575945E-07,
+        "candidate_total_wall_seconds": 0.10688439983641729,
+        "replay_total_wall_seconds": 0.0015718997601652518,
+        "candidate_mean_wall_seconds_per_step": 0.00010840202823166054,
+        "replay_mean_wall_seconds_per_step": 7.720529273896128E-07,
         "candidate_mean_steps_per_episode": 98.6,
         "replay_mean_steps_per_episode": 203.6,
         "timing_note": "Local descriptive wall time; excludes environment simulation, safety filtering, serialization, and any trained world-model supervision or intervention."
@@ -68,12 +82,19 @@
       "candidate_skill_success_fraction": 1.0,
       "replay_success_fraction": 0.0,
       "descriptive_A_skill_minus_replay": 1.0,
+      "paired_success_outcomes": {
+        "candidate_only_success": 10,
+        "replay_only_success": 0,
+        "both_same_outcome": 0,
+        "discordant_pairs": 10,
+        "note": "Descriptive paired counts; no inferential test or threshold."
+      },
       "decision_compute": {
         "scope": "controller_action_proposal_only",
-        "candidate_total_wall_seconds": 0.1746288000140339,
-        "replay_total_wall_seconds": 0.0008852998580550775,
-        "candidate_mean_wall_seconds_per_step": 0.00013589789884360616,
-        "replay_mean_wall_seconds_per_step": 7.08239886444062E-07,
+        "candidate_total_wall_seconds": 0.1465552999288775,
+        "replay_total_wall_seconds": 0.0009733000915730372,
+        "candidate_mean_wall_seconds_per_step": 0.00011405081706527432,
+        "replay_mean_wall_seconds_per_step": 7.786400732584298E-07,
         "candidate_mean_steps_per_episode": 128.5,
         "replay_mean_steps_per_episode": 125.0,
         "timing_note": "Local descriptive wall time; excludes environment simulation, safety filtering, serialization, and any trained world-model supervision or intervention."

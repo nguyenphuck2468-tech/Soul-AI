@@ -92,3 +92,7 @@ world-model work. They diagnose this privileged BFS wrapper; they do not
 compare matched task performance or provide integrated compute accounting.
 The timing-enriched manifest is archived at
 `results/phase1_skill_sweep_20261011/compute_manifest.json`.
+The same-seed outcome breakdown is Candidate-only success 9 / replay-only 0 /
+tie 1 for T_wood, 10 / 0 / 0 for T_tools, and 10 / 0 / 0 for T_iron. These
+paired counts are descriptive only; no significance test or promotion rule is
+applied.

@@ -49,6 +49,17 @@ def run_sweep(seed_start: int, seed_count: int, source_root: str | Path,
             episode['decision_wall_seconds'] for episode in replay_episodes)
         skill_steps = sum(episode['steps'] for episode in skill_episodes)
         replay_steps = sum(episode['steps'] for episode in replay_episodes)
+        skill_by_seed = {episode['seed']: episode for episode in skill_episodes}
+        replay_by_seed = {episode['seed']: episode for episode in replay_episodes}
+        paired = [
+            (skill_by_seed[seed]['success'], replay_by_seed[seed]['success'])
+            for seed in seeds
+        ]
+        skill_only_wins = sum(skill_ok and not replay_ok
+                              for skill_ok, replay_ok in paired)
+        replay_only_wins = sum(replay_ok and not skill_ok
+                               for skill_ok, replay_ok in paired)
+        paired_ties = len(paired) - skill_only_wins - replay_only_wins
         task_results[task] = {
             'source_seed': task_manifest['source_seed'],
             'source_trace_sha256': task_manifest['source_trace_sha256'],
@@ -59,6 +70,13 @@ def run_sweep(seed_start: int, seed_count: int, source_root: str | Path,
             'replay_success_fraction': sum(replay) / len(replay),
             'descriptive_A_skill_minus_replay':
                 task_manifest['descriptive_A_skill_minus_replay'],
+            'paired_success_outcomes': {
+                'candidate_only_success': skill_only_wins,
+                'replay_only_success': replay_only_wins,
+                'both_same_outcome': paired_ties,
+                'discordant_pairs': skill_only_wins + replay_only_wins,
+                'note': 'Descriptive paired counts; no inferential test or threshold.',
+            },
             'decision_compute': {
                 'scope': 'controller_action_proposal_only',
                 'candidate_total_wall_seconds': skill_decision_seconds,
