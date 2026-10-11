@@ -131,6 +131,9 @@ Kiểm tra độc lập từ JSONL (run05):
 - H=32: deviation=2.5369 (FAIL), median=0.005209s, p95=0.010853s, samples=30
 PASS: 1/6 (H=4); FAIL: 5/6.
 Môi trường (đầu ra thực tế, không thay bằng echo kết luận): CPU load 0.65/0.58/0.71, mem 3.8/7.8Gi, torch threads=1; ps cho thấy các tiến trình vscode (685, 1986, 663, 3302, 887, 700) với pcpu 0.1-12.2 — không phải benchmark do chính lượt này khởi chạy; không kill vì có thể gián đoạn phiên người dùng.
-Quyết định: A5 CHƯA ĐẠT (chưa có lượt nào đạt cả 6 H); KHÔNG gắn gate-A; KHÔNG bắt pha B; D/F deferred. Tiếp tục run06.
+Quyết định: A5 CHƯA ĐẠT (chưa có lượt nào đạt đủ 6 H); KHÔNG gắn gate-A; KHÔNG bắt pha B; D/F deferred. Tiếp tục run06.
 
 === A5 ĐANG LÀM — 2026-10-11 (stability chưa đạt) ===
+
+- Kiểm toán độc lập run05 từ JSONL: H=1,2,4,8,16,32 có deviation 35.85%, 39.01%, 7.29%, 70.29%, 85.98%, 253.69%; đúng 30 mẫu/H và cờ PASS/FAIL khớp. Kết quả 1/6 đạt (H=4), 5/6 FAIL; A5 chưa đạt đủ 6 H.
+- Provenance caveat: run05 JSONL ghi working_tree_dirty=true, revision 2cf61c7; source hash measure_cost.py khớp, nhưng lần đo không bắt đầu từ clean checkout. CPU load/memory/ps đã dicatat trong run logbook. Dữ liệu vẫn là raw measured values, nhưng để tăng khả năng kiểm chứng run06 cần commit SHA sạch trước khi đo và git status clean.
