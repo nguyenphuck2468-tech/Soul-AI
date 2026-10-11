@@ -18,13 +18,17 @@ AI-generated execution plan and its B6 endpoint are not the project endpoint.
   minimal visible-lava safety filter.
 - Collection, training, scoring, and local adapter cost-measurement scripts
   exist. Collection uses at most one episode per train seed; training audits
-  safety logs and episode continuity. The scorer reports anchored and open-loop
+  safety logs and episode continuity. New checkpoints embed train-only split,
+  dataset, seed, protocol, and source provenance, which the scorer checks
+  before reading dev data. Older smoke checkpoints lack this metadata and must
+  be regenerated before scoring. The scorer reports anchored and open-loop
   metrics, feature groups, and schema overflow paths.
 - `surprise()` is an uncalibrated raw masked prediction-error diagnostic.
   Predictive uncertainty remains a labeled zero placeholder. Neither is valid
   as a detector or intervention threshold yet.
-- Cost measurements are local adapter wall time; integrated pipeline cost and
-  `rho(h)` await a skill-step implementation.
+- Cost measurements are synchronized local adapter wall time, including
+  completed CUDA work; integrated pipeline cost and `rho(h)` await a
+  skill-step implementation.
 
 ## Data and gates
 
