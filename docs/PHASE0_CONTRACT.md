@@ -48,6 +48,13 @@ The structured-state track tests adaptive control logic, not pixel perception,
 Dreamer 4 scale, or the invariant that at least one cue bypasses learned
 encoding.
 
+`minicraft.counterfactual.branch_actions(env, candidates)` now provides a
+state-matched one-step branch for each candidate: every branch clones the same
+simulator/RNG snapshot, applies the safety filter, steps only the clone, and
+returns its outcome. The source environment is unchanged. This makes simulator
+counterfactuals available for later intervention/regret analysis; Phase 0 does
+not evaluate those outcomes or define an intervention metric from them.
+
 ## World-model task
 
 The minimum task is action-conditioned prediction of future structured

@@ -24,7 +24,7 @@ been collected.
 
 | Requirement | Current evidence | Remaining work |
 | --- | --- | --- |
-| Structured, copyable simulator | `minicraft/env.py`: structured observation, full `get_state`/`set_state`/`clone`, deterministic RNG | Observation contract documented in `docs/PHASE0_CONTRACT.md`; no velocity exists because there is no momentum |
+| Structured, copyable simulator | `minicraft/env.py`: structured observation, full `get_state`/`set_state`/`clone`, deterministic RNG; `minicraft/counterfactual.py` branches candidate actions from one cloned state | Counterfactual helper is infrastructure only; no intervention/regret metric has been defined or evaluated. Observation contract documented in `docs/PHASE0_CONTRACT.md`; no velocity exists because there is no momentum |
 | Feasibility expert | `minicraft/experts.py`; B6 passed on 200 train seeds per task | None for the simulator feasibility gate |
 | SafetyController | `minicraft/safety.py` implements the visible-adjacent-lava filter, noop fallback, and decision record; Phase 0 collector/scorer apply it and record candidate/applied actions | Mapping is only valid while action semantics are unchanged; `confirm_inverted_move` is not observable, so OOD lava protection is not guaranteed. Severity mapping, persistent modes, expiry and hysteresis remain open |
 | Soul adapter | `wm_api/soul_adapter.py` supports snapshots and prior rollout; `SoulAdapter.for_minicraft()` now creates a compatible 9-action model | `uncertainty` is zero-filled and `surprise` raises `NotImplementedError`; neither is suitable as a scientific metric yet |

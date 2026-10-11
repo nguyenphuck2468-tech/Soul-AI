@@ -30,7 +30,7 @@ environment:
     seeded uniform-random candidates passed through the same MiniCraft hard
     safety filter for train collection and exploratory dev scoring; persist both
     candidate and applied actions and report controller interventions.
-  snapshot_counterfactuals: required capability; not evaluated by this draft.
+  snapshot_counterfactuals: helper_available_but_not_evaluated_by_this_draft
 
 model:
   implementation: Soul RSSM with structured observation encoder/decoder
