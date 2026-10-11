@@ -47,3 +47,10 @@ A2 hoàn tất với sáu tệp đầu ra và sáu nhận xét trong `docs/LOGBO
 - 2026-10-11 Codespace re-run đã đối chiếu được 6 record raw với đúng script/source hash và 30 mẫu mỗi H; H=1,2,4,16,32 vẫn vượt 20%, H=8 đạt. Bản JSONL hiện tại đã loại object tổng hợp giả cũ. A5 vẫn chặn Gate A; chi tiết median/p95/deviation và provenance ở `docs/LOGBOOK.md` và `results/A5_cost_codespace.jsonl`.
 - Kiểm toán run02/run03 xác nhận cả hai lượt fail 6/6; run01 có H=8 pass nên nhận định trước “ba lượt fail 6/6” đã được đính chính trong LOGBOOK. Chưa có bằng chứng đủ để gọi biến thiên là nội tại/không thể khắc phục; tiếp tục đo run04+ bằng script thật, không gắn tag hay vào pha B khi A5 chưa đạt.
 - Run04 Codespace đã xác minh raw, fail 6/6; supplementary local Windows run cũng fail 6/6. Mỗi Codespace run có bộ môi trường khác nhau; các báo cáo tải CPU chưa kèm output gốc. Chưa chứng minh được blocker không thể khắc phục; tiếp tục run05+ trên Codespace, giữ nguyên script và tiêu chí.
+
+### Cập nhật 2026-10-11 — A5 vẫn chặn Gate A; cần đổi môi trường trước lượt đo tiếp
+- Mã đang xét: `bf6665c` (A5 run78) và diagnostic tách wall/CPU ở commit `8bfa04b`.
+- A5 chuẩn run78 có 30 mẫu mỗi H, 1/6 H đạt; các giá trị raw và provenance ở `results/A5_cost_codespace_run78.jsonl` và `docs/LOGBOOK.md`. Không gắn `gate-A`, không bắt đầu pha B.
+- Diagnostic run79 ghi 180 mẫu ở `results/A5_diag_run79_threadwall.jsonl`. CPU time biến thiên gần bằng wall time ở H=1,2,4,16,32; tương quan 0.973–1.000, còn `cpu.pressure` thấp và `cpu.stat` ghi `nr_throttled=0`. Do đó scheduling không đủ giải thích spike; nguyên nhân còn lại chưa xác định.
+- GitHub báo Codespace hiện tại 2 core/8 GB; có lựa chọn 4 core/16 GB (`standardLinux32gb`). Việc đổi cấu hình có thể restart Codespace và ảnh hưởng tính phí. Chưa tự đổi để tránh thay đổi tài nguyên/ảnh hưởng phiên đang mở.
+- Quyết định hiện tại: giữ ngưỡng 20%, không lặp thêm A5 trên cùng cấu hình; chủ dự án đang chuyển Codespace lên 4 core/16 GB. Chạy lại phép đo sau khi máy mới sẵn sàng; việc nâng máy là thử nghiệm kế tiếp, không bảo đảm A5 sẽ đạt.
