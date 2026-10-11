@@ -95,4 +95,5 @@ The timing-enriched manifest is archived at
 The same-seed outcome breakdown is Candidate-only success 9 / replay-only 0 /
 tie 1 for T_wood, 10 / 0 / 0 for T_tools, and 10 / 0 / 0 for T_iron. These
 paired counts are descriptive only; no significance test or promotion rule is
-applied.
+applied. Each task manifest now stores this breakdown and proposal timing;
+the sweep manifest includes a SHA-256 for every per-task manifest.

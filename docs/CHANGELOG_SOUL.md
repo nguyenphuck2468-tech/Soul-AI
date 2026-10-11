@@ -26,3 +26,5 @@ CHANGELOG_SOUL.md — sửa tối thiểu cho RAWA (G3.0 transition mask, G3.1 i
 2026-10-11 — Add `scripts/phase1_skill_sweep.py` and archive paired Candidate-versus-replay runs on train seeds 200–209 for all three tasks; results remain exploratory, with no held-out or promotion claim.
 2026-10-11 — Extend the Phase 1 sweep summary with proposal-only local timing and archive a timing-enriched manifest; document that failed replay is not a matched-performance compute baseline.
 2026-10-11 — Add descriptive same-seed Candidate/replay success-pair counts to the multi-seed sweep manifest.
+2026-10-11 — Store paired outcomes and proposal timing in each per-task manifest and hash child manifests from the sweep summary.
+2026-10-11 — Add an alpha scope checklist with separate Phase 0 smoke and Phase 1 engineering status; add offline CLI/archive sanity command.

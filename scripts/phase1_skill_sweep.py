@@ -95,6 +95,20 @@ def run_sweep(seed_start: int, seed_count: int, source_root: str | Path,
             },
             'manifest_path': str(output / task / 'manifest.json'),
         }
+        task_manifest['paired_success_outcomes'] = task_results[task][
+            'paired_success_outcomes']
+        task_manifest['decision_compute'] = task_results[task]['decision_compute']
+        task_manifest['aggregate_successes'] = {
+            'candidate_skill': sum(skill),
+            'replay': sum(replay),
+            'episodes_per_controller': len(seeds),
+        }
+        task_manifest_path = output / task / 'manifest.json'
+        task_manifest_path.write_text(
+            json.dumps(task_manifest, indent=2, ensure_ascii=False, allow_nan=False) + '\n',
+            encoding='utf-8')
+        task_results[task]['manifest_sha256'] = hashlib.sha256(
+            task_manifest_path.read_bytes()).hexdigest()
 
     manifest = {
         'schema_version': 1,

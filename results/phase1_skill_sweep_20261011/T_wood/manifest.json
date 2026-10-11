@@ -2,7 +2,7 @@
   "schema_version": 1,
   "kind": "phase1_skill_replay_comparison",
   "status": "EXPLORATORY_TRAIN_SEEDS_NO_PROMOTION",
-  "recorded_at_utc": "2026-10-11T19:40:20.196387+07:00",
+  "recorded_at_utc": "2026-10-11T12:50:16.916935+00:00",
   "task": "T_wood",
   "source_seed": 5,
   "evaluation_seeds": [
@@ -29,7 +29,7 @@
       "success": true,
       "steps": 144,
       "safety_blocks": 0,
-      "decision_wall_seconds": 0.02500950000830926,
+      "decision_wall_seconds": 0.0763938999734819,
       "skill_card": {
         "skill_id": "minicraft.expert.T_wood",
         "version": "0.1.0-alpha",
@@ -73,7 +73,7 @@
       "success": false,
       "steps": 96,
       "safety_blocks": 0,
-      "decision_wall_seconds": 7.73001229390502E-05,
+      "decision_wall_seconds": 0.00039879993710201234,
       "skill_card": null
     },
     {
@@ -83,7 +83,7 @@
       "success": true,
       "steps": 37,
       "safety_blocks": 0,
-      "decision_wall_seconds": 0.0036805999552598223,
+      "decision_wall_seconds": 0.0381085999251809,
       "skill_card": {
         "skill_id": "minicraft.expert.T_wood",
         "version": "0.1.0-alpha",
@@ -127,7 +127,7 @@
       "success": false,
       "steps": 55,
       "safety_blocks": 0,
-      "decision_wall_seconds": 4.39999857917428E-05,
+      "decision_wall_seconds": 0.0002575000107754022,
       "skill_card": null
     },
     {
@@ -137,7 +137,7 @@
       "success": true,
       "steps": 25,
       "safety_blocks": 0,
-      "decision_wall_seconds": 0.002909699993324466,
+      "decision_wall_seconds": 0.007035999980871566,
       "skill_card": {
         "skill_id": "minicraft.expert.T_wood",
         "version": "0.1.0-alpha",
@@ -181,7 +181,7 @@
       "success": false,
       "steps": 30,
       "safety_blocks": 0,
-      "decision_wall_seconds": 2.3000058718025684E-05,
+      "decision_wall_seconds": 5.359998613130301e-05,
       "skill_card": null
     },
     {
@@ -191,7 +191,7 @@
       "success": true,
       "steps": 216,
       "safety_blocks": 0,
-      "decision_wall_seconds": 0.02391429987619631,
+      "decision_wall_seconds": 0.0959132000716636,
       "skill_card": {
         "skill_id": "minicraft.expert.T_wood",
         "version": "0.1.0-alpha",
@@ -235,7 +235,7 @@
       "success": false,
       "steps": 153,
       "safety_blocks": 0,
-      "decision_wall_seconds": 0.0001297001726925373,
+      "decision_wall_seconds": 0.0003453000681474805,
       "skill_card": null
     },
     {
@@ -245,7 +245,7 @@
       "success": true,
       "steps": 57,
       "safety_blocks": 0,
-      "decision_wall_seconds": 0.00672070006839931,
+      "decision_wall_seconds": 0.021227700053714216,
       "skill_card": {
         "skill_id": "minicraft.expert.T_wood",
         "version": "0.1.0-alpha",
@@ -289,7 +289,7 @@
       "success": true,
       "steps": 104,
       "safety_blocks": 0,
-      "decision_wall_seconds": 0.0001000999181997031,
+      "decision_wall_seconds": 0.0003197000187356025,
       "skill_card": null
     },
     {
@@ -299,7 +299,7 @@
       "success": true,
       "steps": 300,
       "safety_blocks": 0,
-      "decision_wall_seconds": 0.036055700009455904,
+      "decision_wall_seconds": 0.1866273000050569,
       "skill_card": {
         "skill_id": "minicraft.expert.T_wood",
         "version": "0.1.0-alpha",
@@ -343,7 +343,7 @@
       "success": false,
       "steps": 300,
       "safety_blocks": 0,
-      "decision_wall_seconds": 0.0002450999163556844,
+      "decision_wall_seconds": 0.0005077000387245789,
       "skill_card": null
     },
     {
@@ -353,7 +353,7 @@
       "success": true,
       "steps": 300,
       "safety_blocks": 0,
-      "decision_wall_seconds": 0.06027270013873931,
+      "decision_wall_seconds": 0.07514690012612846,
       "skill_card": {
         "skill_id": "minicraft.expert.T_wood",
         "version": "0.1.0-alpha",
@@ -397,7 +397,7 @@
       "success": false,
       "steps": 300,
       "safety_blocks": 0,
-      "decision_wall_seconds": 0.000261900044279173,
+      "decision_wall_seconds": 0.000705399812432006,
       "skill_card": null
     },
     {
@@ -407,7 +407,7 @@
       "success": true,
       "steps": 36,
       "safety_blocks": 0,
-      "decision_wall_seconds": 0.005250099973636679,
+      "decision_wall_seconds": 0.008386100002098829,
       "skill_card": {
         "skill_id": "minicraft.expert.T_wood",
         "version": "0.1.0-alpha",
@@ -451,7 +451,7 @@
       "success": false,
       "steps": 116,
       "safety_blocks": 0,
-      "decision_wall_seconds": 0.00011380006617400795,
+      "decision_wall_seconds": 0.00016310000501107424,
       "skill_card": null
     },
     {
@@ -461,7 +461,7 @@
       "success": true,
       "steps": 79,
       "safety_blocks": 0,
-      "decision_wall_seconds": 0.011125800010631792,
+      "decision_wall_seconds": 0.030625300016254187,
       "skill_card": {
         "skill_id": "minicraft.expert.T_wood",
         "version": "0.1.0-alpha",
@@ -505,7 +505,7 @@
       "success": false,
       "steps": 59,
       "safety_blocks": 0,
-      "decision_wall_seconds": 4.670002090279013E-05,
+      "decision_wall_seconds": 0.00012320003588683903,
       "skill_card": null
     },
     {
@@ -515,7 +515,7 @@
       "success": true,
       "steps": 112,
       "safety_blocks": 0,
-      "decision_wall_seconds": 0.015812500059837475,
+      "decision_wall_seconds": 0.030141399998683482,
       "skill_card": {
         "skill_id": "minicraft.expert.T_wood",
         "version": "0.1.0-alpha",
@@ -559,11 +559,11 @@
       "success": false,
       "steps": 59,
       "safety_blocks": 0,
-      "decision_wall_seconds": 6.520005990751088E-05,
+      "decision_wall_seconds": 8.940008410718292e-05,
       "skill_card": null
     }
   ],
-  "trace_path": "results/phase1_skill_sweep_20261011/T_wood/comparison_trace.jsonl",
+  "trace_path": "work\\phase1_skill_sweeps\\skill-sweep-alpha-audit-20261011\\T_wood\\comparison_trace.jsonl",
   "source_trace_sha256": "ab45c4db459e66cebe8de9c02af03858ea96da2806c54c677f6b48bc7a713228",
   "trace_sha256": "5c5634f711a6ebecb01102b3393fb522b644b5c0e1cfc4baad26d7bf171d2aa2",
   "limits": [
@@ -571,5 +571,27 @@
     "No promotion threshold or variant-distance protocol is locked.",
     "Candidate uses privileged full-state BFS; replay is a fixed action cache.",
     "Single small sample and wall-clock measurements are descriptive only."
-  ]
+  ],
+  "paired_success_outcomes": {
+    "candidate_only_success": 9,
+    "replay_only_success": 0,
+    "both_same_outcome": 1,
+    "discordant_pairs": 9,
+    "note": "Descriptive paired counts; no inferential test or threshold."
+  },
+  "decision_compute": {
+    "scope": "controller_action_proposal_only",
+    "candidate_total_wall_seconds": 0.569606400153134,
+    "replay_total_wall_seconds": 0.0029636999970534816,
+    "candidate_mean_wall_seconds_per_step": 0.0004361457887849418,
+    "replay_mean_wall_seconds_per_step": 2.329952827872234e-06,
+    "candidate_mean_steps_per_episode": 130.6,
+    "replay_mean_steps_per_episode": 127.2,
+    "timing_note": "Local descriptive wall time; excludes environment simulation, safety filtering, serialization, and any trained world-model supervision or intervention."
+  },
+  "aggregate_successes": {
+    "candidate_skill": 10,
+    "replay": 1,
+    "episodes_per_controller": 10
+  }
 }

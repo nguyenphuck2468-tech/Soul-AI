@@ -11,6 +11,11 @@ AI-generated execution plan and its B6 endpoint are not the project endpoint.
 
 ## Current phase
 
+- Alpha completion is tracked in `docs/ALPHA_SCOPE.md`: Phase 0 smoke pipeline
+  run-through is complete, while the Phase 1 engineering alpha is estimated at
+  70% and remains in progress. This is a software checklist, not research
+  validation.
+
 - Phase 0 protocol and implementation are still drafts; no formal Phase 0
   experiment or adaptive-compute claim has been completed.
 - MiniCraft now provides structured observations, deterministic state
