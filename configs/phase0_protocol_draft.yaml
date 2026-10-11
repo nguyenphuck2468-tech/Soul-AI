@@ -1,9 +1,10 @@
-schema_version: 2
+schema_version: 3
 status: DRAFT_NOT_LOCKED
 source: v2.6_full_report.md sections 12, 12b, 13
 purpose: >-
   Phase 0 feasibility protocol for structured-state, action-conditioned
-  MiniCraft world-model prediction across open-loop horizons. Not an
+  MiniCraft world-model prediction across reality-anchored and open-loop
+  horizons. Not an
   adaptive-compute benchmark and not evidence for the core hypothesis.
 
 data_splits:
@@ -25,11 +26,12 @@ environment:
     - mobs[].{dx,dy,hp}
     - events.{last_result,damage,tick}
   actions: 9 discrete actions (0..8); action is the transition input.
-  task: deterministic-mean open-loop prediction; compare against real observations.
+  task: deterministic-mean multi-horizon prediction; compare against real observations.
   action_policy: >-
     seeded uniform-random candidates passed through the same MiniCraft hard
     safety filter for train collection and exploratory dev scoring; persist both
     candidate and applied actions and report controller interventions.
+  collection_episodes: one_per_train_seed; stop_on_terminal
   snapshot_counterfactuals: helper_available_but_not_evaluated_by_this_draft
 
 model:

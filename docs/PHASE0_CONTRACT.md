@@ -105,7 +105,10 @@ needs independent calibration against held-out train/dev outcomes before use.
   source-file hashes cover the scorer and model/environment files listed in
   the report, including the protocol draft, while the dirty-tree status hash
   records paths, not their contents.
-- `scripts/phase0_collect.py` writes train-only transition JSONL with seeded
+- `scripts/phase0_collect.py` writes train-only transition JSONL with at most
+  one episode per seed; terminal episodes stop early and are not restarted on
+  the same world to pad transition counts. `steps_per_seed` is an upper bound.
+  It uses seeded
   uniform candidates filtered through the same hard-safety controller as the
   dev scorer; both candidate and applied actions plus the filter decision are
   retained. The recorded applied action is the world-model input;

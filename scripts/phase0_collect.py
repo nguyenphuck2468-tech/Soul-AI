@@ -1,9 +1,10 @@
 """Collect fixed-policy MiniCraft transitions for Phase 0 model fitting.
 
-Only train seeds are accepted. Candidate actions are seeded uniform random;
-the MiniCraft hard-safety filter produces the applied action. Both are recorded
-with the safety decision, observations, rewards, terminal flags, and provenance.
-It does not train a model or touch dev/Confirm seeds.
+Only train seeds are accepted, with at most one episode per seed. Candidate
+actions are seeded uniform random; the MiniCraft hard-safety filter produces
+the applied action. Both are recorded with the safety decision, observations,
+rewards, terminal flags, and provenance. It does not train a model or touch
+dev/Confirm seeds.
 """
 
 import argparse
@@ -22,9 +23,13 @@ def collect(path: str | Path, seeds: list[int], steps_per_seed: int,
             max_ticks: int = 300) -> int:
     if not seeds:
         raise ValueError('at least one train seed is required')
-    if any(isinstance(seed, bool) or not TRAIN_MIN <= int(seed) <= TRAIN_MAX
+    if any(isinstance(seed, (bool, np.bool_))
+           or not isinstance(seed, (int, np.integer))
+           or not TRAIN_MIN <= int(seed) <= TRAIN_MAX
            for seed in seeds):
         raise ValueError('Phase 0 collector accepts train seeds 0..999 only')
+    if len(set(map(int, seeds))) != len(seeds):
+        raise ValueError('train seed list must not contain duplicates')
     if steps_per_seed < 1 or max_ticks < 1:
         raise ValueError('steps_per_seed and max_ticks must be positive')
 
@@ -37,11 +42,9 @@ def collect(path: str | Path, seeds: list[int], steps_per_seed: int,
             env = MiniCraftEnv(seed=int(seed), max_ticks=max_ticks)
             obs = env.observe()
             rng = np.random.default_rng(int(seed))
-            episode = 0
-            for index in range(steps_per_seed):
-                if env.done:
-                    env = MiniCraftEnv(seed=int(seed), max_ticks=max_ticks)
-                    obs = env.observe()
+            # One independent episode per seed. A terminal trajectory is not
+            # restarted from the same world just to fill a requested row count.
+            for index in range(min(steps_per_seed, max_ticks)):
                 candidate_action = int(rng.integers(0, 9))
                 decision = safety.filter(obs, candidate_action)
                 action = decision.applied_action
@@ -50,7 +53,7 @@ def collect(path: str | Path, seeds: list[int], steps_per_seed: int,
                     'schema_version': 2,
                     'split': 'train',
                     'seed': int(seed),
-                    'episode': episode,
+                    'episode': 0,
                     'tick': int(info['tick']),
                     'candidate_action': candidate_action,
                     'observation': obs,
@@ -72,7 +75,7 @@ def collect(path: str | Path, seeds: list[int], steps_per_seed: int,
                 rows += 1
                 obs = next_obs
                 if done:
-                    episode += 1
+                    break
     return rows
 
 
