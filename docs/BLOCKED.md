@@ -17,3 +17,10 @@ Lệnh đã chạy: pilot scoring đã thực hiện (predictions/metrics/report
 Kết quả: model kém hơn baseline trên Pilot; không có ngưỡng khóa; không thể kết luận kiến trúc đúng/sai từ cảm giác.
 Giả thuyết: cần khóa protocol 3A + phê duyệt tiêu chí chấp nhận trước khi kết luận.
 Quyết định: ghi nhận trung thực (INCONCLUSIVE); không điều chỉnh metric/ngưỡng sau khi nhìn kết quả; chờ 3A + chủ dự án.
+
+Tác vụ: P1-P4 (phê duyệt trước khóa 3A) — PROPOSED, chờ chủ dự án.
+P1 margin: chưa đặt giá trị; căn cứ phải độc lập với dữ liệu pilot.
+P2 phương pháp thống kê: chưa chốt.
+P3 quy tắc dừng/rollback: chưa chốt.
+P4 tiêu chí chấp nhận Confirm: chưa chốt.
+Quyết định: không phê duyệt, không đặt số.

@@ -16,7 +16,7 @@
 
 ### D-03 2026-10-10 Giữ 3A làm cổng chờ phê duyệt; dừng trước Confirm
 - Tác vụ liên quan: 3A, 13, Confirm
-- Giá trị cũ -> mới: (có thể đã chạm Confirm trong phiên trước?) -> Confirm NOT ACCESSED; 3A chưa hoàn thành; dừng trước Confirm
+- Giá trị cũ -> mới: (chưa chạm — kiểm chứng grep: chỉ comment/blocks, không có dữ liệu Confirm) -> Confirm NOT ACCESSED; 3A chưa hoàn thành; dừng trước Confirm
 - Lý do: quy tắc 3A (6 bước khóa), 13 (không sửa protocol sau Confirm), trạng thái hiện tại (Confirm NOT ACCESSED, ngưỡng TO_LOCK)
 - Dữ liệu dùng: g31_audit_notes.md (2026-10-10), plan.md (G3.1 INCONCLUSIVE, Confirm NOT ACCESSED)
 - Người phê duyệt: (chưa có)
