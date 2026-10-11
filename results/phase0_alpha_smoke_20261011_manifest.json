@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "kind": "phase0_alpha_smoke",
+  "status": "NON_EVIDENTIARY_SMOKE_ONLY",
+  "recorded_at": "2026-10-11",
+  "source_revision": "81e2b69d5e57d8deca9cddd1211c9fb94e9e79b2",
+  "train_seeds": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "transitions": 236,
+  "episodes_fit": 5,
+  "updates": 2,
+  "dev_seed": 1002,
+  "confirm_accessed": false,
+  "cost": {
+    "measurement_reps": 1,
+    "warmup_reps": 0,
+    "device": "cpu",
+    "horizons": [
+      1,
+      5,
+      20,
+      100
+    ]
+  },
+  "note": "Run-through only. Not a formal Phase 0 experiment or adaptive-compute evidence. Dev seed 1002 is now used for exploratory iteration.",
+  "working_tree_dirty_when_run": true,
+  "artifacts_sha256": {
+    "phase0_alpha_smoke_20261011_cost.jsonl": "5aa2f3fb2db9420d37946ae84f009983ac93e230b872a2d4205f3daa1d80722a",
+    "phase0_alpha_smoke_20261011_dev_seed_1002.json": "8f0841834f4da9fc0500a3c078a8641df8e083a41dccd157eff595d298dd5466",
+    "phase0_alpha_smoke_20261011_predictions.jsonl": "4e0b24dbc7c006aedcc7d90497a704c7d1bb08344ae15e247cdc7cb7906cdc83",
+    "phase0_alpha_smoke_20261011_soul.pt": "707e0f00074eaacfeb3de6e06c40a15594db290f713e10ecf8b78099f213f3f6",
+    "phase0_alpha_smoke_20261011_train_report.json": "c6b4d4b4eec124bb8de67a404cce096b0a54333383b8fd349b79b055b0f7e1d4",
+    "phase0_alpha_smoke_20261011_train.jsonl": "00d1cf51c28c436bb64321a9b93f74e272b7c776158218b3f244894201654a46"
+  },
+  "short_run_dev_metrics": {
+    "h1_model_mse": 0.3412871502765059,
+    "h1_persistence_mse": 0.0349443673914261,
+    "h5_model_mse": 0.3336069626784502,
+    "h5_persistence_mse": 0.09989364048170427,
+    "h20_model_mse": 0.23882512312669021,
+    "h20_persistence_mse": 0.21707049149733323,
+    "h100_status": "no_complete_window_in_20_tick_smoke"
+  }
+}

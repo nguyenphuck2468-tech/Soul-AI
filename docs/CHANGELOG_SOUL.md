@@ -18,3 +18,4 @@ CHANGELOG_SOUL.md — sửa tối thiểu cho RAWA (G3.0 transition mask, G3.1 i
 2026-10-11 — Embed Phase 0 train split, dataset, seed, protocol, and source provenance in fitted checkpoints; scorer now rejects checkpoints without valid train-only provenance.
 2026-10-11 — Synchronize CUDA before and after Phase 0 adapter timings so wall-clock cost includes completed GPU work.
 2026-10-11 — Refresh project status for the checkpoint provenance gate and synchronized CUDA cost measurements.
+2026-10-11 — Complete and archive a non-evidentiary alpha run-through across collection, training, provenance-gated dev scoring, and cost measurement; dev seed 1002 is now marked seen.

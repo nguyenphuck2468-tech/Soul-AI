@@ -32,11 +32,16 @@ AI-generated execution plan and its B6 endpoint are not the project endpoint.
 
 ## Data and gates
 
-- Train seeds: 0–999. Dev seeds: 1000–1999. Dev 1000–1001 were used for an
-  explicitly non-evidentiary smoke run and are already seen.
+- Train seeds: 0–999. Dev seeds: 1000–1999. Dev 1000–1002 were used for
+  explicitly non-evidentiary smoke runs and are already seen. The latest
+  alpha end-to-end run completed collection, fitting, provenance-gated scoring,
+  and CPU cost measurement; details are in
+  `results/phase0_alpha_smoke_20261011_manifest.json`.
 - Confirm has no range and remains unused.
-- Do not treat the 60-transition, 5-update smoke checkpoint as model-quality
-  evidence; it underperformed persistence.
+- Do not treat either smoke checkpoint as model-quality evidence. The older
+  60-transition, 5-update checkpoint underperformed persistence; the latest
+  236-transition, 2-update smoke also exceeded persistence error at H=1 and
+  H=5 and had no complete H=100 window.
 - Phase 5 values such as `delta`, `h_OOD`, headroom margins, `rho/sigma`
   sweeps, and `R_max` remain open because the source report supplies no numeric
   values.

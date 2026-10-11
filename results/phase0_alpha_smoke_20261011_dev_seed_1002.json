@@ -1,0 +1,2205 @@
+{
+  "schema_version": 2,
+  "kind": "phase0_dev_score",
+  "status": "EXPLORATORY_NO_THRESHOLDS_LOCKED",
+  "checkpoint": "work/alpha_run_20261011_soul.pt",
+  "checkpoint_sha256": "707e0f00074eaacfeb3de6e06c40a15594db290f713e10ecf8b78099f213f3f6",
+  "feature_schema_sha256": "66f9735c09caa0dfb679f71c8c352e9cc2a068de44f056bb7fdf5da89bd0b288",
+  "unseen_feature_overflow": 0,
+  "unseen_feature_overflow_by_path": {},
+  "split": "dev",
+  "seeds": [
+    1002
+  ],
+  "code_revision": "81e2b69d5e57d8deca9cddd1211c9fb94e9e79b2",
+  "working_tree_dirty": true,
+  "working_tree_status_sha256": "01f243a4c2d20286669ad68bbb729be842836ea9f4ae0f1e61bd3b5edbcdbbbf",
+  "protocol_config_sha256": "e25e66c0827b1f1a62520cc4f177895f996c48998ba1075b5f5ebf19c05dda5d",
+  "environment_seeds": [
+    1002
+  ],
+  "run_config": {
+    "episodes_per_seed": 1,
+    "max_ticks": 20,
+    "shuffle_repeats": 5,
+    "horizons": [
+      1,
+      5,
+      20,
+      100
+    ],
+    "candidate_policy": "numpy.default_rng(environment_seed).integers(0, 9)",
+    "safety_filter": "MiniCraftSafetyController",
+    "metric_aggregation": "observed_features_then_origins_then_equal_episodes"
+  },
+  "source_sha256": {
+    "scripts/phase0_score.py": "4b834ca726c6cc90efccd5ef8fd1f047d6f5c2bc90265e76b40ecfc524ec4af2",
+    "soul/obs.py": "c65633f53118e25002ecd23e337ed1385cae7220dd244efa090047d0e2f8c87b",
+    "soul/model.py": "b1d3f8a5aaa1f5df4bc10182979f7c7d72379a9a80ad8cdcf5526d4399b2ce9b",
+    "minicraft/env.py": "c5ffed4ef2931dc1405b6a71223617a9c018888498706fe3319b7a65eed31cff",
+    "minicraft/safety.py": "a20f155d3f709d21981c60d968e1f670535e3ffc26a95b2a8186b45fe38082de",
+    "configs/phase0_protocol_draft.yaml": "e25e66c0827b1f1a62520cc4f177895f996c48998ba1075b5f5ebf19c05dda5d"
+  },
+  "runtime": {
+    "python": "3.12.10",
+    "torch": "2.3.0+cpu",
+    "numpy": "1.26.4",
+    "device": "cpu",
+    "torch_threads": 2
+  },
+  "action_counts": [
+    1,
+    2,
+    0,
+    6,
+    1,
+    2,
+    3,
+    3,
+    2
+  ],
+  "candidate_action_counts": [
+    1,
+    2,
+    0,
+    6,
+    1,
+    2,
+    3,
+    3,
+    2
+  ],
+  "applied_action_counts": [
+    1,
+    2,
+    0,
+    6,
+    1,
+    2,
+    3,
+    3,
+    2
+  ],
+  "safety_blocks": 0,
+  "raw_predictions_path": "results/phase0_alpha_smoke_20261011_predictions.jsonl",
+  "episodes": [
+    {
+      "seed": 1002,
+      "episode": 0,
+      "environment_seed": 1002,
+      "transitions": 20,
+      "horizons": {
+        "1": {
+          "origins": 20,
+          "origins_without_observed_numeric_features": 0,
+          "model_mse": 0.3412871502765059,
+          "anchored_model_mse": 0.3412871502765059,
+          "open_loop_model_mse": 0.3412871502765059,
+          "persistence_mse": 0.0349443673914261,
+          "per_feature_group": {
+            "events": {
+              "anchored_model_mse": 0.3409411206841469,
+              "open_loop_model_mse": 0.3409411206841469,
+              "persistence_mse": 0.02946802742865202,
+              "origins": 20
+            },
+            "inventory": {
+              "anchored_model_mse": 0.009872036365171274,
+              "open_loop_model_mse": 0.009872036365171274,
+              "persistence_mse": 0.0,
+              "origins": 20
+            },
+            "local_map": {
+              "anchored_model_mse": 0.34190409329472754,
+              "open_loop_model_mse": 0.34190409329472754,
+              "persistence_mse": 0.04097177593075499,
+              "origins": 20
+            },
+            "mobs": {
+              "anchored_model_mse": 0.29709981282552084,
+              "open_loop_model_mse": 0.29709981282552084,
+              "persistence_mse": 0.09583333438883225,
+              "origins": 5
+            },
+            "self": {
+              "anchored_model_mse": 0.724500756263733,
+              "open_loop_model_mse": 0.724500756263733,
+              "persistence_mse": 0.013481981200629888,
+              "origins": 20
+            }
+          },
+          "per_feature": {
+            "events.damage": {
+              "model_mse": 0.027855227806139738,
+              "anchored_model_mse": 0.027855227806139738,
+              "open_loop_model_mse": 0.027855227806139738,
+              "persistence_mse": 0.0444444477558136,
+              "observations": 20
+            },
+            "events.tick": {
+              "model_mse": 0.6540270052850247,
+              "anchored_model_mse": 0.6540270052850247,
+              "open_loop_model_mse": 0.6540270052850247,
+              "persistence_mse": 0.014491607974196085,
+              "observations": 20
+            },
+            "inv.apple": {
+              "model_mse": 0.01982806846499443,
+              "anchored_model_mse": 0.01982806846499443,
+              "open_loop_model_mse": 0.01982806846499443,
+              "persistence_mse": 0.0,
+              "observations": 20
+            },
+            "inv.iron": {
+              "model_mse": 0.0038556419196538625,
+              "anchored_model_mse": 0.0038556419196538625,
+              "open_loop_model_mse": 0.0038556419196538625,
+              "persistence_mse": 0.0,
+              "observations": 20
+            },
+            "inv.stone": {
+              "model_mse": 3.5988897985395062E-06,
+              "anchored_model_mse": 3.5988897985395062E-06,
+              "open_loop_model_mse": 3.5988897985395062E-06,
+              "persistence_mse": 0.0,
+              "observations": 20
+            },
+            "inv.stone_pickaxe": {
+              "model_mse": 0.004481139755807817,
+              "anchored_model_mse": 0.004481139755807817,
+              "open_loop_model_mse": 0.004481139755807817,
+              "persistence_mse": 0.0,
+              "observations": 20
+            },
+            "inv.wood": {
+              "model_mse": 0.011212147260084748,
+              "anchored_model_mse": 0.011212147260084748,
+              "open_loop_model_mse": 0.011212147260084748,
+              "persistence_mse": 0.0,
+              "observations": 20
+            },
+            "inv.wood_pickaxe": {
+              "model_mse": 0.01985162226483226,
+              "anchored_model_mse": 0.01985162226483226,
+              "open_loop_model_mse": 0.01985162226483226,
+              "persistence_mse": 0.0,
+              "observations": 20
+            },
+            "patch[0][0]": {
+              "model_mse": 0.027212891987437614,
+              "anchored_model_mse": 0.027212891987437614,
+              "open_loop_model_mse": 0.027212891987437614,
+              "persistence_mse": 0.028125,
+              "observations": 20
+            },
+            "patch[0][1]": {
+              "model_mse": 0.0008291397796710953,
+              "anchored_model_mse": 0.0008291397796710953,
+              "open_loop_model_mse": 0.0008291397796710953,
+              "persistence_mse": 0.0,
+              "observations": 20
+            },
+            "patch[0][2]": {
+              "model_mse": 0.013832764700055122,
+              "anchored_model_mse": 0.013832764700055122,
+              "open_loop_model_mse": 0.013832764700055122,
+              "persistence_mse": 0.0,
+              "observations": 20
+            },
+            "patch[0][3]": {
+              "model_mse": 0.00640798700042069,
+              "anchored_model_mse": 0.00640798700042069,
+              "open_loop_model_mse": 0.00640798700042069,
+              "persistence_mse": 0.0,
+              "observations": 20
+            },
+            "patch[0][4]": {
+              "model_mse": 0.11966302613727749,
+              "anchored_model_mse": 0.11966302613727749,
+              "open_loop_model_mse": 0.11966302613727749,
+              "persistence_mse": 0.049000002443790436,
+              "observations": 20
+            },
+            "patch[0][5]": {
+              "model_mse": 0.14377472742926328,
+              "anchored_model_mse": 0.14377472742926328,
+              "open_loop_model_mse": 0.14377472742926328,
+              "persistence_mse": 0.0445000022649765,
+              "observations": 20
+            },
+            "patch[0][6]": {
+              "model_mse": 0.1789224387262948,
+              "anchored_model_mse": 0.1789224387262948,
+              "open_loop_model_mse": 0.1789224387262948,
+              "persistence_mse": 0.06700000017881394,
+              "observations": 20
+            },
+            "patch[1][0]": {
+              "model_mse": 0.08605276541784405,
+              "anchored_model_mse": 0.08605276541784405,
+              "open_loop_model_mse": 0.08605276541784405,
+              "persistence_mse": 0.05,
+              "observations": 20
+            },
+            "patch[1][1]": {
+              "model_mse": 0.13764110709307714,
+              "anchored_model_mse": 0.13764110709307714,
+              "open_loop_model_mse": 0.13764110709307714,
+              "persistence_mse": 0.05,
+              "observations": 20
+            },
+            "patch[1][2]": {
+              "model_mse": 0.011763403937220574,
+              "anchored_model_mse": 0.011763403937220574,
+              "open_loop_model_mse": 0.011763403937220574,
+              "persistence_mse": 0.0,
+              "observations": 20
+            },
+            "patch[1][3]": {
+              "model_mse": 0.00033268391380261166,
+              "anchored_model_mse": 0.00033268391380261166,
+              "open_loop_model_mse": 0.00033268391380261166,
+              "persistence_mse": 0.0,
+              "observations": 20
+            },
+            "patch[1][4]": {
+              "model_mse": 0.046235904231434685,
+              "anchored_model_mse": 0.046235904231434685,
+              "open_loop_model_mse": 0.046235904231434685,
+              "persistence_mse": 0.025,
+              "observations": 20
+            },
+            "patch[1][5]": {
+              "model_mse": 0.05293119698762894,
+              "anchored_model_mse": 0.05293119698762894,
+              "open_loop_model_mse": 0.05293119698762894,
+              "persistence_mse": 0.0125,
+              "observations": 20
+            },
+            "patch[1][6]": {
+              "model_mse": 0.042161451349966225,
+              "anchored_model_mse": 0.042161451349966225,
+              "open_loop_model_mse": 0.042161451349966225,
+              "persistence_mse": 0.025,
+              "observations": 20
+            },
+            "patch[2][0]": {
+              "model_mse": 0.2547261524945498,
+              "anchored_model_mse": 0.2547261524945498,
+              "open_loop_model_mse": 0.2547261524945498,
+              "persistence_mse": 0.064000004529953,
+              "observations": 20
+            },
+            "patch[2][1]": {
+              "model_mse": 0.5139032274484634,
+              "anchored_model_mse": 0.5139032274484634,
+              "open_loop_model_mse": 0.5139032274484634,
+              "persistence_mse": 0.11300000697374343,
+              "observations": 20
+            },
+            "patch[2][2]": {
+              "model_mse": 0.0008955659548519179,
+              "anchored_model_mse": 0.0008955659548519179,
+              "open_loop_model_mse": 0.0008955659548519179,
+              "persistence_mse": 0.0,
+              "observations": 20
+            },
+            "patch[2][3]": {
+              "model_mse": 0.0076380018843337895,
+              "anchored_model_mse": 0.0076380018843337895,
+              "open_loop_model_mse": 0.0076380018843337895,
+              "persistence_mse": 0.0,
+              "observations": 20
+            },
+            "patch[2][4]": {
+              "model_mse": 0.03453871044330299,
+              "anchored_model_mse": 0.03453871044330299,
+              "open_loop_model_mse": 0.03453871044330299,
+              "persistence_mse": 0.03472222089767456,
+              "observations": 20
+            },
+            "patch[2][5]": {
+              "model_mse": 0.09250279191182927,
+              "anchored_model_mse": 0.09250279191182927,
+              "open_loop_model_mse": 0.09250279191182927,
+              "persistence_mse": 0.13888888359069823,
+              "observations": 20
+            },
+            "patch[2][6]": {
+              "model_mse": 0.36210219794884324,
+              "anchored_model_mse": 0.36210219794884324,
+              "open_loop_model_mse": 0.36210219794884324,
+              "persistence_mse": 0.13888888359069823,
+              "observations": 20
+            },
+            "patch[3][0]": {
+              "model_mse": 0.1251423774752766,
+              "anchored_model_mse": 0.1251423774752766,
+              "open_loop_model_mse": 0.1251423774752766,
+              "persistence_mse": 0.0862222284078598,
+              "observations": 20
+            },
+            "patch[3][1]": {
+              "model_mse": 0.15348382277879863,
+              "anchored_model_mse": 0.15348382277879863,
+              "open_loop_model_mse": 0.15348382277879863,
+              "persistence_mse": 0.13788889795541764,
+              "observations": 20
+            },
+            "patch[3][2]": {
+              "model_mse": 0.1570920874364674,
+              "anchored_model_mse": 0.1570920874364674,
+              "open_loop_model_mse": 0.1570920874364674,
+              "persistence_mse": 0.10138889551162719,
+              "observations": 20
+            },
+            "patch[3][3]": {
+              "model_mse": 1.953859880359232E-05,
+              "anchored_model_mse": 1.953859880359232E-05,
+              "open_loop_model_mse": 1.953859880359232E-05,
+              "persistence_mse": 0.0,
+              "observations": 20
+            },
+            "patch[3][4]": {
+              "model_mse": 0.0262763972801622,
+              "anchored_model_mse": 0.0262763972801622,
+              "open_loop_model_mse": 0.0262763972801622,
+              "persistence_mse": 0.0222222238779068,
+              "observations": 20
+            },
+            "patch[3][5]": {
+              "model_mse": 0.05846698066452518,
+              "anchored_model_mse": 0.05846698066452518,
+              "open_loop_model_mse": 0.05846698066452518,
+              "persistence_mse": 0.0888888955116272,
+              "observations": 20
+            },
+            "patch[3][6]": {
+              "model_mse": 0.36752056176774206,
+              "anchored_model_mse": 0.36752056176774206,
+              "open_loop_model_mse": 0.36752056176774206,
+              "persistence_mse": 0.10277778077870607,
+              "observations": 20
+            },
+            "patch[4][0]": {
+              "model_mse": 0.540157658723183,
+              "anchored_model_mse": 0.540157658723183,
+              "open_loop_model_mse": 0.540157658723183,
+              "persistence_mse": 0.10073469877243042,
+              "observations": 20
+            },
+            "patch[4][1]": {
+              "model_mse": 0.5920122164447094,
+              "anchored_model_mse": 0.5920122164447094,
+              "open_loop_model_mse": 0.5920122164447094,
+              "persistence_mse": 0.06873469650745392,
+              "observations": 20
+            },
+            "patch[4][2]": {
+              "model_mse": 0.7784155268222094,
+              "anchored_model_mse": 0.7784155268222094,
+              "open_loop_model_mse": 0.7784155268222094,
+              "persistence_mse": 0.056036284938454625,
+              "observations": 20
+            },
+            "patch[4][3]": {
+              "model_mse": 0.33135686134919523,
+              "anchored_model_mse": 0.33135686134919523,
+              "open_loop_model_mse": 0.33135686134919523,
+              "persistence_mse": 0.03673469424247742,
+              "observations": 20
+            },
+            "patch[4][4]": {
+              "model_mse": 0.6180836111772805,
+              "anchored_model_mse": 0.6180836111772805,
+              "open_loop_model_mse": 0.6180836111772805,
+              "persistence_mse": 0.03673469424247742,
+              "observations": 20
+            },
+            "patch[4][5]": {
+              "model_mse": 0.44569241178396624,
+              "anchored_model_mse": 0.44569241178396624,
+              "open_loop_model_mse": 0.44569241178396624,
+              "persistence_mse": 0.03673469424247742,
+              "observations": 20
+            },
+            "patch[4][6]": {
+              "model_mse": 0.7743979149730876,
+              "anchored_model_mse": 0.7743979149730876,
+              "open_loop_model_mse": 0.7743979149730876,
+              "persistence_mse": 0.037925167940557,
+              "observations": 20
+            },
+            "patch[5][0]": {
+              "model_mse": 0.5038984370476101,
+              "anchored_model_mse": 0.5038984370476101,
+              "open_loop_model_mse": 0.5038984370476101,
+              "persistence_mse": 0.03673469424247742,
+              "observations": 20
+            },
+            "patch[5][1]": {
+              "model_mse": 0.7547403062693775,
+              "anchored_model_mse": 0.7547403062693775,
+              "open_loop_model_mse": 0.7547403062693775,
+              "persistence_mse": 0.03673469424247742,
+              "observations": 20
+            },
+            "patch[5][2]": {
+              "model_mse": 0.619287582384277,
+              "anchored_model_mse": 0.619287582384277,
+              "open_loop_model_mse": 0.619287582384277,
+              "persistence_mse": 0.024036282673478127,
+              "observations": 20
+            },
+            "patch[5][3]": {
+              "model_mse": 0.64750468111597,
+              "anchored_model_mse": 0.64750468111597,
+              "open_loop_model_mse": 0.64750468111597,
+              "persistence_mse": 0.058956918120384214,
+              "observations": 20
+            },
+            "patch[5][4]": {
+              "model_mse": 0.6180728546227329,
+              "anchored_model_mse": 0.6180728546227329,
+              "open_loop_model_mse": 0.6180728546227329,
+              "persistence_mse": 0.03673469424247742,
+              "observations": 20
+            },
+            "patch[5][5]": {
+              "model_mse": 0.6593457587296143,
+              "anchored_model_mse": 0.6593457587296143,
+              "open_loop_model_mse": 0.6593457587296143,
+              "persistence_mse": 0.03673469424247742,
+              "observations": 20
+            },
+            "patch[5][6]": {
+              "model_mse": 0.539230108098127,
+              "anchored_model_mse": 0.539230108098127,
+              "open_loop_model_mse": 0.539230108098127,
+              "persistence_mse": 0.024036282673478127,
+              "observations": 20
+            },
+            "patch[6][0]": {
+              "model_mse": 0.5609239101409912,
+              "anchored_model_mse": 0.5609239101409912,
+              "open_loop_model_mse": 0.5609239101409912,
+              "persistence_mse": 0.0,
+              "observations": 20
+            },
+            "patch[6][1]": {
+              "model_mse": 0.7049339860677719,
+              "anchored_model_mse": 0.7049339860677719,
+              "open_loop_model_mse": 0.7049339860677719,
+              "persistence_mse": 0.0,
+              "observations": 20
+            },
+            "patch[6][2]": {
+              "model_mse": 0.6293892532587051,
+              "anchored_model_mse": 0.6293892532587051,
+              "open_loop_model_mse": 0.6293892532587051,
+              "persistence_mse": 0.0,
+              "observations": 20
+            },
+            "patch[6][3]": {
+              "model_mse": 0.6350679337978363,
+              "anchored_model_mse": 0.6350679337978363,
+              "open_loop_model_mse": 0.6350679337978363,
+              "persistence_mse": 0.0,
+              "observations": 20
+            },
+            "patch[6][4]": {
+              "model_mse": 1.0122534334659576,
+              "anchored_model_mse": 1.0122534334659576,
+              "open_loop_model_mse": 1.0122534334659576,
+              "persistence_mse": 0.0,
+              "observations": 20
+            },
+            "patch[6][5]": {
+              "model_mse": 1.0502368330955505,
+              "anchored_model_mse": 1.0502368330955505,
+              "open_loop_model_mse": 1.0502368330955505,
+              "persistence_mse": 0.0,
+              "observations": 20
+            },
+            "patch[6][6]": {
+              "model_mse": 0.7162294179201126,
+              "anchored_model_mse": 0.7162294179201126,
+              "open_loop_model_mse": 0.7162294179201126,
+              "persistence_mse": 0.0,
+              "observations": 20
+            },
+            "self.facing": {
+              "model_mse": 0.17058076839894057,
+              "anchored_model_mse": 0.17058076839894057,
+              "open_loop_model_mse": 0.17058076839894057,
+              "persistence_mse": 0.06736111575737595,
+              "observations": 20
+            },
+            "self.food": {
+              "model_mse": 0.553295248746872,
+              "anchored_model_mse": 0.553295248746872,
+              "open_loop_model_mse": 0.553295248746872,
+              "persistence_mse": 0.0,
+              "observations": 20
+            },
+            "self.health": {
+              "model_mse": 0.9616873025894165,
+              "anchored_model_mse": 0.9616873025894165,
+              "open_loop_model_mse": 0.9616873025894165,
+              "persistence_mse": 2.6578928373055533E-05,
+              "observations": 20
+            },
+            "self.x": {
+              "model_mse": 1.0041810780763627,
+              "anchored_model_mse": 1.0041810780763627,
+              "open_loop_model_mse": 1.0041810780763627,
+              "persistence_mse": 2.143923757103039E-05,
+              "observations": 20
+            },
+            "self.y": {
+              "model_mse": 0.9327593892812729,
+              "anchored_model_mse": 0.9327593892812729,
+              "open_loop_model_mse": 0.9327593892812729,
+              "persistence_mse": 7.737475925750914E-07,
+              "observations": 20
+            },
+            "mobs[0].dx": {
+              "model_mse": 0.04430679231882095,
+              "anchored_model_mse": 0.04430679231882095,
+              "open_loop_model_mse": 0.04430679231882095,
+              "persistence_mse": 0.05,
+              "observations": 5
+            },
+            "mobs[0].dy": {
+              "model_mse": 0.36969143748283384,
+              "anchored_model_mse": 0.36969143748283384,
+              "open_loop_model_mse": 0.36969143748283384,
+              "persistence_mse": 0.12500000167638065,
+              "observations": 5
+            },
+            "mobs[0].hp": {
+              "model_mse": 0.47730118632316587,
+              "anchored_model_mse": 0.47730118632316587,
+              "open_loop_model_mse": 0.47730118632316587,
+              "persistence_mse": 0.1125,
+              "observations": 5
+            }
+          }
+        },
+        "5": {
+          "origins": 16,
+          "origins_without_observed_numeric_features": 0,
+          "model_mse": 0.3336069626784502,
+          "anchored_model_mse": 0.3336069626784502,
+          "open_loop_model_mse": 0.3326740203069398,
+          "persistence_mse": 0.09989364048170427,
+          "per_feature_group": {
+            "events": {
+              "anchored_model_mse": 0.3771559651941061,
+              "open_loop_model_mse": 0.3736998699605465,
+              "persistence_mse": 0.04237903884541083,
+              "origins": 16
+            },
+            "inventory": {
+              "anchored_model_mse": 0.009898402805750568,
+              "open_loop_model_mse": 0.009771532107455034,
+              "persistence_mse": 0.0,
+              "origins": 16
+            },
+            "local_map": {
+              "anchored_model_mse": 0.33070582273055094,
+              "open_loop_model_mse": 0.32971675541936135,
+              "persistence_mse": 0.11712256499699183,
+              "origins": 16
+            },
+            "mobs": {
+              "anchored_model_mse": 0.29709981282552084,
+              "open_loop_model_mse": 0.2962269345919291,
+              "persistence_mse": 0.3342592557271321,
+              "origins": 5
+            },
+            "self": {
+              "anchored_model_mse": 0.7223476827144623,
+              "open_loop_model_mse": 0.722067704796791,
+              "persistence_mse": 0.046027246624362306,
+              "origins": 16
+            }
+          },
+          "per_feature": {
+            "events.damage": {
+              "model_mse": 0.03421878183144145,
+              "anchored_model_mse": 0.03421878183144145,
+              "open_loop_model_mse": 0.033477685108664446,
+              "persistence_mse": 0.0277777798473835,
+              "observations": 16
+            },
+            "events.tick": {
+              "model_mse": 0.7200931385159492,
+              "anchored_model_mse": 0.7200931385159492,
+              "open_loop_model_mse": 0.7139220498502254,
+              "persistence_mse": 0.056980297206791874,
+              "observations": 16
+            },
+            "inv.apple": {
+              "model_mse": 0.019690848770551383,
+              "anchored_model_mse": 0.019690848770551383,
+              "open_loop_model_mse": 0.020328695536591113,
+              "persistence_mse": 0.0,
+              "observations": 16
+            },
+            "inv.iron": {
+              "model_mse": 0.0038983354752417654,
+              "anchored_model_mse": 0.0038983354752417654,
+              "open_loop_model_mse": 0.003820117621216923,
+              "persistence_mse": 0.0,
+              "observations": 16
+            },
+            "inv.stone": {
+              "model_mse": 3.490638050607231E-06,
+              "anchored_model_mse": 3.490638050607231E-06,
+              "open_loop_model_mse": 2.135908886202742E-06,
+              "persistence_mse": 0.0,
+              "observations": 16
+            },
+            "inv.stone_pickaxe": {
+              "model_mse": 0.004404027888085693,
+              "anchored_model_mse": 0.004404027888085693,
+              "open_loop_model_mse": 0.004296053928555921,
+              "persistence_mse": 0.0,
+              "observations": 16
+            },
+            "inv.wood": {
+              "model_mse": 0.011356533446814865,
+              "anchored_model_mse": 0.011356533446814865,
+              "open_loop_model_mse": 0.010931655240710825,
+              "persistence_mse": 0.0,
+              "observations": 16
+            },
+            "inv.wood_pickaxe": {
+              "model_mse": 0.020037181093357503,
+              "anchored_model_mse": 0.020037181093357503,
+              "open_loop_model_mse": 0.0192505344748497,
+              "persistence_mse": 0.0,
+              "observations": 16
+            },
+            "patch[0][0]": {
+              "model_mse": 0.03395462762546231,
+              "anchored_model_mse": 0.03395462762546231,
+              "open_loop_model_mse": 0.033878156000355375,
+              "persistence_mse": 0.03515625,
+              "observations": 16
+            },
+            "patch[0][1]": {
+              "model_mse": 0.0008494030953443144,
+              "anchored_model_mse": 0.0008494030953443144,
+              "open_loop_model_mse": 0.0006529487545776647,
+              "persistence_mse": 0.0,
+              "observations": 16
+            },
+            "patch[0][2]": {
+              "model_mse": 0.013844188535586,
+              "anchored_model_mse": 0.013844188535586,
+              "open_loop_model_mse": 0.01391254790360108,
+              "persistence_mse": 0.0,
+              "observations": 16
+            },
+            "patch[0][3]": {
+              "model_mse": 0.006409538560546935,
+              "anchored_model_mse": 0.006409538560546935,
+              "open_loop_model_mse": 0.0065759040880948305,
+              "persistence_mse": 0.0,
+              "observations": 16
+            },
+            "patch[0][4]": {
+              "model_mse": 0.14698654285166413,
+              "anchored_model_mse": 0.14698654285166413,
+              "open_loop_model_mse": 0.14672990574035794,
+              "persistence_mse": 0.1725000087171793,
+              "observations": 16
+            },
+            "patch[0][5]": {
+              "model_mse": 0.16759573403396644,
+              "anchored_model_mse": 0.16759573403396644,
+              "open_loop_model_mse": 0.16726134801865555,
+              "persistence_mse": 0.23125001415610313,
+              "observations": 16
+            },
+            "patch[0][6]": {
+              "model_mse": 0.18459652278397698,
+              "anchored_model_mse": 0.18459652278397698,
+              "open_loop_model_mse": 0.18468347784073558,
+              "persistence_mse": 0.11500000022351742,
+              "observations": 16
+            },
+            "patch[1][0]": {
+              "model_mse": 0.05015885445754975,
+              "anchored_model_mse": 0.05015885445754975,
+              "open_loop_model_mse": 0.04897721414454281,
+              "persistence_mse": 0.0625,
+              "observations": 16
+            },
+            "patch[1][1]": {
+              "model_mse": 0.15276526057277806,
+              "anchored_model_mse": 0.15276526057277806,
+              "open_loop_model_mse": 0.15259052024339326,
+              "persistence_mse": 0.140625,
+              "observations": 16
+            },
+            "patch[1][2]": {
+              "model_mse": 0.011709886544849724,
+              "anchored_model_mse": 0.011709886544849724,
+              "open_loop_model_mse": 0.011432462313678116,
+              "persistence_mse": 0.0,
+              "observations": 16
+            },
+            "patch[1][3]": {
+              "model_mse": 0.0003637943336798344,
+              "anchored_model_mse": 0.0003637943336798344,
+              "open_loop_model_mse": 0.00035944078081229236,
+              "persistence_mse": 0.0,
+              "observations": 16
+            },
+            "patch[1][4]": {
+              "model_mse": 0.057707419075086364,
+              "anchored_model_mse": 0.057707419075086364,
+              "open_loop_model_mse": 0.0573791633341898,
+              "persistence_mse": 0.0625,
+              "observations": 16
+            },
+            "patch[1][5]": {
+              "model_mse": 0.058713563019409776,
+              "anchored_model_mse": 0.058713563019409776,
+              "open_loop_model_mse": 0.058514829841442406,
+              "persistence_mse": 0.015625,
+              "observations": 16
+            },
+            "patch[1][6]": {
+              "model_mse": 0.051905548869399354,
+              "anchored_model_mse": 0.051905548869399354,
+              "open_loop_model_mse": 0.05264275553054176,
+              "persistence_mse": 0.0625,
+              "observations": 16
+            },
+            "patch[2][0]": {
+              "model_mse": 0.24013995321001858,
+              "anchored_model_mse": 0.24013995321001858,
+              "open_loop_model_mse": 0.23944285709876567,
+              "persistence_mse": 0.2800000198185444,
+              "observations": 16
+            },
+            "patch[2][1]": {
+              "model_mse": 0.5726704772096127,
+              "anchored_model_mse": 0.5726704772096127,
+              "open_loop_model_mse": 0.5746005964465439,
+              "persistence_mse": 0.3225000202655792,
+              "observations": 16
+            },
+            "patch[2][2]": {
+              "model_mse": 0.0009153777318715584,
+              "anchored_model_mse": 0.0009153777318715584,
+              "open_loop_model_mse": 0.0009495748672634363,
+              "persistence_mse": 0.0,
+              "observations": 16
+            },
+            "patch[2][3]": {
+              "model_mse": 0.007648404949577525,
+              "anchored_model_mse": 0.007648404949577525,
+              "open_loop_model_mse": 0.007376765861408785,
+              "persistence_mse": 0.0,
+              "observations": 16
+            },
+            "patch[2][4]": {
+              "model_mse": 0.006415784213459119,
+              "anchored_model_mse": 0.006415784213459119,
+              "open_loop_model_mse": 0.006592799996724352,
+              "persistence_mse": 0.0868055522441864,
+              "observations": 16
+            },
+            "patch[2][5]": {
+              "model_mse": 0.040821089409291744,
+              "anchored_model_mse": 0.040821089409291744,
+              "open_loop_model_mse": 0.04082681624277029,
+              "persistence_mse": 0.1736111044883728,
+              "observations": 16
+            },
+            "patch[2][6]": {
+              "model_mse": 0.40184362159925513,
+              "anchored_model_mse": 0.40184362159925513,
+              "open_loop_model_mse": 0.40232117821869906,
+              "persistence_mse": 0.3906249850988388,
+              "observations": 16
+            },
+            "patch[3][0]": {
+              "model_mse": 0.11571579991141334,
+              "anchored_model_mse": 0.11571579991141334,
+              "open_loop_model_mse": 0.1150754647096619,
+              "persistence_mse": 0.2155555710196495,
+              "observations": 16
+            },
+            "patch[3][1]": {
+              "model_mse": 0.14470319976680912,
+              "anchored_model_mse": 0.14470319976680912,
+              "open_loop_model_mse": 0.1440793038054835,
+              "persistence_mse": 0.2419444597326219,
+              "observations": 16
+            },
+            "patch[3][2]": {
+              "model_mse": 0.17451464978512377,
+              "anchored_model_mse": 0.17451464978512377,
+              "open_loop_model_mse": 0.17235150950727984,
+              "persistence_mse": 0.2656250186264515,
+              "observations": 16
+            },
+            "patch[3][3]": {
+              "model_mse": 1.5908658582475255E-05,
+              "anchored_model_mse": 1.5908658582475255E-05,
+              "open_loop_model_mse": 4.738776067370054E-05,
+              "persistence_mse": 0.0,
+              "observations": 16
+            },
+            "patch[3][4]": {
+              "model_mse": 0.0013685454614460468,
+              "anchored_model_mse": 0.0013685454614460468,
+              "open_loop_model_mse": 0.001515046453278046,
+              "persistence_mse": 0.055555559694767,
+              "observations": 16
+            },
+            "patch[3][5]": {
+              "model_mse": 0.026340587181039155,
+              "anchored_model_mse": 0.026340587181039155,
+              "open_loop_model_mse": 0.026426839191117324,
+              "persistence_mse": 0.111111119389534,
+              "observations": 16
+            },
+            "patch[3][6]": {
+              "model_mse": 0.4194377224193886,
+              "anchored_model_mse": 0.4194377224193886,
+              "open_loop_model_mse": 0.41514477226883173,
+              "persistence_mse": 0.2847222317941487,
+              "observations": 16
+            },
+            "patch[4][0]": {
+              "model_mse": 0.510457174066687,
+              "anchored_model_mse": 0.510457174066687,
+              "open_loop_model_mse": 0.5126191275485326,
+              "persistence_mse": 0.13244898324774113,
+              "observations": 16
+            },
+            "patch[4][1]": {
+              "model_mse": 0.569118572766456,
+              "anchored_model_mse": 0.569118572766456,
+              "open_loop_model_mse": 0.5685843296232633,
+              "persistence_mse": 0.17244898607896175,
+              "observations": 16
+            },
+            "patch[4][2]": {
+              "model_mse": 0.7189783179201186,
+              "anchored_model_mse": 0.7189783179201186,
+              "open_loop_model_mse": 0.720394087722525,
+              "persistence_mse": 0.1711791412672028,
+              "observations": 16
+            },
+            "patch[4][3]": {
+              "model_mse": 0.2893490669084713,
+              "anchored_model_mse": 0.2893490669084713,
+              "open_loop_model_mse": 0.28988412278704345,
+              "persistence_mse": 0.22959183901548386,
+              "observations": 16
+            },
+            "patch[4][4]": {
+              "model_mse": 0.5364430137560703,
+              "anchored_model_mse": 0.5364430137560703,
+              "open_loop_model_mse": 0.5323089464800432,
+              "persistence_mse": 0.22959183901548386,
+              "observations": 16
+            },
+            "patch[4][5]": {
+              "model_mse": 0.38599221498225234,
+              "anchored_model_mse": 0.38599221498225234,
+              "open_loop_model_mse": 0.38192783129488816,
+              "persistence_mse": 0.22959183901548386,
+              "observations": 16
+            },
+            "patch[4][6]": {
+              "model_mse": 0.7528681933472399,
+              "anchored_model_mse": 0.7528681933472399,
+              "open_loop_model_mse": 0.7478950956719927,
+              "persistence_mse": 0.03415532991493819,
+              "observations": 16
+            },
+            "patch[5][0]": {
+              "model_mse": 0.4612529143996653,
+              "anchored_model_mse": 0.4612529143996653,
+              "open_loop_model_mse": 0.46085158055939246,
+              "persistence_mse": 0.22959183901548386,
+              "observations": 16
+            },
+            "patch[5][1]": {
+              "model_mse": 0.6931669221958145,
+              "anchored_model_mse": 0.6931669221958145,
+              "open_loop_model_mse": 0.6883838792564347,
+              "persistence_mse": 0.22959183901548386,
+              "observations": 16
+            },
+            "patch[5][2]": {
+              "model_mse": 0.5956152741446203,
+              "anchored_model_mse": 0.5956152741446203,
+              "open_loop_model_mse": 0.5934780753477753,
+              "persistence_mse": 0.05498866178095341,
+              "observations": 16
+            },
+            "patch[5][3]": {
+              "model_mse": 0.6004772518645041,
+              "anchored_model_mse": 0.6004772518645041,
+              "open_loop_model_mse": 0.5938627978757722,
+              "persistence_mse": 0.18594104470685124,
+              "observations": 16
+            },
+            "patch[5][4]": {
+              "model_mse": 0.5668460827873787,
+              "anchored_model_mse": 0.5668460827873787,
+              "open_loop_model_mse": 0.5663770672981627,
+              "persistence_mse": 0.22959183901548386,
+              "observations": 16
+            },
+            "patch[5][5]": {
+              "model_mse": 0.6050043450959492,
+              "anchored_model_mse": 0.6050043450959492,
+              "open_loop_model_mse": 0.6002118996693753,
+              "persistence_mse": 0.22959183901548386,
+              "observations": 16
+            },
+            "patch[5][6]": {
+              "model_mse": 0.5177790222514886,
+              "anchored_model_mse": 0.5177790222514886,
+              "open_loop_model_mse": 0.5225390025298111,
+              "persistence_mse": 0.05498866178095341,
+              "observations": 16
+            },
+            "patch[6][0]": {
+              "model_mse": 0.5611145794391632,
+              "anchored_model_mse": 0.5611145794391632,
+              "open_loop_model_mse": 0.5598062798380852,
+              "persistence_mse": 0.0,
+              "observations": 16
+            },
+            "patch[6][1]": {
+              "model_mse": 0.7059219479560852,
+              "anchored_model_mse": 0.7059219479560852,
+              "open_loop_model_mse": 0.7034894227981567,
+              "persistence_mse": 0.0,
+              "observations": 16
+            },
+            "patch[6][2]": {
+              "model_mse": 0.6291654743254185,
+              "anchored_model_mse": 0.6291654743254185,
+              "open_loop_model_mse": 0.6210224665701389,
+              "persistence_mse": 0.0,
+              "observations": 16
+            },
+            "patch[6][3]": {
+              "model_mse": 0.635972373187542,
+              "anchored_model_mse": 0.635972373187542,
+              "open_loop_model_mse": 0.6364601887762547,
+              "persistence_mse": 0.0,
+              "observations": 16
+            },
+            "patch[6][4]": {
+              "model_mse": 1.0108641609549522,
+              "anchored_model_mse": 1.0108641609549522,
+              "open_loop_model_mse": 1.0057945922017097,
+              "persistence_mse": 0.0,
+              "observations": 16
+            },
+            "patch[6][5]": {
+              "model_mse": 1.0515445470809937,
+              "anchored_model_mse": 1.0515445470809937,
+              "open_loop_model_mse": 1.0505557134747505,
+              "persistence_mse": 0.0,
+              "observations": 16
+            },
+            "patch[6][6]": {
+              "model_mse": 0.7165418453514576,
+              "anchored_model_mse": 0.7165418453514576,
+              "open_loop_model_mse": 0.7173329368233681,
+              "persistence_mse": 0.0,
+              "observations": 16
+            },
+            "self.facing": {
+              "model_mse": 0.1666114425752312,
+              "anchored_model_mse": 0.1666114425752312,
+              "open_loop_model_mse": 0.16646433738060296,
+              "persistence_mse": 0.23003473650896922,
+              "observations": 16
+            },
+            "self.food": {
+              "model_mse": 0.5524298958480358,
+              "anchored_model_mse": 0.5524298958480358,
+              "open_loop_model_mse": 0.5502086393535137,
+              "persistence_mse": 0.0,
+              "observations": 16
+            },
+            "self.health": {
+              "model_mse": 0.9615009464323521,
+              "anchored_model_mse": 0.9615009464323521,
+              "open_loop_model_mse": 0.9585837870836258,
+              "persistence_mse": 3.0673000765091274E-05,
+              "observations": 16
+            },
+            "self.x": {
+              "model_mse": 1.0000368915498257,
+              "anchored_model_mse": 1.0000368915498257,
+              "open_loop_model_mse": 1.0000577345490456,
+              "persistence_mse": 6.309979926300002E-05,
+              "observations": 16
+            },
+            "self.y": {
+              "model_mse": 0.9311592243611813,
+              "anchored_model_mse": 0.9311592243611813,
+              "open_loop_model_mse": 0.9350240267813206,
+              "persistence_mse": 7.721436702468054E-06,
+              "observations": 16
+            },
+            "mobs[0].dx": {
+              "model_mse": 0.04430679231882095,
+              "anchored_model_mse": 0.04430679231882095,
+              "open_loop_model_mse": 0.044076352193951604,
+              "persistence_mse": 0.05,
+              "observations": 5
+            },
+            "mobs[0].dy": {
+              "model_mse": 0.36969143748283384,
+              "anchored_model_mse": 0.36969143748283384,
+              "open_loop_model_mse": 0.3689149707555771,
+              "persistence_mse": 0.3902777910232544,
+              "observations": 5
+            },
+            "mobs[0].hp": {
+              "model_mse": 0.47730118632316587,
+              "anchored_model_mse": 0.47730118632316587,
+              "open_loop_model_mse": 0.4756894588470459,
+              "persistence_mse": 0.5625,
+              "observations": 5
+            }
+          }
+        },
+        "20": {
+          "origins": 1,
+          "origins_without_observed_numeric_features": 0,
+          "model_mse": 0.23882512312669021,
+          "anchored_model_mse": 0.23882512312669021,
+          "open_loop_model_mse": 0.23810606736403245,
+          "persistence_mse": 0.21707049149733323,
+          "per_feature_group": {
+            "events": {
+              "anchored_model_mse": 0.39305737614631653,
+              "open_loop_model_mse": 0.38920339941978455,
+              "persistence_mse": 0.4535147547721863,
+              "origins": 1
+            },
+            "inventory": {
+              "anchored_model_mse": 0.009942428519328436,
+              "open_loop_model_mse": 0.009807523339986801,
+              "persistence_mse": 0.0,
+              "origins": 1
+            },
+            "local_map": {
+              "anchored_model_mse": 0.2046051803900271,
+              "open_loop_model_mse": 0.20391695840018137,
+              "persistence_mse": 0.23469956067143655,
+              "origins": 1
+            },
+            "mobs": {
+              "anchored_model_mse": 0.33715657393137616,
+              "open_loop_model_mse": 0.33640913168589276,
+              "persistence_mse": 0.41898147265116376,
+              "origins": 1
+            },
+            "self": {
+              "anchored_model_mse": 0.728148365020752,
+              "open_loop_model_mse": 0.7276968002319336,
+              "persistence_mse": 0.0890659213066101,
+              "origins": 1
+            }
+          },
+          "per_feature": {
+            "events.damage": {
+              "model_mse": 0.002370573813095689,
+              "anchored_model_mse": 0.002370573813095689,
+              "open_loop_model_mse": 0.0019360793521627784,
+              "persistence_mse": 0.0,
+              "observations": 1
+            },
+            "events.tick": {
+              "model_mse": 0.7837441563606262,
+              "anchored_model_mse": 0.7837441563606262,
+              "open_loop_model_mse": 0.7764707207679749,
+              "persistence_mse": 0.9070295095443726,
+              "observations": 1
+            },
+            "inv.apple": {
+              "model_mse": 0.019572896882891655,
+              "anchored_model_mse": 0.019572896882891655,
+              "open_loop_model_mse": 0.020193573087453842,
+              "persistence_mse": 0.0,
+              "observations": 1
+            },
+            "inv.iron": {
+              "model_mse": 0.003902820637449622,
+              "anchored_model_mse": 0.003902820637449622,
+              "open_loop_model_mse": 0.003828667802736163,
+              "persistence_mse": 0.0,
+              "observations": 1
+            },
+            "inv.stone": {
+              "model_mse": 4.217310561216436E-06,
+              "anchored_model_mse": 4.217310561216436E-06,
+              "open_loop_model_mse": 2.639491640366032E-06,
+              "persistence_mse": 0.0,
+              "observations": 1
+            },
+            "inv.stone_pickaxe": {
+              "model_mse": 0.0043755024671554565,
+              "anchored_model_mse": 0.0043755024671554565,
+              "open_loop_model_mse": 0.004176322370767593,
+              "persistence_mse": 0.0,
+              "observations": 1
+            },
+            "inv.wood": {
+              "model_mse": 0.011506190523505211,
+              "anchored_model_mse": 0.011506190523505211,
+              "open_loop_model_mse": 0.011104188859462738,
+              "persistence_mse": 0.0,
+              "observations": 1
+            },
+            "inv.wood_pickaxe": {
+              "model_mse": 0.020292947068810463,
+              "anchored_model_mse": 0.020292947068810463,
+              "open_loop_model_mse": 0.01953975297510624,
+              "persistence_mse": 0.0,
+              "observations": 1
+            },
+            "patch[0][0]": {
+              "model_mse": 0.5394474267959595,
+              "anchored_model_mse": 0.5394474267959595,
+              "open_loop_model_mse": 0.537398099899292,
+              "persistence_mse": 0.5625,
+              "observations": 1
+            },
+            "patch[0][1]": {
+              "model_mse": 0.00085150555241853,
+              "anchored_model_mse": 0.00085150555241853,
+              "open_loop_model_mse": 0.0006336381775327027,
+              "persistence_mse": 0.0,
+              "observations": 1
+            },
+            "patch[0][2]": {
+              "model_mse": 0.013886148110032082,
+              "anchored_model_mse": 0.013886148110032082,
+              "open_loop_model_mse": 0.013989060185849667,
+              "persistence_mse": 0.0,
+              "observations": 1
+            },
+            "patch[0][3]": {
+              "model_mse": 0.006376527715474367,
+              "anchored_model_mse": 0.006376527715474367,
+              "open_loop_model_mse": 0.006549941375851631,
+              "persistence_mse": 0.0,
+              "observations": 1
+            },
+            "patch[0][4]": {
+              "model_mse": 0.011111285537481308,
+              "anchored_model_mse": 0.011111285537481308,
+              "open_loop_model_mse": 0.011403411626815796,
+              "persistence_mse": 0.0,
+              "observations": 1
+            },
+            "patch[0][5]": {
+              "model_mse": 0.5235726833343506,
+              "anchored_model_mse": 0.5235726833343506,
+              "open_loop_model_mse": 0.522200882434845,
+              "persistence_mse": 0.09000000357627869,
+              "observations": 1
+            },
+            "patch[0][6]": {
+              "model_mse": 0.7385295033454895,
+              "anchored_model_mse": 0.7385295033454895,
+              "open_loop_model_mse": 0.739661455154419,
+              "persistence_mse": 0.64000004529953,
+              "observations": 1
+            },
+            "patch[1][0]": {
+              "model_mse": 0.02466573193669319,
+              "anchored_model_mse": 0.02466573193669319,
+              "open_loop_model_mse": 0.023489192128181458,
+              "persistence_mse": 0.0,
+              "observations": 1
+            },
+            "patch[1][1]": {
+              "model_mse": 0.002617961959913373,
+              "anchored_model_mse": 0.002617961959913373,
+              "open_loop_model_mse": 0.0025945075321942568,
+              "persistence_mse": 0.0,
+              "observations": 1
+            },
+            "patch[1][2]": {
+              "model_mse": 0.01175583153963089,
+              "anchored_model_mse": 0.01175583153963089,
+              "open_loop_model_mse": 0.011444569565355778,
+              "persistence_mse": 0.0,
+              "observations": 1
+            },
+            "patch[1][3]": {
+              "model_mse": 0.00037653761683031917,
+              "anchored_model_mse": 0.00037653761683031917,
+              "open_loop_model_mse": 0.00039273372385650873,
+              "persistence_mse": 0.0,
+              "observations": 1
+            },
+            "patch[1][4]": {
+              "model_mse": 0.0004141867102589458,
+              "anchored_model_mse": 0.0004141867102589458,
+              "open_loop_model_mse": 0.00047898266348056495,
+              "persistence_mse": 0.0,
+              "observations": 1
+            },
+            "patch[1][5]": {
+              "model_mse": 0.46149030327796936,
+              "anchored_model_mse": 0.46149030327796936,
+              "open_loop_model_mse": 0.4615192115306854,
+              "persistence_mse": 0.25,
+              "observations": 1
+            },
+            "patch[1][6]": {
+              "model_mse": 0.002962056314572692,
+              "anchored_model_mse": 0.002962056314572692,
+              "open_loop_model_mse": 0.0023817650508135557,
+              "persistence_mse": 0.0,
+              "observations": 1
+            },
+            "patch[2][0]": {
+              "model_mse": 0.026603128761053085,
+              "anchored_model_mse": 0.026603128761053085,
+              "open_loop_model_mse": 0.027234788984060287,
+              "persistence_mse": 0.0,
+              "observations": 1
+            },
+            "patch[2][1]": {
+              "model_mse": 0.03871527686715126,
+              "anchored_model_mse": 0.03871527686715126,
+              "open_loop_model_mse": 0.039346788078546524,
+              "persistence_mse": 0.0,
+              "observations": 1
+            },
+            "patch[2][2]": {
+              "model_mse": 0.0009426502510905266,
+              "anchored_model_mse": 0.0009426502510905266,
+              "open_loop_model_mse": 0.0010083755478262901,
+              "persistence_mse": 0.0,
+              "observations": 1
+            },
+            "patch[2][3]": {
+              "model_mse": 0.00764002650976181,
+              "anchored_model_mse": 0.00764002650976181,
+              "open_loop_model_mse": 0.007386617828160524,
+              "persistence_mse": 0.0,
+              "observations": 1
+            },
+            "patch[2][4]": {
+              "model_mse": 0.006360214669257402,
+              "anchored_model_mse": 0.006360214669257402,
+              "open_loop_model_mse": 0.00649787113070488,
+              "persistence_mse": 0.6944444179534912,
+              "observations": 1
+            },
+            "patch[2][5]": {
+              "model_mse": 0.003878835355862975,
+              "anchored_model_mse": 0.003878835355862975,
+              "open_loop_model_mse": 0.003950950223952532,
+              "persistence_mse": 0.0,
+              "observations": 1
+            },
+            "patch[2][6]": {
+              "model_mse": 0.0036755818873643875,
+              "anchored_model_mse": 0.0036755818873643875,
+              "open_loop_model_mse": 0.003745518857613206,
+              "persistence_mse": 0.0,
+              "observations": 1
+            },
+            "patch[3][0]": {
+              "model_mse": 0.012870552018284798,
+              "anchored_model_mse": 0.012870552018284798,
+              "open_loop_model_mse": 0.012449725531041622,
+              "persistence_mse": 0.444444477558136,
+              "observations": 1
+            },
+            "patch[3][1]": {
+              "model_mse": 0.00293476483784616,
+              "anchored_model_mse": 0.00293476483784616,
+              "open_loop_model_mse": 0.0031702793203294277,
+              "persistence_mse": 0.0,
+              "observations": 1
+            },
+            "patch[3][2]": {
+              "model_mse": 0.1598234623670578,
+              "anchored_model_mse": 0.1598234623670578,
+              "open_loop_model_mse": 0.15563882887363434,
+              "persistence_mse": 0.25,
+              "observations": 1
+            },
+            "patch[3][3]": {
+              "model_mse": 1.6312413208652288E-05,
+              "anchored_model_mse": 1.6312413208652288E-05,
+              "open_loop_model_mse": 5.5672513553872705E-05,
+              "persistence_mse": 0.0,
+              "observations": 1
+            },
+            "patch[3][4]": {
+              "model_mse": 0.0013863201020285487,
+              "anchored_model_mse": 0.0013863201020285487,
+              "open_loop_model_mse": 0.0015473589301109314,
+              "persistence_mse": 0.444444477558136,
+              "observations": 1
+            },
+            "patch[3][5]": {
+              "model_mse": 0.0034784525632858276,
+              "anchored_model_mse": 0.0034784525632858276,
+              "open_loop_model_mse": 0.003818381344899535,
+              "persistence_mse": 0.0,
+              "observations": 1
+            },
+            "patch[3][6]": {
+              "model_mse": 0.012600049376487732,
+              "anchored_model_mse": 0.012600049376487732,
+              "open_loop_model_mse": 0.011715065687894821,
+              "persistence_mse": 0.0,
+              "observations": 1
+            },
+            "patch[4][0]": {
+              "model_mse": 0.0023011828307062387,
+              "anchored_model_mse": 0.0023011828307062387,
+              "open_loop_model_mse": 0.0021536056883633137,
+              "persistence_mse": 0.7346938848495483,
+              "observations": 1
+            },
+            "patch[4][1]": {
+              "model_mse": 0.5912813544273376,
+              "anchored_model_mse": 0.5912813544273376,
+              "open_loop_model_mse": 0.5905429124832153,
+              "persistence_mse": 0.0032653056550771,
+              "observations": 1
+            },
+            "patch[4][2]": {
+              "model_mse": 0.9080654382705688,
+              "anchored_model_mse": 0.9080654382705688,
+              "open_loop_model_mse": 0.910113513469696,
+              "persistence_mse": 0.0032653056550771,
+              "observations": 1
+            },
+            "patch[4][3]": {
+              "model_mse": 0.023295780643820763,
+              "anchored_model_mse": 0.023295780643820763,
+              "open_loop_model_mse": 0.023176833987236023,
+              "persistence_mse": 0.7346938848495483,
+              "observations": 1
+            },
+            "patch[4][4]": {
+              "model_mse": 0.012967201881110668,
+              "anchored_model_mse": 0.012967201881110668,
+              "open_loop_model_mse": 0.012108528055250645,
+              "persistence_mse": 0.7346938848495483,
+              "observations": 1
+            },
+            "patch[4][5]": {
+              "model_mse": 0.0008214933914132416,
+              "anchored_model_mse": 0.0008214933914132416,
+              "open_loop_model_mse": 0.0011138012632727623,
+              "persistence_mse": 0.7346938848495483,
+              "observations": 1
+            },
+            "patch[4][6]": {
+              "model_mse": 0.004678773228079081,
+              "anchored_model_mse": 0.004678773228079081,
+              "open_loop_model_mse": 0.0042679463513195515,
+              "persistence_mse": 0.7346938848495483,
+              "observations": 1
+            },
+            "patch[5][0]": {
+              "model_mse": 0.0015109558589756489,
+              "anchored_model_mse": 0.0015109558589756489,
+              "open_loop_model_mse": 0.0015572080155834556,
+              "persistence_mse": 0.7346938848495483,
+              "observations": 1
+            },
+            "patch[5][1]": {
+              "model_mse": 0.020323503762483597,
+              "anchored_model_mse": 0.020323503762483597,
+              "open_loop_model_mse": 0.01932680793106556,
+              "persistence_mse": 0.7346938848495483,
+              "observations": 1
+            },
+            "patch[5][2]": {
+              "model_mse": 0.0001930424914462492,
+              "anchored_model_mse": 0.0001930424914462492,
+              "open_loop_model_mse": 0.00024996226420626044,
+              "persistence_mse": 0.7346938848495483,
+              "observations": 1
+            },
+            "patch[5][3]": {
+              "model_mse": 0.5149853229522705,
+              "anchored_model_mse": 0.5149853229522705,
+              "open_loop_model_mse": 0.5066106915473938,
+              "persistence_mse": 0.036281175911426544,
+              "observations": 1
+            },
+            "patch[5][4]": {
+              "model_mse": 0.0025825880002230406,
+              "anchored_model_mse": 0.0025825880002230406,
+              "open_loop_model_mse": 0.002610652707517147,
+              "persistence_mse": 0.7346938848495483,
+              "observations": 1
+            },
+            "patch[5][5]": {
+              "model_mse": 0.006383728235960007,
+              "anchored_model_mse": 0.006383728235960007,
+              "open_loop_model_mse": 0.005779005587100983,
+              "persistence_mse": 0.7346938848495483,
+              "observations": 1
+            },
+            "patch[5][6]": {
+              "model_mse": 0.0047354367561638355,
+              "anchored_model_mse": 0.0047354367561638355,
+              "open_loop_model_mse": 0.0042303623631596565,
+              "persistence_mse": 0.7346938848495483,
+              "observations": 1
+            },
+            "patch[6][0]": {
+              "model_mse": 0.5612278580665588,
+              "anchored_model_mse": 0.5612278580665588,
+              "open_loop_model_mse": 0.5602689385414124,
+              "persistence_mse": 0.0,
+              "observations": 1
+            },
+            "patch[6][1]": {
+              "model_mse": 0.7070098519325256,
+              "anchored_model_mse": 0.7070098519325256,
+              "open_loop_model_mse": 0.705203652381897,
+              "persistence_mse": 0.0,
+              "observations": 1
+            },
+            "patch[6][2]": {
+              "model_mse": 0.628782331943512,
+              "anchored_model_mse": 0.628782331943512,
+              "open_loop_model_mse": 0.619441032409668,
+              "persistence_mse": 0.0,
+              "observations": 1
+            },
+            "patch[6][3]": {
+              "model_mse": 0.6369224786758423,
+              "anchored_model_mse": 0.6369224786758423,
+              "open_loop_model_mse": 0.6379421949386597,
+              "persistence_mse": 0.0,
+              "observations": 1
+            },
+            "patch[6][4]": {
+              "model_mse": 1.0098435878753662,
+              "anchored_model_mse": 1.0098435878753662,
+              "open_loop_model_mse": 1.004356861114502,
+              "persistence_mse": 0.0,
+              "observations": 1
+            },
+            "patch[6][5]": {
+              "model_mse": 1.0524451732635498,
+              "anchored_model_mse": 1.0524451732635498,
+              "open_loop_model_mse": 1.0517007112503052,
+              "persistence_mse": 0.0,
+              "observations": 1
+            },
+            "patch[6][6]": {
+              "model_mse": 0.7163130640983582,
+              "anchored_model_mse": 0.7163130640983582,
+              "open_loop_model_mse": 0.7174718976020813,
+              "persistence_mse": 0.0,
+              "observations": 1
+            },
+            "self.facing": {
+              "model_mse": 0.23854821920394897,
+              "anchored_model_mse": 0.23854821920394897,
+              "open_loop_model_mse": 0.237965390086174,
+              "persistence_mse": 0.444444477558136,
+              "observations": 1
+            },
+            "self.food": {
+              "model_mse": 0.5520045161247253,
+              "anchored_model_mse": 0.5520045161247253,
+              "open_loop_model_mse": 0.5491536855697632,
+              "persistence_mse": 0.0,
+              "observations": 1
+            },
+            "self.health": {
+              "model_mse": 0.9478600025177002,
+              "anchored_model_mse": 0.9478600025177002,
+              "open_loop_model_mse": 0.9441190361976624,
+              "persistence_mse": 8.264555071946234E-05,
+              "observations": 1
+            },
+            "self.x": {
+              "model_mse": 0.9781128168106079,
+              "anchored_model_mse": 0.9781128168106079,
+              "open_loop_model_mse": 0.9780431389808655,
+              "persistence_mse": 0.0007716057007201016,
+              "observations": 1
+            },
+            "self.y": {
+              "model_mse": 0.9242162108421326,
+              "anchored_model_mse": 0.9242162108421326,
+              "open_loop_model_mse": 0.929202675819397,
+              "persistence_mse": 3.08643611788284E-05,
+              "observations": 1
+            },
+            "mobs[0].dx": {
+              "model_mse": 0.11163333058357239,
+              "anchored_model_mse": 0.11163333058357239,
+              "open_loop_model_mse": 0.11303957551717758,
+              "persistence_mse": 0.25,
+              "observations": 1
+            },
+            "mobs[0].dy": {
+              "model_mse": 0.4224851727485657,
+              "anchored_model_mse": 0.4224851727485657,
+              "open_loop_model_mse": 0.42109593749046326,
+              "persistence_mse": 0.444444477558136,
+              "observations": 1
+            },
+            "mobs[0].hp": {
+              "model_mse": 0.4773511588573456,
+              "anchored_model_mse": 0.4773511588573456,
+              "open_loop_model_mse": 0.4750918447971344,
+              "persistence_mse": 0.5625,
+              "observations": 1
+            }
+          }
+        },
+        "100": {
+          "origins": 0,
+          "origins_without_observed_numeric_features": 0,
+          "model_mse": null,
+          "anchored_model_mse": null,
+          "open_loop_model_mse": null,
+          "persistence_mse": null,
+          "per_feature_group": {},
+          "per_feature": {
+            "events.damage": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "events.tick": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "inv.apple": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "inv.iron": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "inv.stone": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "inv.stone_pickaxe": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "inv.wood": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "inv.wood_pickaxe": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "patch[0][0]": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "patch[0][1]": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "patch[0][2]": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "patch[0][3]": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "patch[0][4]": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "patch[0][5]": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "patch[0][6]": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "patch[1][0]": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "patch[1][1]": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "patch[1][2]": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "patch[1][3]": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "patch[1][4]": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "patch[1][5]": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "patch[1][6]": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "patch[2][0]": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "patch[2][1]": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "patch[2][2]": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "patch[2][3]": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "patch[2][4]": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "patch[2][5]": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "patch[2][6]": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "patch[3][0]": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "patch[3][1]": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "patch[3][2]": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "patch[3][3]": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "patch[3][4]": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "patch[3][5]": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "patch[3][6]": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "patch[4][0]": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "patch[4][1]": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "patch[4][2]": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "patch[4][3]": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "patch[4][4]": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "patch[4][5]": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "patch[4][6]": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "patch[5][0]": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "patch[5][1]": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "patch[5][2]": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "patch[5][3]": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "patch[5][4]": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "patch[5][5]": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "patch[5][6]": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "patch[6][0]": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "patch[6][1]": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "patch[6][2]": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "patch[6][3]": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "patch[6][4]": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "patch[6][5]": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "patch[6][6]": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "self.facing": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "self.food": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "self.health": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "self.x": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "self.y": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "mobs[0].dx": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "mobs[0].dy": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            },
+            "mobs[0].hp": {
+              "model_mse": null,
+              "anchored_model_mse": null,
+              "open_loop_model_mse": null,
+              "persistence_mse": null,
+              "observations": 0
+            }
+          }
+        }
+      },
+      "action_shuffle_mse_mean": 0.34129021167755125,
+      "action_shuffle_delta_vs_true": 3.0614010453344775E-06,
+      "action_shuffle_mse_samples": [
+        0.3412945866584778,
+        0.341282457113266,
+        0.34128251671791077,
+        0.34130287170410156,
+        0.34128862619400024
+      ],
+      "candidate_action_counts": [
+        1,
+        2,
+        0,
+        6,
+        1,
+        2,
+        3,
+        3,
+        2
+      ],
+      "applied_action_counts": [
+        1,
+        2,
+        0,
+        6,
+        1,
+        2,
+        3,
+        3,
+        2
+      ],
+      "safety_blocks": 0
+    }
+  ],
+  "equal_episode_mean": {
+    "horizons": {
+      "1": {
+        "model_mse": 0.3412871502765059,
+        "anchored_model_mse": 0.3412871502765059,
+        "open_loop_model_mse": 0.3412871502765059,
+        "persistence_mse": 0.0349443673914261
+      },
+      "5": {
+        "model_mse": 0.3336069626784502,
+        "anchored_model_mse": 0.3336069626784502,
+        "open_loop_model_mse": 0.3326740203069398,
+        "persistence_mse": 0.09989364048170427
+      },
+      "20": {
+        "model_mse": 0.23882512312669021,
+        "anchored_model_mse": 0.23882512312669021,
+        "open_loop_model_mse": 0.23810606736403245,
+        "persistence_mse": 0.21707049149733323
+      },
+      "100": {
+        "model_mse": null,
+        "anchored_model_mse": null,
+        "open_loop_model_mse": null,
+        "persistence_mse": null
+      }
+    },
+    "feature_groups": {
+      "1": {
+        "events": {
+          "anchored_model_mse": 0.3409411206841469,
+          "open_loop_model_mse": 0.3409411206841469,
+          "persistence_mse": 0.02946802742865202
+        },
+        "inventory": {
+          "anchored_model_mse": 0.009872036365171274,
+          "open_loop_model_mse": 0.009872036365171274,
+          "persistence_mse": 0.0
+        },
+        "local_map": {
+          "anchored_model_mse": 0.34190409329472754,
+          "open_loop_model_mse": 0.34190409329472754,
+          "persistence_mse": 0.04097177593075499
+        },
+        "mobs": {
+          "anchored_model_mse": 0.29709981282552084,
+          "open_loop_model_mse": 0.29709981282552084,
+          "persistence_mse": 0.09583333438883225
+        },
+        "self": {
+          "anchored_model_mse": 0.724500756263733,
+          "open_loop_model_mse": 0.724500756263733,
+          "persistence_mse": 0.013481981200629888
+        }
+      },
+      "5": {
+        "events": {
+          "anchored_model_mse": 0.3771559651941061,
+          "open_loop_model_mse": 0.3736998699605465,
+          "persistence_mse": 0.04237903884541083
+        },
+        "inventory": {
+          "anchored_model_mse": 0.009898402805750568,
+          "open_loop_model_mse": 0.009771532107455034,
+          "persistence_mse": 0.0
+        },
+        "local_map": {
+          "anchored_model_mse": 0.33070582273055094,
+          "open_loop_model_mse": 0.32971675541936135,
+          "persistence_mse": 0.11712256499699183
+        },
+        "mobs": {
+          "anchored_model_mse": 0.29709981282552084,
+          "open_loop_model_mse": 0.2962269345919291,
+          "persistence_mse": 0.3342592557271321
+        },
+        "self": {
+          "anchored_model_mse": 0.7223476827144623,
+          "open_loop_model_mse": 0.722067704796791,
+          "persistence_mse": 0.046027246624362306
+        }
+      },
+      "20": {
+        "events": {
+          "anchored_model_mse": 0.39305737614631653,
+          "open_loop_model_mse": 0.38920339941978455,
+          "persistence_mse": 0.4535147547721863
+        },
+        "inventory": {
+          "anchored_model_mse": 0.009942428519328436,
+          "open_loop_model_mse": 0.009807523339986801,
+          "persistence_mse": 0.0
+        },
+        "local_map": {
+          "anchored_model_mse": 0.2046051803900271,
+          "open_loop_model_mse": 0.20391695840018137,
+          "persistence_mse": 0.23469956067143655
+        },
+        "mobs": {
+          "anchored_model_mse": 0.33715657393137616,
+          "open_loop_model_mse": 0.33640913168589276,
+          "persistence_mse": 0.41898147265116376
+        },
+        "self": {
+          "anchored_model_mse": 0.728148365020752,
+          "open_loop_model_mse": 0.7276968002319336,
+          "persistence_mse": 0.0890659213066101
+        }
+      },
+      "100": {}
+    },
+    "action_shuffle_mse_mean": 0.34129021167755125,
+    "action_shuffle_delta_vs_true": 3.0614010453344775E-06
+  },
+  "uncertainty": "NOT_IMPLEMENTED",
+  "limits": [
+    "Structured-state prototype only; not pixel input or Dreamer 4.",
+    "Anchored and open-loop prediction metrics are diagnostics and do not establish adaptive-compute gains.",
+    "Action-shuffle is diagnostic and has not been independently calibrated."
+  ],
+  "raw_predictions_sha256": "4e0b24dbc7c006aedcc7d90497a704c7d1bb08344ae15e247cdc7cb7906cdc83"
+}

@@ -40,8 +40,8 @@ been collected.
    details without inventing values from the report. The register now separates
    the Phase 0 prerequisite measurement from Phase 5's OOD, headroom, Pareto,
    and intervention thresholds.
-2. Keep code development/smoke data on train and dev only. Dev seeds 1000–1001
-   have already been touched by the explicitly non-evidentiary pipeline smoke.
+2. Keep code development/smoke data on train and dev only. Dev seeds 1000–1002
+   have already been touched by explicitly non-evidentiary pipeline smoke runs.
 3. Review the schema-frozen multi-horizon scorer; specify and calibrate a real
    uncertainty method before exposing uncertainty to any detector.
 4. Run formal train fitting and dev evaluation once task distribution,
@@ -58,6 +58,10 @@ uncertainty.
 
 No test or Confirm seed has been used for adaptive-compute claims. The Phase 0
 smoke diagnostic did touch dev seeds 1000–1001 and found the 5-update model
-underperformed persistence; it is not formal evidence. B6's train
+underperformed persistence; it is not formal evidence. The alpha run on dev
+seed 1002 exercised the provenance-gated scorer using a 2-update checkpoint and
+a 20-tick episode. It remains a run-through: H=1 and H=5 model MSE exceeded
+persistence, and H=100 had no complete window. See
+`results/phase0_alpha_smoke_20261011_manifest.json`. B6's train
 seed runs only establish that the hand-written expert can solve the simulator
 tasks; they do not measure WM quality or the core hypothesis.
