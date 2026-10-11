@@ -139,6 +139,12 @@ def train(data_path: str | Path, checkpoint_path: str | Path,
 
     checkpoint = Path(checkpoint_path)
     soul.save(str(checkpoint))
+    git_revision = subprocess.run(
+        ['git', 'rev-parse', 'HEAD'], capture_output=True, text=True,
+        check=False).stdout.strip() or None
+    git_status = subprocess.run(
+        ['git', 'status', '--porcelain'], capture_output=True, text=True,
+        check=False).stdout.strip()
     return {
         'schema_version': 2,
         'kind': 'phase0_train',
@@ -149,12 +155,12 @@ def train(data_path: str | Path, checkpoint_path: str | Path,
         'checkpoint_sha256': hashlib.sha256(checkpoint.read_bytes()).hexdigest(),
         'seed_min': min(int(row['seed']) for row in rows),
         'seed_max': max(int(row['seed']) for row in rows),
-        'code_revision': subprocess.run(
-            ['git', 'rev-parse', 'HEAD'], capture_output=True, text=True,
-            check=False).stdout.strip() or None,
-        'working_tree_dirty': bool(subprocess.run(
-            ['git', 'status', '--porcelain'], capture_output=True, text=True,
-            check=False).stdout.strip()),
+        'code_revision': git_revision,
+        'working_tree_dirty': bool(git_status),
+        'working_tree_status_sha256': hashlib.sha256(
+            git_status.encode('utf-8')).hexdigest() if git_status else None,
+        'protocol_config_sha256': hashlib.sha256(
+            Path('configs/phase0_protocol_draft.yaml').read_bytes()).hexdigest(),
         'source_sha256': {
             name: hashlib.sha256(Path(name).read_bytes()).hexdigest()
             for name in ('scripts/phase0_train.py', 'soul/obs.py',

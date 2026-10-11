@@ -379,6 +379,15 @@ def score(checkpoint: str | Path, output: str | Path, seeds: list[int],
         'working_tree_status_sha256': hashlib.sha256(
             git_status.encode('utf-8')).hexdigest() if git_status else None,
         'environment_seeds': environment_seeds,
+        'run_config': {
+            'episodes_per_seed': episodes_per_seed,
+            'max_ticks': max_ticks,
+            'shuffle_repeats': shuffle_repeats,
+            'horizons': list(HORIZONS),
+            'candidate_policy': 'numpy.default_rng(environment_seed).integers(0, 9)',
+            'safety_filter': 'MiniCraftSafetyController',
+            'metric_aggregation': 'observed_features_then_origins_then_equal_episodes',
+        },
         'source_sha256': {
             name: hashlib.sha256(Path(name).read_bytes()).hexdigest()
             for name in ('scripts/phase0_score.py', 'soul/obs.py',

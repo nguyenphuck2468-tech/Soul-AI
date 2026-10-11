@@ -94,9 +94,10 @@ calibration against held-out train/dev outcomes before use.
 - Confirm: no range exists; do not create, infer, or access Confirm seeds.
 - Record seed, episode, tick, candidate and applied action, safety decision,
   split, checkpoint hash, feature
-  schema hash, model config, code revision, dirty-tree indicator and status
+  schema hash, run/model config, code revision, dirty-tree indicator and status
   hash, action counts, and raw predictions, targets, masks, and persistence
-  values. A commit hash alone does not identify modified working-tree code;
+  values. Train, score, and cost reports store protocol-config hashes. A commit
+  hash alone does not identify modified working-tree code;
   source-file hashes cover the scorer and model/environment files listed in
   the report, including the protocol draft, while the dirty-tree status hash
   records paths, not their contents.
