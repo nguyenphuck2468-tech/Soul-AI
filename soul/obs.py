@@ -77,13 +77,14 @@ class ObsEncoder:
         """Stop assigning feature slots to fields absent from the fitted schema."""
         self._schema_frozen = True
 
-    def _slot(self, path: str) -> int:
+    def _slot(self, path: str, *, count_overflow: bool = True) -> int:
         idx = self._schema.get(path)
         if idx is not None:
             return idx
         if self._schema_frozen or len(self._schema) >= self.cfg.max_features:
-            self.overflow += 1
-            self.overflow_by_path[path] = self.overflow_by_path.get(path, 0) + 1
+            if count_overflow:
+                self.overflow += 1
+                self.overflow_by_path[path] = self.overflow_by_path.get(path, 0) + 1
             return -1
         idx = len(self._schema)
         self._schema[path] = idx
@@ -95,11 +96,11 @@ class ObsEncoder:
         """So luong dau vao cua mang: values + mask + text."""
         return self.cfg.max_features * 2 + self.cfg.text_buckets
 
-    def encode(self, obs: Any) -> Dict[str, np.ndarray]:
+    def encode(self, obs: Any, *, count_overflow: bool = True) -> Dict[str, np.ndarray]:
         values = np.zeros(self.cfg.max_features, dtype=np.float32)
         mask = np.zeros(self.cfg.max_features, dtype=np.float32)
         text = np.zeros(self.cfg.text_buckets, dtype=np.float32)
-        self._walk('', obs, values, mask, text)
+        self._walk('', obs, values, mask, text, count_overflow=count_overflow)
         return {'values': values, 'mask': mask, 'text': text}
 
     def encode_batch(self, batch: Sequence[Any]) -> Dict[str, np.ndarray]:
@@ -109,7 +110,7 @@ class ObsEncoder:
 
     def _walk(self, prefix: str, node: Any,
               values: np.ndarray, mask: np.ndarray, text: np.ndarray,
-              depth: int = 0):
+              depth: int = 0, *, count_overflow: bool = True):
         # Gioi han do sau: du lieu that co the long vai chuc cap, con mau
         # hong co cap nao la huu ich.
         if depth > 8:
@@ -118,7 +119,8 @@ class ObsEncoder:
         if isinstance(node, dict):
             for k in sorted(node.keys(), key=str):
                 child = f'{prefix}.{k}' if prefix else str(k)
-                self._walk(child, node[k], values, mask, text, depth + 1)
+                self._walk(child, node[k], values, mask, text, depth + 1,
+                           count_overflow=count_overflow)
             return
 
         if isinstance(node, (bool, np.bool_)):
@@ -129,7 +131,8 @@ class ObsEncoder:
             # voi gia tri cua so thuc 0.5. Nhu vay bool True va so 0.5 tro
             # thanh mot — mat thong tin ngay tu khi vector hoa, va moi thu
             # van chay binh thuong.
-            self._put(prefix, 1.0 if node else 0.0, values, mask, raw=True)
+            self._put(prefix, 1.0 if node else 0.0, values, mask, raw=True,
+                      count_overflow=count_overflow)
             return
 
         if isinstance(node, (int, float, np.integer, np.floating)):
@@ -143,10 +146,12 @@ class ObsEncoder:
             # ta chuẩn hóa theo tỉ lệ thực của episode/horizon.
             if prefix == 'time' or prefix.endswith('.time'):
                 scale = max(self.cfg.time_scale, 1e-6)
-                self._put(prefix, np.clip(v / scale, -1.0, 1.0), values, mask, raw=True)
+                self._put(prefix, np.clip(v / scale, -1.0, 1.0), values, mask, raw=True,
+                          count_overflow=count_overflow)
                 return
             clip = self.cfg.clip
-            self._put(prefix, max(-clip, min(clip, v)), values, mask)
+            self._put(prefix, max(-clip, min(clip, v)), values, mask,
+                      count_overflow=count_overflow)
             return
 
         if isinstance(node, str):
@@ -156,7 +161,8 @@ class ObsEncoder:
 
         if isinstance(node, (list, tuple)):
             for i, item in enumerate(node):
-                self._walk(f'{prefix}[{i}]', item, values, mask, text, depth + 1)
+                self._walk(f'{prefix}[{i}]', item, values, mask, text, depth + 1,
+                           count_overflow=count_overflow)
             return
 
         if isinstance(node, np.ndarray):
@@ -165,16 +171,19 @@ class ObsEncoder:
             if node.dtype.kind in 'fiu':
                 if node.size == 1:
                     self._walk(prefix, float(node.reshape(-1)[0]),
-                               values, mask, text, depth + 1)
+                               values, mask, text, depth + 1,
+                               count_overflow=count_overflow)
                 elif node.ndim > 1:
                     for index in np.ndindex(node.shape):
                         suffix = ''.join(f'[{i}]' for i in index)
                         self._walk(f'{prefix}{suffix}', node[index].item(),
-                                   values, mask, text, depth + 1)
+                                   values, mask, text, depth + 1,
+                                   count_overflow=count_overflow)
                 else:
                     # Keep the existing compact representation for 1-D
                     # arrays used by older observations/checkpoints.
-                    self._put(prefix, float(node.size), values, mask)
+                    self._put(prefix, float(node.size), values, mask,
+                              count_overflow=count_overflow)
             return
 
         if node is None:
@@ -185,8 +194,9 @@ class ObsEncoder:
         text[stable_hash(f'{prefix}:{type(node).__name__}') % self.cfg.text_buckets] = 1.0
 
     def _put(self, path: str, value: float,
-             values: np.ndarray, mask: np.ndarray, raw: bool = False):
-        idx = self._slot(path)
+             values: np.ndarray, mask: np.ndarray, raw: bool = False,
+             *, count_overflow: bool = True):
+        idx = self._slot(path, count_overflow=count_overflow)
         if idx < 0:
             return
         # `raw=True`: bo qua squash — dung cho bool, da san nam trong

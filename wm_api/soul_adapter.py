@@ -207,7 +207,9 @@ class SoulAdapter(WorldModel):
         """
         if self._pending_surprise is None:
             raise RuntimeError('surprise requires a preceding observe() call')
-        observed = self.soul.enc.encode(obs)
+        # This is a consistency check of the observation already encoded by
+        # observe(); don't count omitted features a second time in the audit.
+        observed = self.soul.enc.encode(obs, count_overflow=False)
         pending = self._pending_surprise
         matches = all(np.array_equal(observed[key], pending[key])
                       for key in ('values', 'mask', 'text'))
