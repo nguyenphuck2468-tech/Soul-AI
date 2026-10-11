@@ -1,7 +1,7 @@
 # Phase 0 readiness — Soul-AI MiniCraft
 
 Date: 2026-10-11  
-State: review draft; no Phase 0 model experiment has been run.
+State: protocol/implementation draft; no formal Phase 0 experiment has been run.
 
 ## Original objective
 
@@ -24,29 +24,26 @@ been collected.
 
 | Requirement | Current evidence | Remaining work |
 | --- | --- | --- |
-| Structured, copyable simulator | `minicraft/env.py`: structured observation, full `get_state`/`set_state`/`clone`, deterministic RNG | Map the observation fields explicitly to the v2.6 prototype contract; movement velocity is not represented because this world has no momentum |
+| Structured, copyable simulator | `minicraft/env.py`: structured observation, full `get_state`/`set_state`/`clone`, deterministic RNG | Observation contract documented in `docs/PHASE0_CONTRACT.md`; no velocity exists because there is no momentum |
 | Feasibility expert | `minicraft/experts.py`; B6 passed on 200 train seeds per task | None for the simulator feasibility gate |
-| SafetyController | Not implemented | Define permitted actions and hard constraints for MiniCraft; document expiry, mode changes, and logs before implementation |
+| SafetyController | Specification draft in `docs/PHASE0_CONTRACT.md`; no runtime controller | Review hard constraint, expiry behavior, severity mapping, hysteresis, and logs before implementation |
 | Soul adapter | `wm_api/soul_adapter.py` supports snapshots and prior rollout; `SoulAdapter.for_minicraft()` now creates a compatible 9-action model | `uncertainty` is zero-filled and `surprise` raises `NotImplementedError`; neither is suitable as a scientific metric yet |
-| Adaptive-compute protocol | v2.6 report defines metrics, baselines and compute accounting | Record how each proposal maps to MiniCraft; numerical `δ`, `h_OOD`, `R_max`, ρ/σ sweep and statistical procedure are intentionally unset in the report |
+| Phase 0 collection/training/scoring | `scripts/phase0_collect.py`, `scripts/phase0_train.py`, `scripts/phase0_score.py`; smoke pipeline ran on a temporary 60-transition set | Do not call smoke output evidence; score is poor vs persistence and the checkpoint had only 5 updates. Define/lock fit size, rollout horizons, feature weighting, action distribution, and uncertainty method |
+| Adaptive-compute protocol | v2.6 report defines metrics, baselines and compute accounting; P0 draft is `configs/phase0_protocol_draft.yaml` | Review seed list, mappings, statistical procedure; numerical `δ`, `h_OOD`, `R_max`, ρ/σ sweep intentionally unset in source |
 | Data separation | `configs/seeds.yaml` has train 0–999 and dev 1000–1999; no Confirm range | Keep Confirm absent and unused; document which train/dev seeds are used for collection, fitting, and model selection |
 
 ## Next sequence aligned to the original direction
 
-1. Write a P0 protocol draft mapping v2.6's structured-state track, baselines,
-   outcome metrics, intervention metrics and `C_wall`/`C_norm` to MiniCraft.
-2. Specify the SafetyController's hard constraints and allowed action sets. Keep
-   it a filter with no path search or new multi-step planner.
-3. Specify a MiniCraft WM task contract: 9 discrete actions, observation
-   schema, rollout targets, persistence baseline, and separate prediction and
-   uncertainty metrics. The existing zero uncertainty placeholder is not
-   evidence of calibrated uncertainty.
-4. Keep model development and exploratory measurements to train/dev data. Do
-   not add or access a held-out Confirm split. Lock the Phase 5 numeric margins
-   and final analysis protocol before any Phase 5 evaluation.
-5. Implement the Phase 0 data collection, training and dev-only evaluation,
-   then report predictive accuracy, action conditioning, uncertainty behavior,
-   and compute cost before drawing claims about adaptive compute.
+1. Review `docs/PHASE0_CONTRACT.md` and `configs/phase0_protocol_draft.yaml`;
+   resolve still-open task details without inventing values from the report.
+2. Keep code development/smoke data on train and dev only. Dev seeds 1000–1001
+   have already been touched by the explicitly non-evidentiary pipeline smoke.
+3. Review the schema-frozen multi-horizon scorer; specify and calibrate a real
+   uncertainty method before exposing uncertainty to any detector.
+4. Run formal train fitting and dev evaluation once task distribution,
+   horizons, weighting, and summary procedure are frozen. Confirm remains
+   absent and unused.
+5. Lock Phase 5 margins and final analysis protocol before any Phase 5 test.
 
 The Soul policy/model path now permits a fully discrete action space
 (`discrete_dim == action_dim`) and imagined discrete actions use a
@@ -55,6 +52,8 @@ update with MiniCraft's nine-action encoding. This removes one adapter/model
 compatibility blocker; it does not establish world-model quality or calibrated
 uncertainty.
 
-No test or Confirm seed has been used for adaptive-compute claims. B6's train
+No test or Confirm seed has been used for adaptive-compute claims. The Phase 0
+smoke diagnostic did touch dev seeds 1000–1001 and found the 5-update model
+underperformed persistence; it is not formal evidence. B6's train
 seed runs only establish that the hand-written expert can solve the simulator
 tasks; they do not measure WM quality or the core hypothesis.

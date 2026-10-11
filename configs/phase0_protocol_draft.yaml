@@ -1,0 +1,53 @@
+schema_version: 1
+status: DRAFT_NOT_LOCKED
+source: v2.6_full_report.md sections 12, 12b, 13
+purpose: >-
+  Phase 0 feasibility protocol for structured-state, action-conditioned
+  MiniCraft world-model prediction across open-loop horizons. Not an adaptive-compute
+  benchmark and not evidence for the core hypothesis.
+
+data_splits:
+  train: {range: [0, 999], allowed_for: [collection, fitting]}
+  dev: {range: [1000, 1999], allowed_for: [exploratory_evaluation, iteration]}
+  confirm: {range: null, status: NOT_DEFINED_OR_ACCESSED}
+
+environment:
+  class: minicraft.env.MiniCraftEnv
+  observation_fields:
+    - self.x
+    - self.y
+    - self.facing
+    - self.health
+    - self.food
+    - inv.*
+    - patch[7,7]
+    - mobs[].{dx,dy,hp}
+    - events.{last_result,damage,tick}
+  actions: 9 discrete actions (0..8); action is the transition input.
+  task: deterministic-mean open-loop prediction; compare against real observations.
+  snapshot_counterfactuals: required capability; not evaluated by this draft.
+
+model:
+  implementation: Soul RSSM with structured observation encoder/decoder
+  schema_source: train split only; freeze encoder feature schema before dev scoring
+  prediction: deterministic prior mean decoded to observation value slots
+  uncertainty: NOT_IMPLEMENTED; zero placeholder must not be scored or cited
+
+baselines:
+  - id: persistence
+    prediction: repeat the current encoded numeric observation values
+  - id: action_shuffle
+    prediction: same fitted world model, but permute actions within each episode
+    purpose: diagnostic for action conditioning, not a performance baseline
+
+metrics:
+  primary: per-episode mean squared error on observed numeric feature slots
+  horizons: [1, 5, 20, 100]
+  report: [per_episode_scores, equal_episode_mean, per_feature_scores, observed_feature_counts]
+  action_conditioning: paired change in model error after within-episode action permutation
+  uncertainty_calibration: DEFERRED
+  thresholds: TO_LOCK_AFTER_PROTOCOL_REVIEW; no threshold encoded here
+
+provenance:
+  record: [seed, split, episode, tick, action, feature_schema_hash, model_revision]
+  phase5_thresholds_or_test_seeds: NOT_DEFINED_OR_ACCESSED

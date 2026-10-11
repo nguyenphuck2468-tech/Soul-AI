@@ -56,6 +56,7 @@ class ObsEncoder:
             from config import ObsConfig
         self.cfg = cfg or ObsConfig()
         self._schema: Dict[str, int] = {}
+        self._schema_frozen = False
         # Dem so con so bi bo vi het ngan sach. Doc so nay de biet mo hinh
         # dang bo mat thong tin gi — im lang bo thi khong bao gio biet.
         self.overflow = 0
@@ -69,11 +70,15 @@ class ObsEncoder:
         """Nap lai tuong o tu checkpoint cu (xem soul.load)."""
         self._schema = {str(k): int(v) for k, v in schema.items()}
 
+    def freeze_schema(self):
+        """Stop assigning feature slots to fields absent from the fitted schema."""
+        self._schema_frozen = True
+
     def _slot(self, path: str) -> int:
         idx = self._schema.get(path)
         if idx is not None:
             return idx
-        if len(self._schema) >= self.cfg.max_features:
+        if self._schema_frozen or len(self._schema) >= self.cfg.max_features:
             self.overflow += 1
             return -1
         idx = len(self._schema)
