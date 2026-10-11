@@ -197,3 +197,11 @@ Quyết định: A5 CHƯA ĐẠT (6 lượt hợp lệ: run01-run06, tất cả 
 - Môi trường 03:59:45Z: 2 CPU, load 1.98/1.32/1.07, RAM 7.8 GiB (4.8 GiB used, 3.0 GiB available), swap 0. Trước đo, PID 685 MainThread đã ở CPU 0 với 10.7% CPU; do đó pin benchmark về CPU 0 không tách nó khỏi tiến trình này.
 - Tính lại mọi median, p95 (`xs[27]`), deviation/cờ pass từ raw samples: khớp. H=1: 12.37% PASS (0.310/0.337 ms); H=2: 343.02% FAIL (0.866/2.920 ms); H=4: 121.67% FAIL (1.640/2.666 ms); H=8: 89.08% FAIL (3.361/4.834 ms); H=16: 267.84% FAIL (4.524/12.714 ms); H=32: 44.49% FAIL (5.126/7.292 ms).
 - Run11 đạt 1/6; thử affinity CPU 0 không giải quyết biến thiên, vì tiến trình MainThread đang ở cùng CPU. A5 vẫn CHƯA ĐẠT; tiếp tục run12 trên CPU 1 như một phép đo riêng có ghi nhận affinity.
+
+
+=== A5 GHI CHÚ (Codespace, 2026-10-11) — LƯỢT 12 (run12, CPU affinity) ===
+- Lệnh đo: `taskset -c 0 env PYTHONPATH=. /workspaces/Soul-AI/.venv/bin/python scripts/measure_cost.py --out results/A5_cost_codespace_run12.jsonl --threads 1`; không sửa script/ngưỡng.
+- Checkout sạch từ `9ab8b29e0ed996c6f54f0726214b0328a665e277`; 6 record measured, 30 samples/H, source hashes/script hash khớp, `working_tree_dirty=false`.
+- Môi trường 04:01:03Z: 2 CPU, load 1.11/1.18/1.04, RAM 7.8 GiB (4.8 GiB used, 3.0 GiB available), swap 0; Torch threads=1. Trước đo, PID 685 MainThread 10.6% ở CPU1; benchmark được pin CPU0.
+- Tính lại raw: H=1 6.26% PASS (0.627/0.642 ms); H=2 104.86% FAIL (0.707/0.900 ms); H=4 39.70% FAIL (1.312/1.513 ms); H=8 37.85% FAIL (1.499/2.041 ms); H=16 45.14% FAIL (2.742/3.895 ms); H=32 88.22% FAIL (5.426/7.526 ms). Median/p95 (`xs[27]`)/deviation/pass flags đều khớp với 30 mẫu.
+- Run12 đạt 1/6; pin CPU0 trong khi tiến trình MainThread ở CPU1 vẫn không đủ để đạt các H còn lại. A5 CHƯA ĐẠT; tiếp tục run13, giữ nguyên tiêu chí.
