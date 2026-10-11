@@ -114,8 +114,9 @@ needs independent calibration against held-out train/dev outcomes before use.
   retained. The recorded applied action is the world-model input;
   `scripts/phase0_train.py` accepts only schema-v2 transitions, recomputes each
   safety decision from the recorded observation/candidate, rejects inconsistent
-  candidate→applied logs, non-contiguous ticks, post-terminal rows, and broken
-  observation chains, records exact collection and fit seed lists, and reports
+  candidate→applied logs, multiple episodes per seed, non-contiguous ticks,
+  post-terminal rows, and broken observation chains, records exact collection
+  and fit seed lists, and reports
   collector-wide counts separately from the transitions/actions actually used
   to fit replay; it saves collector,
   controller, and protocol hashes with the train report/checkpoint;

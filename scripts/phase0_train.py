@@ -58,6 +58,11 @@ def _validate_transition_rows(rows: list[dict]) -> dict:
             raise ValueError(f'transition {row_index} tick must be an integer')
         if row['tick'] < 1:
             raise ValueError(f'transition {row_index} tick must be positive')
+        if (not isinstance(row.get('episode'), int)
+                or isinstance(row.get('episode'), bool)
+                or row['episode'] != 0):
+            raise ValueError(
+                f'transition {row_index} must be the single episode 0 for its seed')
         key = (int(row['seed']), int(row['episode']))
         grouped.setdefault(key, []).append((row_index, row))
 
