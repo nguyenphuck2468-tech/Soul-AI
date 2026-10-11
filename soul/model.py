@@ -170,7 +170,11 @@ class Dynamics(nn.Module):
         self.to_logvar = nn.Linear(hidden, latent)
 
     def step(self, h, z, a):
-        h = self.gru(torch.cat([z, self.action_in(a)], dim=-1), h)
+        return self.step_embedded_action(h, z, self.action_in(a))
+
+    def step_embedded_action(self, h, z, action_embedding):
+        """Advance one recurrent step when the action embedding is ready."""
+        h = self.gru(torch.cat([z, action_embedding], dim=-1), h)
         x = self.net(h)
         return h, self.to_mu(x), self.to_logvar(x).clamp(LOGVAR_LO, self.logvar_hi)
 
@@ -253,8 +257,19 @@ class Dynamics(nn.Module):
         """
         B, T = actions.shape[0], actions.shape[1]
         hs, zs, mus, lvs = [], [], [], []
+        # Actions are known for the full imagined sequence. Embed them as one
+        # batch to avoid dispatching the action MLP separately at every step;
+        # the recurrent state and latent sampling remain sequential.
+        action_embeddings = None
+        if T > 1:
+            action_embeddings = self.action_in(
+                actions.reshape(B * T, -1)).reshape(B, T, self.action_embed)
         for t in range(T):
-            h, mu, lv = self.step(h, z, actions[:, t])
+            if action_embeddings is None:
+                h, mu, lv = self.step(h, z, actions[:, t])
+            else:
+                h, mu, lv = self.step_embedded_action(
+                    h, z, action_embeddings[:, t])
             z = mu + torch.randn_like(mu) * _logvar_to_std(lv)
             hs.append(h); zs.append(z); mus.append(mu); lvs.append(lv)
         return {

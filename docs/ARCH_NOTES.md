@@ -121,4 +121,6 @@ Action protocol là số nguyên: adapter one-hot mã hóa action nếu `action_
 | API | Đầu vào → đầu ra | Trạng thái / giới hạn hiện tại |
 |---|---|---|
 | `wm_api.cost.CostMeter(warmup=5,reps=30).measure(fn)` | Hàm không tham số → `(median_seconds,p95_seconds,all_seconds_sorted)`. | Đo bằng `time.perf_counter`; thống kê là latency của một lần gọi `fn`. |
-| `scripts.measure_cost.run(out_path,...)` | Đường dẫn và số lần warm-up/lặp → JSONL cho rollout imagination theo H. | Hiện đo adapter của Soul trên latent/action shape tổng hợp; ghi hardware, cấu hình thread, source hash, git revision và độ ổn định. Chi phí skill pha D, detector/gate pha F được ghi trạng thái deferred cho đến khi có module để đo. |
+| `scripts.measure_cost.run(out_path,...)` | Đường dẫn và số lần warm-up/lặp → JSONL cho rollout imagination theo H. | Hiện đo adapter của Soul trên latent/action shape tổng hợp; ghi hardware, intra/inter-op thread count, CPU affinity, source hash (bao gồm `soul/model.py`), git revision và độ ổn định. Chi phí skill pha D, detector/gate pha F được ghi trạng thái deferred cho đến khi có module để đo. |
+
+`Dynamics.imagine_sequence` nhúng action cho toàn bộ horizon theo batch trước vòng lặp RSSM. Hidden state và stochastic latent rollout vẫn tính tuần tự; horizon 1 vẫn giữ đường xử lý cũ. Mục đích là giảm dispatch lặp của action MLP mà không thay đổi phân phối hoặc output (đã có regression test với cùng seed).

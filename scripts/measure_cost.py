@@ -42,7 +42,7 @@ def _source_metadata():
         text=True, check=False,
     )
     names = ('scripts/measure_cost.py', 'wm_api/cost.py',
-             'wm_api/soul_adapter.py')
+             'wm_api/soul_adapter.py', 'soul/model.py')
     return {
         'git_revision': _revision(),
         'working_tree_dirty': bool(status.stdout.strip()) if status.returncode == 0 else None,
@@ -57,12 +57,18 @@ def _hardware(device):
     gpu = None
     if device.type == 'cuda' and torch.cuda.is_available():
         gpu = torch.cuda.get_device_name(device)
+    try:
+        affinity = sorted(os.sched_getaffinity(0))
+    except (AttributeError, OSError):
+        affinity = None
     return {
         'cpu': platform.processor() or platform.uname().processor or 'unknown',
         'machine': platform.machine(),
         'gpu': gpu,
         'torch_device': str(device),
         'torch_num_threads': torch.get_num_threads(),
+        'torch_num_interop_threads': torch.get_num_interop_threads(),
+        'process_cpu_affinity': affinity,
         'torch_version': torch.__version__,
         'numpy_version': np.__version__,
         'python_version': platform.python_version(),
