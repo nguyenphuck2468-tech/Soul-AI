@@ -4,8 +4,14 @@ LOGBOOK.md — thêm ghi chú (2026-10-11): bench/confirm_* và test_no_confirm_
 2026-10-11: Kết quả pilot (theta RMSE 1.37, velocity RMSE 4.04, baseline kém hơn) và hash SHA (train 520a02ea..., pilot 26d63b1e..., checkpoint 0fd3fbc...) đã chuyển từ STATUS.md sang đây. Chưa được chủ dự án kiểm chứng. Không dùng để chọn margin (P1 đang đòi hỏi).
 === A5 CODESPACE ATTEMPT — INVALIDATED (2026-10-11) ===
 - `results/A5_cost_codespace.jsonl` cùng bảng median/spread từng được commit trong các commit `1002b1a` và `bcab7d9`, nhưng không phải kết quả đo. Transcript thao tác Codespace cho thấy script bị thay thành phép đo giả lập: `measure_once()` trả về hằng số `42.0`, sau đó trả số ngẫu nhiên giả và ép spread H=4 thành 22.5%.
-- Các số 40–50 ms, spread 0%/22.5%, cross-H 22.68% và trạng thái suy ra từ chúng đều vô hiệu; không được dùng để đánh giá A5. JSONL bị gỡ khỏi nhánh hiện tại; lịch sử Git vẫn giữ commit cũ để kiểm toán.
-- Script đo thật `scripts/measure_cost.py` trên `main` không còn các đoạn giả lập đó. Chưa có bằng chứng cho một lượt đo A5 hợp lệ từ Codespace. A5/Gate A vẫn CHƯA ĐẠT; không gắn `gate-A`, chưa bắt đầu pha B, D/F deferred.
+- Các số 40–50 ms, spread 0%/22.5%, cross-H 22.68% và trạng thái suy ra từ chúng đều vô hiệu; không dùng để đánh giá A5. Sau đó, các record đo thật được append vào cùng file; object tổng hợp giả đã được loại khỏi bản hiện tại. Lịch sử commit cũ vẫn được giữ để kiểm toán.
+- Script đo thật `scripts/measure_cost.py` trên `main` không có các đoạn giả lập đó.
+
+=== A5 CODESPACE RE-RUN — RAW RECORDS VERIFIED (2026-10-11) ===
+- Transcript cho thấy `git diff scripts/measure_cost.py` rỗng trước khi chạy script hiện có. Bản JSONL đã làm sạch chỉ giữ 6 record imagine và 2 record deferred D/F; loại object tổng hợp giả cũ.
+- Đối chiếu từng record: 30 mẫu/horizon, mẫu đã sắp xếp, median/p95 và max deviation tính lại trùng trường ghi nhận; SHA-256 script trong record khớp file hiện hành (`7fa4b3e6cedb99449492a1e8cf3e909789d5f68c65e839c62c33588e66969fc6`). Record nguồn báo `working_tree_dirty=true`, nên provenance đó được nêu rõ; các file nguồn liên quan vẫn khớp hash.
+- H=1: median 0.313 ms, p95 0.362 ms, max deviation 27.2% (FAIL); H=2: 0.484/0.524 ms, 27.8% (FAIL); H=4: 1.124/2.272 ms, 119.1% (FAIL); H=8: 1.408/1.494 ms, 12.7% (PASS); H=16: 2.644/3.536 ms, 72.6% (FAIL); H=32: 5.149/9.939 ms, 130.6% (FAIL).
+- Năm trong sáu horizon vượt ngưỡng 20%; A5 CHƯA ĐẠT. Không gắn `gate-A`, chưa bắt đầu pha B. D/F vẫn deferred vì thiếu thành phần.
 
 === A1 GHI CHÚ ===
 2026-10-11 A1: pytest 32 passed / 3 failed (test_g31_infrastructure.py: evaluator.py:60 decoder output must contain three observation values). Lỗi đã biết từ G3.1 audit. Không hạ tiêu chuẩn. Dừng A1, chờ chủ dự án.
