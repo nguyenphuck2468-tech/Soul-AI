@@ -132,7 +132,9 @@ needs independent calibration against held-out train/dev outcomes before use.
   measures the same MiniCraft adapter call at those horizons with runtime and
   source, dirty-tree-status, and protocol-config provenance; it does not supply
   an integrated pipeline cost or skill-cost denominator before those components
-  exist. Cost records use schema v2 and remain exploratory measurements.
+  exist. CUDA calls are synchronized around timing so reported wall time includes
+  completed GPU work. Cost records use schema v2 and remain exploratory
+  measurements.
 
 Example pipeline (temporary paths shown):
 

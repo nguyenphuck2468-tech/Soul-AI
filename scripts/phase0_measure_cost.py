@@ -54,8 +54,15 @@ def measure(output: str | Path, warmup: int = 5, reps: int = 30,
     for horizon in HORIZONS:
         actions = [0, 1, 2, 3, 4, 5, 6, 7, 8] * (horizon // 9) + list(range(horizon % 9))
         meter = CostMeter(warmup=warmup, reps=reps)
-        median, p95, samples = meter.measure(
-            lambda: adapter.imagine(snapshot, actions))
+        def imagine_synchronized():
+            if soul.device.type == 'cuda':
+                torch.cuda.synchronize(soul.device)
+            result = adapter.imagine(snapshot, actions)
+            if soul.device.type == 'cuda':
+                torch.cuda.synchronize(soul.device)
+            return result
+
+        median, p95, samples = meter.measure(imagine_synchronized)
         records.append({
             'schema_version': 2,
             'kind': 'phase0_cost_measurement',
