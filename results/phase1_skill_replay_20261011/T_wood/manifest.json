@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "kind": "phase1_skill_replay_comparison",
+  "status": "EXPLORATORY_TRAIN_SEEDS_NO_PROMOTION",
+  "recorded_at_utc": "2026-10-11T19:36:16.314052+07:00",
+  "task": "T_wood",
+  "source_seed": 5,
+  "evaluation_seeds": [
+    8
+  ],
+  "source_action_count": 104,
+  "candidate_skill_success_fraction": 1.0,
+  "replay_success_fraction": 0.0,
+  "descriptive_A_skill_minus_replay": 1.0,
+  "episodes": [
+    {
+      "task": "T_wood",
+      "seed": 8,
+      "controller": "candidate_skill",
+      "success": true,
+      "steps": 92,
+      "safety_blocks": 0,
+      "decision_wall_seconds": 0.012319200061028823,
+      "skill_card": {
+        "skill_id": "minicraft.expert.T_wood",
+        "version": "0.1.0-alpha",
+        "status": "Candidate",
+        "implementation": "privileged_full_state_expert_wrapper",
+        "context": {
+          "environment": "MiniCraftEnv",
+          "task": "T_wood",
+          "requires_full_state": true
+        },
+        "expected_outcome": {
+          "scope": "episode_goal",
+          "condition": {
+            "field": "inv.wood",
+            "operator": ">=",
+            "value": 5
+          },
+          "confidence_status": "NOT_CALIBRATED"
+        },
+        "episodes_completed": 1,
+        "episodes_succeeded": 1,
+        "empirical_success_rate": 1.0,
+        "known_risks": [
+          "Uses privileged full-map state unavailable to the learned agent.",
+          "Expert replans with BFS each action; no compute advantage is established.",
+          "OOD robustness and held-out generalization are not validated."
+        ],
+        "failure_modes": [
+          "No reachable resource currently yields a noop while the episode continues.",
+          "Safety filtering may replace a proposed action with noop.",
+          "Hidden action-mapping shocks can invalidate expert movement assumptions.",
+          "Survival failure or episode timeout can prevent goal completion."
+        ],
+        "validation_note": "Candidate status only; no promotion threshold is locked."
+      }
+    },
+    {
+      "task": "T_wood",
+      "seed": 8,
+      "controller": "replay",
+      "success": false,
+      "steps": 71,
+      "safety_blocks": 0,
+      "decision_wall_seconds": 5.890005559194833E-05,
+      "skill_card": null
+    }
+  ],
+  "trace_path": "results/phase1_skill_replay_20261011/T_wood/comparison_trace.jsonl",
+  "source_trace_sha256": "ab45c4db459e66cebe8de9c02af03858ea96da2806c54c677f6b48bc7a713228",
+  "trace_sha256": "8167c6302e5d82ed8fa8d2ff87f195032d441045179e7e06d51a54240170f22c",
+  "limits": [
+    "Train-seed smoke comparison only; not a held-out generalization result.",
+    "No promotion threshold or variant-distance protocol is locked.",
+    "Candidate uses privileged full-state BFS; replay is a fixed action cache.",
+    "Single small sample and wall-clock measurements are descriptive only."
+  ]
+}

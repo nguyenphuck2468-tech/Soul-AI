@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "kind": "phase1_skill_replay_comparison",
+  "status": "EXPLORATORY_TRAIN_SEEDS_NO_PROMOTION",
+  "recorded_at_utc": "2026-10-11T19:36:35.872221+07:00",
+  "task": "T_iron",
+  "source_seed": 7,
+  "evaluation_seeds": [
+    10
+  ],
+  "source_action_count": 227,
+  "candidate_skill_success_fraction": 1.0,
+  "replay_success_fraction": 0.0,
+  "descriptive_A_skill_minus_replay": 1.0,
+  "episodes": [
+    {
+      "task": "T_iron",
+      "seed": 10,
+      "controller": "candidate_skill",
+      "success": true,
+      "steps": 53,
+      "safety_blocks": 0,
+      "decision_wall_seconds": 0.01415090000955388,
+      "skill_card": {
+        "skill_id": "minicraft.expert.T_iron",
+        "version": "0.1.0-alpha",
+        "status": "Candidate",
+        "implementation": "privileged_full_state_expert_wrapper",
+        "context": {
+          "environment": "MiniCraftEnv",
+          "task": "T_iron",
+          "requires_full_state": true
+        },
+        "expected_outcome": {
+          "scope": "episode_goal",
+          "condition": {
+            "field": "inv.iron",
+            "operator": ">=",
+            "value": 1
+          },
+          "confidence_status": "NOT_CALIBRATED"
+        },
+        "episodes_completed": 1,
+        "episodes_succeeded": 1,
+        "empirical_success_rate": 1.0,
+        "known_risks": [
+          "Uses privileged full-map state unavailable to the learned agent.",
+          "Expert replans with BFS each action; no compute advantage is established.",
+          "OOD robustness and held-out generalization are not validated."
+        ],
+        "failure_modes": [
+          "No reachable resource currently yields a noop while the episode continues.",
+          "Safety filtering may replace a proposed action with noop.",
+          "Hidden action-mapping shocks can invalidate expert movement assumptions.",
+          "Survival failure or episode timeout can prevent goal completion."
+        ],
+        "validation_note": "Candidate status only; no promotion threshold is locked."
+      }
+    },
+    {
+      "task": "T_iron",
+      "seed": 10,
+      "controller": "replay",
+      "success": false,
+      "steps": 300,
+      "safety_blocks": 0,
+      "decision_wall_seconds": 0.00041970013990066946,
+      "skill_card": null
+    }
+  ],
+  "trace_path": "results/phase1_skill_replay_20261011/T_iron/comparison_trace.jsonl",
+  "source_trace_sha256": "f55da1f7f6aedb2fa24887d1a8f3306c046511de1d1e9fe99d2ee4876d7d8a95",
+  "trace_sha256": "5e3cf30a62cd0a1dc950061a1a26df0ec025cff6d028293ff4ca0bf0db5dead0",
+  "limits": [
+    "Train-seed smoke comparison only; not a held-out generalization result.",
+    "No promotion threshold or variant-distance protocol is locked.",
+    "Candidate uses privileged full-state BFS; replay is a fixed action cache.",
+    "Single small sample and wall-clock measurements are descriptive only."
+  ]
+}

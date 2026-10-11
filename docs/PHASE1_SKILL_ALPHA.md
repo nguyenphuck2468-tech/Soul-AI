@@ -32,6 +32,15 @@ card, and manifest go under a unique directory in `work/`. The smoke applies
 the hard safety filter to every proposed action and records the expected goal
 alongside observed transitions.
 
+To compare a saved Candidate trace with replay on exploratory train seeds:
+
+```powershell
+python -m scripts.phase1_replay_compare --task T_wood --source-trace results/phase1_skill_smoke_20261011/T_wood/skill_trace.jsonl --eval-seeds 8,9,10
+```
+
+Both controllers start from the same initial state for each seed. The script
+records raw outcomes and descriptive `A` without applying a threshold.
+
 ## What is still needed before calling it a generalized skill
 
 The source report's held-out variant distance `d` and promotion margins remain
@@ -47,3 +56,12 @@ T_tools seed 6 in 57 steps, and T_iron seed 7 in 227 steps. These are three
 single-episode wiring checks, not success-rate estimates or evidence of
 generalization. Traces, cards, and manifests are archived under
 `results/phase1_skill_smoke_20261011/`.
+
+A small action-replay comparison then used each trace on one different train
+seed. The Candidate expert succeeded and replay failed once for each task:
+T_wood source/eval 5/8 (92 steps), T_tools 6/9 (26), and T_iron 7/10 (53).
+The resulting descriptive `A` was +1.0 per task on a one-episode sample. This
+is an exploratory demonstration that fixed action traces can fail across new
+world seeds while the privileged expert replans; it does not establish the
+source report's held-out variant metric or skill generalization. Full traces
+and manifests are in `results/phase1_skill_replay_20261011/`.
