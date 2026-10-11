@@ -56,10 +56,16 @@ distinct modes: (a) **reality-anchored H-step prediction**, where each real
 intermediate observation is encoded before the next transition and the final
 observation remains held out; and (b) **open-loop H-step prediction**, where
 the model receives no intermediate observations. Use fixed encoder slots fitted from train
-only; dev scoring freezes that schema. Compare per-episode numeric-feature MSE
-for both modes to persistence (repeat the origin observation), giving each
-episode equal weight. Report feature-wise errors and observed-feature counts as
-diagnostics. The `model_mse` output key is retained as a compatibility alias for
+only; dev scoring freezes that schema. The exploratory score averages squared
+error across observed numeric slots per origin, then origins within each
+episode, then episodes equally. Origins with no observed numeric target are
+excluded and counted rather than assigned a zero score. Compare both modes to
+persistence (repeat the origin observation). Report feature-wise errors and
+counts, plus top-level `self`, `inventory`, `local_map`, `mobs`, and `events`
+group diagnostics, so the all-feature average cannot silently hide group-level
+behavior. This weighting is a current implementation proposal, not a source-
+approved final metric; field scaling/weighting and the inferential summary still
+need protocol review. The `model_mse` output key is retained as a compatibility alias for
 the reality-anchored score; new consumers should use the explicit
 `anchored_model_mse` and `open_loop_model_mse` fields.
 
@@ -84,13 +90,15 @@ calibration against held-out train/dev outcomes before use.
   hash, action counts, and raw predictions, targets, masks, and persistence
   values. A commit hash alone does not identify modified working-tree code;
   source-file hashes cover the scorer and model/environment files listed in
-  the report, while the dirty-tree status hash records paths, not their contents.
+  the report, including the protocol draft, while the dirty-tree status hash
+  records paths, not their contents.
 - `scripts/phase0_collect.py` writes train-only transition JSONL;
   `scripts/phase0_train.py` fits and saves the schema/config with the checkpoint;
   `scripts/phase0_score.py` rejects non-dev seeds and reports exploratory
-  model-vs-persistence at horizons 1, 5, 20, and 100 plus an action-shuffle
-  diagnostic without applying thresholds. It writes raw per-origin predictions
-  to a JSONL sidecar and reports unseen-feature overflow. Derived episode
+  anchored/open-loop model-vs-persistence at horizons 1, 5, 20, and 100, group
+  diagnostics, and an action-shuffle diagnostic without applying thresholds.
+  It writes raw per-origin predictions to a JSONL sidecar and reports
+  unseen-feature overflow. Derived episode
   seeds must be unique; overlapping ranges are rejected. `scripts/phase0_measure_cost.py`
   measures the same MiniCraft adapter call at those horizons with runtime and
   source provenance; it does not supply a skill-cost denominator before a skill

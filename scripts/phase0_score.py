@@ -23,6 +23,27 @@ from wm_api.soul_adapter import SoulAdapter
 
 
 DEV_MIN, DEV_MAX = 1000, 1999
+HORIZONS = (1, 5, 20, 100)
+
+
+def _feature_group(name: str) -> str:
+    """Map a frozen observation path to its top-level MiniCraft feature group."""
+    if name.startswith('self.'):
+        return 'self'
+    if name.startswith('inv.'):
+        return 'inventory'
+    if name.startswith('patch['):
+        return 'local_map'
+    if name.startswith('mobs['):
+        return 'mobs'
+    if name.startswith('events.'):
+        return 'events'
+    return 'other'
+
+
+def _mean_present(values):
+    present = [float(value) for value in values if value is not None]
+    return float(np.mean(present)) if present else None
 
 
 def score(checkpoint: str | Path, output: str | Path, seeds: list[int],
@@ -134,8 +155,13 @@ def score(checkpoint: str | Path, output: str | Path, seeds: list[int],
             if idx.size == 0:
                 raise ValueError('train-frozen encoder schema has no numeric fields')
             horizon_metrics = {}
-            for horizon in (1, 5, 20, 100):
+            groups = {}
+            for position, slot in enumerate(idx):
+                name = feature_names.get(int(slot), f'feature_{slot}')
+                groups.setdefault(_feature_group(name), []).append(position)
+            for horizon in HORIZONS:
                 model_errors, open_loop_errors, persistence_errors = [], [], []
+                group_errors = {}
                 feature_model_sum = np.zeros(len(idx), dtype=np.float64)
                 feature_open_loop_sum = np.zeros(len(idx), dtype=np.float64)
                 feature_persistence_sum = np.zeros(len(idx), dtype=np.float64)
@@ -156,7 +182,9 @@ def score(checkpoint: str | Path, output: str | Path, seeds: list[int],
                     open_loop_prediction = open_loop_prediction.squeeze(0).cpu().numpy()
                     target_index = start + horizon - 1
                     weights = mask[target_index, idx]
-                    denom = max(float(weights.sum()), 1.0)
+                    denom = float(weights.sum())
+                    if denom <= 0:
+                        continue
 
                     # Reality-anchored rollout: after each intermediate real
                     # observation, update the latent with its posterior before
@@ -200,11 +228,32 @@ def score(checkpoint: str | Path, output: str | Path, seeds: list[int],
                     feature_persistence_sum += np.square(
                         current_values[start, idx] - target[target_index, idx]) * weights
                     feature_counts += weights.astype(np.int64)
+                    for group, positions in groups.items():
+                        group_idx = np.asarray(positions, dtype=np.int64)
+                        group_mask = weights[group_idx]
+                        group_denom = float(group_mask.sum())
+                        if group_denom <= 0:
+                            continue
+                        group_errors.setdefault(group, {
+                            'anchored': [], 'open_loop': [], 'persistence': []})
+                        group_errors[group]['anchored'].append(float(
+                            (((anchored_prediction[idx[group_idx]] -
+                               target[target_index, idx[group_idx]]) ** 2) *
+                             group_mask).sum() / group_denom))
+                        group_errors[group]['open_loop'].append(float(
+                            (((open_loop_prediction[idx[group_idx]] -
+                               target[target_index, idx[group_idx]]) ** 2) *
+                             group_mask).sum() / group_denom))
+                        group_errors[group]['persistence'].append(float(
+                            (((current_values[start, idx[group_idx]] -
+                               target[target_index, idx[group_idx]]) ** 2) *
+                             group_mask).sum() / group_denom))
                     raw_rows.append({
                         'schema_version': 1, 'split': 'dev',
                         'seed': int(seed), 'environment_seed': env_seed,
                         'episode': episode_index, 'start_tick': start,
                         'horizon': horizon,
+                        'metric_mode': 'reality_anchored_and_open_loop',
                         'actions': actions[start:start + horizon],
                         'feature_names': [feature_names.get(int(slot), f'feature_{slot}')
                                           for slot in idx],
@@ -216,11 +265,22 @@ def score(checkpoint: str | Path, output: str | Path, seeds: list[int],
                     })
                 horizon_metrics[str(horizon)] = {
                     'origins': len(model_errors),
+                    'origins_without_observed_numeric_features': max(
+                        0, max(0, len(actions) - horizon + 1) - len(model_errors)),
                     'model_mse': float(np.mean(model_errors)) if model_errors else None,
                     'anchored_model_mse': float(np.mean(model_errors)) if model_errors else None,
                     'open_loop_model_mse': float(np.mean(open_loop_errors)) if open_loop_errors else None,
                     'persistence_mse': (float(np.mean(persistence_errors))
                                         if persistence_errors else None),
+                    'per_feature_group': {
+                        group: {
+                            'anchored_model_mse': float(np.mean(values['anchored'])),
+                            'open_loop_model_mse': float(np.mean(values['open_loop'])),
+                            'persistence_mse': float(np.mean(values['persistence'])),
+                            'origins': len(values['anchored']),
+                        }
+                        for group, values in sorted(group_errors.items())
+                    },
                     'per_feature': {
                         feature_names.get(int(slot), f'feature_{slot}'): {
                             'model_mse': (float(feature_model_sum[position] /
@@ -241,7 +301,9 @@ def score(checkpoint: str | Path, output: str | Path, seeds: list[int],
                     },
                 }
             weights = mask[:, idx]
-            denom = np.maximum(weights.sum(axis=1), 1.0)
+            denom = weights.sum(axis=1)
+            valid_rows = denom > 0
+            safe_denom = np.where(valid_rows, denom, 1.0)
             rng = np.random.default_rng(int(seed) * 1009 + episode_index)
             shuffle_errors = []
             shuffled_actions = np.asarray(actions, dtype=np.int64)
@@ -260,17 +322,21 @@ def score(checkpoint: str | Path, output: str | Path, seeds: list[int],
                         alt_predictions.append(
                             soul.model.decoder(h1, mu)['obs'].squeeze(0).cpu().numpy())
                 alt = np.asarray(alt_predictions, dtype=np.float32)
-                per_step = (((alt[:, idx] - target[:, idx]) ** 2) * weights).sum(axis=1) / denom
-                shuffle_errors.append(float(per_step.mean()))
+                per_step = (((alt[:, idx] - target[:, idx]) ** 2) * weights).sum(axis=1) / safe_denom
+                if np.any(valid_rows):
+                    shuffle_errors.append(float(per_step[valid_rows].mean()))
 
             episodes.append({
                 'seed': int(seed), 'episode': episode_index,
                 'environment_seed': env_seed,
                 'transitions': int(len(target)),
                 'horizons': horizon_metrics,
-                'action_shuffle_mse_mean': float(np.mean(shuffle_errors)),
+                'action_shuffle_mse_mean': (float(np.mean(shuffle_errors))
+                                            if shuffle_errors else None),
                 'action_shuffle_delta_vs_true': float(
-                    np.mean(shuffle_errors) - horizon_metrics['1']['model_mse']),
+                    np.mean(shuffle_errors) - horizon_metrics['1']['model_mse'])
+                    if shuffle_errors and horizon_metrics['1']['model_mse'] is not None
+                    else None,
                 'action_shuffle_mse_samples': shuffle_errors,
             })
 
@@ -297,7 +363,8 @@ def score(checkpoint: str | Path, output: str | Path, seeds: list[int],
         'source_sha256': {
             name: hashlib.sha256(Path(name).read_bytes()).hexdigest()
             for name in ('scripts/phase0_score.py', 'soul/obs.py',
-                         'soul/model.py', 'minicraft/env.py')
+                         'soul/model.py', 'minicraft/env.py',
+                         'configs/phase0_protocol_draft.yaml')
         },
         'runtime': {
             'python': platform.python_version(), 'torch': torch.__version__,
@@ -315,14 +382,33 @@ def score(checkpoint: str | Path, output: str | Path, seeds: list[int],
                                             if ep['horizons'][horizon][metric] is not None]))
                              if any(ep['horizons'][horizon][metric] is not None
                                     for ep in episodes) else None)
-                    for metric in ('model_mse', 'persistence_mse')
+                    for metric in ('model_mse', 'anchored_model_mse',
+                                   'open_loop_model_mse', 'persistence_mse')
                 }
-                for horizon in ('1', '5', '20', '100')
+                for horizon in map(str, HORIZONS)
             },
-            'action_shuffle_mse_mean': float(np.mean(
-                [ep['action_shuffle_mse_mean'] for ep in episodes])),
-            'action_shuffle_delta_vs_true': float(np.mean(
-                [ep['action_shuffle_delta_vs_true'] for ep in episodes])),
+            'feature_groups': {
+                horizon: {
+                    group: {
+                        metric: _mean_present(
+                            ep['horizons'][horizon]['per_feature_group']
+                            .get(group, {}).get(metric)
+                            for ep in episodes)
+                        for metric in ('anchored_model_mse',
+                                       'open_loop_model_mse', 'persistence_mse')
+                    }
+                    for group in sorted({
+                        group
+                        for ep in episodes
+                        for group in ep['horizons'][horizon]['per_feature_group']
+                    })
+                }
+                for horizon in map(str, HORIZONS)
+            },
+            'action_shuffle_mse_mean': _mean_present(
+                ep['action_shuffle_mse_mean'] for ep in episodes),
+            'action_shuffle_delta_vs_true': _mean_present(
+                ep['action_shuffle_delta_vs_true'] for ep in episodes),
         },
         'uncertainty': 'NOT_IMPLEMENTED',
         'limits': [
