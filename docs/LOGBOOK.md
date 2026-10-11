@@ -156,3 +156,9 @@ PASS: 0/6; FAIL: 6/6.
 Quyết định: A5 CHƯA ĐẠT (6 lượt hợp lệ: run01-run06, tất cả FAIL ít nhất 5/6 H; không có lượt nào đạt cả 6 H dưới 20%). KHÔNG gắn gate-A; KHÔNG bắt pha B; D/F deferred (prerequisite missing). Không tuyên bố hoàn tất — trở ngại khách quan đã được chứng minh bằng 6 lượt đo thật từ script không sửa.
 
 === A5 ĐANG LÀM — 2026-10-11 (stability chưa đạt) ===
+
+=== A5 KIỂM TOÁN ĐỘC LẬP RUN06 (2026-10-11) ===
+- Đã đọc raw `results/A5_cost_codespace_run06.jsonl` trên origin/main; có đủ 6 measured record cho H=1,2,4,8,16,32, mỗi record 30 mẫu đã sắp xếp. Tính lại bằng `CostMeter` cùng công thức median, p95 (`xs[27]`) và max absolute deviation/median: mọi con số khớp JSONL; stability_pass=False cho cả 6 H.
+- Kết quả: H=1 23.88%; H=2 21.84%; H=4 458.91%; H=8 91.70%; H=16 76.80%; H=32 66.40%. A5 run06 đạt 0/6; Gate A chưa đạt.
+- Script hash khớp mã đo thật. Provenance caveat được ghi ngay trong JSONL: revision đo `ca991b9`, `working_tree_dirty=true`. Commit `8281a73` chứa JSONL, sau đó merge `2de74b7` thêm logbook; logbook hiện nêu rõ dirty state.
+- Run06 chỉ cho thấy lần đo này không ổn định theo ngưỡng 20%; không xác định nguyên nhân và không chứng minh trở ngại là không thể khắc phục. Tiếp tục run07 từ clean checkout, không thay tiêu chí; ghi SHA commit trước đo, xác nhận `git status --porcelain` rỗng và source hashes; nếu lần đo vẫn dirty thì giữ dữ liệu, nêu caveat, không gọi nó là clean provenance.
