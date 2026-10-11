@@ -18,11 +18,13 @@ MAX_ZOMBIES = 3
 
 # Facing follows the project plan: north, south, west, east.
 DIRECTIONS = {
-    0: (0, -1),
-    1: (0, 1),
-    2: (-1, 0),
-    3: (1, 0),
+    1: (0, -1),
+    2: (0, 1),
+    3: (-1, 0),
+    4: (1, 0),
 }
+FACING_DIRECTIONS = {0: (0, -1), 1: (0, 1), 2: (-1, 0), 3: (1, 0)}
+ACTION_TO_FACING = {1: 0, 2: 1, 3: 2, 4: 3}
 
 ACTION_NAMES = {
     0: "noop",
@@ -71,6 +73,7 @@ class MiniCraftEnv:
         self._milestones_paid: set[str] = set()
         self._last_result = "none"
         self._last_damage = 0
+        self._shocks: list[dict[str, Any]] = []
         self._generate_world()
         self._respawn_timers = {slot: 0 for slot in range(MAX_ZOMBIES)}
         self.zombies: list[dict[str, int]] = []
@@ -224,10 +227,14 @@ class MiniCraftEnv:
         self._last_damage = 0
         self._last_result = "none"
         fatal_lava = False
+        self._activate_scheduled_shocks(next_tick)
 
         if action in DIRECTIONS:
-            self.facing = action
-            dx, dy = DIRECTIONS[action]
+            direction = action
+            if self._shock_active("confirm_inverted_move", next_tick):
+                direction = {1: 2, 2: 1, 3: 4, 4: 3}[action]
+            self.facing = ACTION_TO_FACING[direction]
+            dx, dy = DIRECTIONS[direction]
             nx, ny = self.x + dx, self.y + dy
             if not self._inside(nx, ny) or self.grid[ny, nx] in (
                 TREE, STONE, WATER, IRON_ORE,
@@ -277,7 +284,7 @@ class MiniCraftEnv:
         return obs, float(reward), self.done, info
 
     def _interact(self) -> None:
-        dx, dy = DIRECTIONS[self.facing]
+        dx, dy = FACING_DIRECTIONS[self.facing]
         tx, ty = self.x + dx, self.y + dy
         if not self._inside(tx, ty):
             return
@@ -295,9 +302,15 @@ class MiniCraftEnv:
 
         tile = int(self.grid[ty, tx])
         if tile == TREE:
+            if self._shock_active("confirm_tree_dry", self.tick + 1):
+                self._last_result = "none"
+            else:
+                self.inventory["wood"] += 1
+                if self.rng.random() < 0.10:
+                    self.inventory["apple"] += 1
+                self._last_result = "ok"
+        elif tile == 7 and self._shock_active("confirm_tree_dry", self.tick + 1):
             self.inventory["wood"] += 1
-            if self.rng.random() < 0.10:
-                self.inventory["apple"] += 1
             self._last_result = "ok"
         elif tile == STONE:
             if self.inventory["wood_pickaxe"] < 1:
@@ -306,6 +319,11 @@ class MiniCraftEnv:
                 self.inventory["stone"] += 1
                 self.grid[ty, tx] = GRASS
                 self._last_result = "ok"
+                if self._shock_active("dev_tool_break", self.tick + 1):
+                    shock = self._active_shock("dev_tool_break", self.tick + 1)
+                    shock["hits"] += 1
+                    if shock["hits"] >= 3:
+                        self.inventory["wood_pickaxe"] = 0
         elif tile == IRON_ORE:
             if self.inventory["stone_pickaxe"] < 1:
                 self._last_result = "no_tool"
@@ -330,6 +348,10 @@ class MiniCraftEnv:
         if self.inventory["apple"] < 1:
             return
         self.inventory["apple"] -= 1
+        if self._shock_active("dev_poison_apple", self.tick + 1):
+            self._damage(2)
+            self._last_result = "ate"
+            return
         self.food = min(MAX_FOOD, self.food + 4)
         self._starvation_clock = 0
         self._last_result = "ate"
@@ -354,25 +376,31 @@ class MiniCraftEnv:
 
             if zombie["rest"] > 0:
                 zombie["rest"] -= 1
-            candidates: list[tuple[int, int]] = []
-            if distance <= 6 and self.rng.random() < 0.5:
-                if dx:
-                    candidates.append((zombie["x"] + int(np.sign(dx)), zombie["y"]))
-                if dy:
-                    candidates.append((zombie["x"], zombie["y"] + int(np.sign(dy))))
-                if candidates:
-                    target = candidates[int(self.rng.integers(len(candidates)))]
-                    self._move_zombie(zombie, target)
-                    continue
-
-            choices = [
-                (zombie["x"] + mx, zombie["y"] + my)
-                for mx, my in DIRECTIONS.values()
-            ]
-            self.rng.shuffle(choices)
-            for target in choices:
-                if self._move_zombie(zombie, target):
+            speed = 2 if self._shock_active("dev_fast_zombie", self.tick) else 1
+            for _ in range(speed):
+                dx, dy = self.x - zombie["x"], self.y - zombie["y"]
+                distance = abs(dx) + abs(dy)
+                if distance <= 1:
                     break
+                candidates: list[tuple[int, int]] = []
+                if distance <= 6 and self.rng.random() < 0.5:
+                    if dx:
+                        candidates.append((zombie["x"] + int(np.sign(dx)), zombie["y"]))
+                    if dy:
+                        candidates.append((zombie["x"], zombie["y"] + int(np.sign(dy))))
+                    if candidates:
+                        target = candidates[int(self.rng.integers(len(candidates)))]
+                        self._move_zombie(zombie, target)
+                        continue
+
+                choices = [
+                    (zombie["x"] + mx, zombie["y"] + my)
+                    for mx, my in DIRECTIONS.values()
+                ]
+                self.rng.shuffle(choices)
+                for target in choices:
+                    if self._move_zombie(zombie, target):
+                        break
 
     def _spawn_zombie(self, slot: int) -> bool:
         occupied = {(mob["x"], mob["y"]) for mob in self.zombies}
@@ -496,6 +524,7 @@ class MiniCraftEnv:
             "last_damage": self._last_damage,
             "zombies": self.zombies,
             "respawn_timers": self._respawn_timers,
+            "shocks": self._shocks,
             "rng_state": self.rng.bit_generator.state,
         })
 
@@ -516,7 +545,7 @@ class MiniCraftEnv:
         if not self._inside(x, y):
             raise ValueError("snapshot agent position is outside the map")
         facing = int(snapshot["facing"])
-        if facing not in DIRECTIONS:
+        if facing not in FACING_DIRECTIONS:
             raise ValueError("snapshot facing is invalid")
         inventory = {key: int(snapshot["inventory"][key]) for key in INVENTORY_KEYS}
         if any(value < 0 for value in inventory.values()):
@@ -551,6 +580,7 @@ class MiniCraftEnv:
         }
         if set(self._respawn_timers) != set(range(MAX_ZOMBIES)):
             raise ValueError("snapshot must contain a respawn timer for each zombie slot")
+        self._shocks = [dict(shock) for shock in snapshot.get("shocks", [])]
         self.rng = np.random.default_rng()
         self.rng.bit_generator.state = deepcopy(snapshot["rng_state"])
 
@@ -559,6 +589,55 @@ class MiniCraftEnv:
         clone = type(self).__new__(type(self))
         clone.set_state(self.get_state())
         return clone
+
+    # -- scheduled dev/Confirm shocks ----------------------------------
+    def inject_shock(self, kind: str, tick: int) -> None:
+        """Schedule one isolated rule change to begin at ``tick``."""
+        allowed = {
+            "dev_poison_apple", "dev_fast_zombie", "dev_tool_break",
+            "confirm_new_lava", "confirm_inverted_move", "confirm_tree_dry",
+        }
+        if kind not in allowed:
+            raise ValueError(f"unknown shock kind: {kind}")
+        if isinstance(tick, bool) or not isinstance(tick, (int, np.integer)):
+            raise TypeError("shock tick must be an integer")
+        if int(tick) < self.tick:
+            raise ValueError("cannot inject a shock retroactively")
+        self._shocks.append({
+            "kind": kind, "tick": int(tick), "applied": False, "hits": 0,
+        })
+
+    def _activate_scheduled_shocks(self, tick: int) -> None:
+        for shock in self._shocks:
+            if shock["applied"] or shock["tick"] > tick:
+                continue
+            if shock["kind"] == "confirm_new_lava":
+                protected = {
+                    (self.x, self.y),
+                    *((self.x + dx, self.y + dy) for dx, dy in DIRECTIONS.values()),
+                }
+                candidates = [
+                    pos for pos in self._positions(self.grid, GRASS)
+                    if pos not in protected
+                ]
+                count = round(len(candidates) * 0.05)
+                if count:
+                    selected = self.rng.choice(len(candidates), size=count, replace=False)
+                    for index in selected:
+                        x, y = candidates[int(index)]
+                        self.grid[y, x] = LAVA
+            elif shock["kind"] == "confirm_tree_dry":
+                self.grid[self.grid == TREE] = 7
+            shock["applied"] = True
+
+    def _active_shock(self, kind: str, tick: int) -> dict[str, Any] | None:
+        return next((
+            shock for shock in reversed(self._shocks)
+            if shock["kind"] == kind and shock["tick"] <= tick and shock["applied"]
+        ), None)
+
+    def _shock_active(self, kind: str, tick: int) -> bool:
+        return self._active_shock(kind, tick) is not None
 
     # -- small utilities ------------------------------------------------
     def _inside(self, x: int, y: int) -> bool:

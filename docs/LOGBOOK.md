@@ -734,3 +734,7 @@ Quyết định: A5 CHƯA ĐẠT (6 lượt hợp lệ: run01-run06, tất cả 
 - Thêm `get_state()` deep-copy đầy đủ grid, agent/inventory, zombie + respawn timer, survival/milestone counters, episode flags, map seed và `rng.bit_generator.state`; `set_state()` xác thực snapshot và tạo lại RNG đúng trạng thái; `clone()` trả environment độc lập.
 - Bổ sung kiểm thử restore replay cùng chuỗi hành động và xác nhận snapshot/clone không chia sẻ grid/tick. Kết quả Codespace sẽ được ghi sau khi chạy kiểm thử B3.
 - Chạy `python -m pytest tests/test_minicraft.py -q` trong clone sạch Codespace 4-core tại commit `da6345b` → 4 passed (bao gồm hai test B2); B3 VERIFIED.
+
+=== PHA B4 — DEV/CONFIRM SHOCKS ===
+- Thêm lịch cú sốc theo tick; chỉ kích hoạt tại tick đã định, ghi trong snapshot/restore. `dev_poison_apple`, zombie 2 ô/tick và cuốc gỗ gãy sau 3 lần đào thành công; Confirm shock được cô lập trong luật môi trường: đổi 5% cỏ thành dung nham trừ ô/kề tác nhân, đảo hướng và chuyển cây thành bụi loại 7 cho gỗ.
+- Chỉnh rõ bảng ánh xạ mã hành động 1–4 và hướng nhìn 0–3 để khớp B1. Bổ sung test cho sáu cú sốc và tick kích hoạt; kết quả Codespace đang chờ.
