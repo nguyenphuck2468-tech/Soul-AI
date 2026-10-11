@@ -83,3 +83,12 @@ succeeded in 1/10, 0/10, and 0/10 respectively. Descriptive `A` was +0.9,
 measure held-out variants, lock `d` or a promotion margin, validate a mature
 skill, or support a compute-savings claim. Full traces and manifests are in
 `results/phase1_skill_sweep_20261011/`.
+
+The sweep runner also reports local wall time for the action proposal alone.
+Across these runs, Candidate used about 0.124–0.136 ms per proposed step and
+replay about 0.0007–0.0009 ms. Replay usually failed, and these timings exclude
+environment stepping, safety filtering, serialization, and any learned
+world-model work. They diagnose this privileged BFS wrapper; they do not
+compare matched task performance or provide integrated compute accounting.
+The timing-enriched manifest is archived at
+`results/phase1_skill_sweep_20261011/compute_manifest.json`.

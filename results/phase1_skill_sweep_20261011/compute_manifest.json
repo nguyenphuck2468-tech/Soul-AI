@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "kind": "phase1_skill_replay_multi_seed_sweep",
+  "status": "EXPLORATORY_TRAIN_SEEDS_NO_PROMOTION",
+  "recorded_at_utc": "2026-10-11T19:42:53.870861+07:00",
+  "evaluation_seeds": [
+    200,
+    201,
+    202,
+    203,
+    204,
+    205,
+    206,
+    207,
+    208,
+    209
+  ],
+  "max_ticks": 300,
+  "tasks": {
+    "T_wood": {
+      "source_seed": 5,
+      "source_trace_sha256": "ab45c4db459e66cebe8de9c02af03858ea96da2806c54c677f6b48bc7a713228",
+      "candidate_skill_successes": 10,
+      "replay_successes": 1,
+      "episode_count_per_controller": 10,
+      "candidate_skill_success_fraction": 1.0,
+      "replay_success_fraction": 0.1,
+      "descriptive_A_skill_minus_replay": 0.9,
+      "decision_compute": {
+        "scope": "controller_action_proposal_only",
+        "candidate_total_wall_seconds": 0.17541569950117264,
+        "replay_total_wall_seconds": 0.0010983998363371938,
+        "candidate_mean_wall_seconds_per_step": 0.00013431523698405256,
+        "replay_mean_wall_seconds_per_step": 8.635218839128882E-07,
+        "candidate_mean_steps_per_episode": 130.6,
+        "replay_mean_steps_per_episode": 127.2,
+        "timing_note": "Local descriptive wall time; excludes environment simulation, safety filtering, serialization, and any trained world-model supervision or intervention."
+      },
+      "manifest_path": "results/phase1_skill_sweep_20261011/T_wood/manifest.json"
+    },
+    "T_tools": {
+      "source_seed": 6,
+      "source_trace_sha256": "d843174928718cb9df1d032b56b9fca5e5af82354acbcfe981f4a5ccc2a2fc95",
+      "candidate_skill_successes": 10,
+      "replay_successes": 0,
+      "episode_count_per_controller": 10,
+      "candidate_skill_success_fraction": 1.0,
+      "replay_success_fraction": 0.0,
+      "descriptive_A_skill_minus_replay": 1.0,
+      "decision_compute": {
+        "scope": "controller_action_proposal_only",
+        "candidate_total_wall_seconds": 0.12225449972902425,
+        "replay_total_wall_seconds": 0.0016239995893556625,
+        "candidate_mean_wall_seconds_per_step": 0.00012399036483673858,
+        "replay_mean_wall_seconds_per_step": 7.976422344575945E-07,
+        "candidate_mean_steps_per_episode": 98.6,
+        "replay_mean_steps_per_episode": 203.6,
+        "timing_note": "Local descriptive wall time; excludes environment simulation, safety filtering, serialization, and any trained world-model supervision or intervention."
+      },
+      "manifest_path": "results/phase1_skill_sweep_20261011/T_tools/manifest.json"
+    },
+    "T_iron": {
+      "source_seed": 7,
+      "source_trace_sha256": "f55da1f7f6aedb2fa24887d1a8f3306c046511de1d1e9fe99d2ee4876d7d8a95",
+      "candidate_skill_successes": 10,
+      "replay_successes": 0,
+      "episode_count_per_controller": 10,
+      "candidate_skill_success_fraction": 1.0,
+      "replay_success_fraction": 0.0,
+      "descriptive_A_skill_minus_replay": 1.0,
+      "decision_compute": {
+        "scope": "controller_action_proposal_only",
+        "candidate_total_wall_seconds": 0.1746288000140339,
+        "replay_total_wall_seconds": 0.0008852998580550775,
+        "candidate_mean_wall_seconds_per_step": 0.00013589789884360616,
+        "replay_mean_wall_seconds_per_step": 7.08239886444062E-07,
+        "candidate_mean_steps_per_episode": 128.5,
+        "replay_mean_steps_per_episode": 125.0,
+        "timing_note": "Local descriptive wall time; excludes environment simulation, safety filtering, serialization, and any trained world-model supervision or intervention."
+      },
+      "manifest_path": "results/phase1_skill_sweep_20261011/T_iron/manifest.json"
+    }
+  },
+  "limits": [
+    "Exploratory train-seed sweep only; not held-out generalization.",
+    "Variant distance and promotion margins remain unlocked.",
+    "Decision timing covers action proposal only and is local/descriptive; it is not integrated adaptive-compute accounting.",
+    "No skill promotion or compute-savings claim is made."
+  ]
+}

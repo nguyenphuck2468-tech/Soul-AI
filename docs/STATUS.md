@@ -33,6 +33,11 @@ AI-generated execution plan and its B6 endpoint are not the project endpoint.
   T_iron. This remains exploratory train-seed evidence, not held-out
   generalization, skill validation, or a compute-savings result. See
   `docs/PHASE1_SKILL_ALPHA.md` and `results/phase1_skill_sweep_20261011/`.
+- Candidate action-proposal wall time on those seeds was approximately
+  0.124–0.136 ms/step versus 0.0007–0.0009 ms/step for fixed replay. Replay
+  usually failed, and measurement excludes simulation, safety, and learned
+  world-model costs; it is diagnostic only, not matched-performance compute
+  evidence.
 - `surprise()` is an uncalibrated raw masked prediction-error diagnostic.
   Predictive uncertainty remains a labeled zero placeholder. Neither is valid
   as a detector or intervention threshold yet.

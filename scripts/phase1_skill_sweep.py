@@ -39,6 +39,16 @@ def run_sweep(seed_start: int, seed_count: int, source_root: str | Path,
                  if episode['controller'] == 'candidate_skill']
         replay = [episode['success'] for episode in task_manifest['episodes']
                   if episode['controller'] == 'replay']
+        skill_episodes = [episode for episode in task_manifest['episodes']
+                          if episode['controller'] == 'candidate_skill']
+        replay_episodes = [episode for episode in task_manifest['episodes']
+                           if episode['controller'] == 'replay']
+        skill_decision_seconds = sum(
+            episode['decision_wall_seconds'] for episode in skill_episodes)
+        replay_decision_seconds = sum(
+            episode['decision_wall_seconds'] for episode in replay_episodes)
+        skill_steps = sum(episode['steps'] for episode in skill_episodes)
+        replay_steps = sum(episode['steps'] for episode in replay_episodes)
         task_results[task] = {
             'source_seed': task_manifest['source_seed'],
             'source_trace_sha256': task_manifest['source_trace_sha256'],
@@ -49,6 +59,22 @@ def run_sweep(seed_start: int, seed_count: int, source_root: str | Path,
             'replay_success_fraction': sum(replay) / len(replay),
             'descriptive_A_skill_minus_replay':
                 task_manifest['descriptive_A_skill_minus_replay'],
+            'decision_compute': {
+                'scope': 'controller_action_proposal_only',
+                'candidate_total_wall_seconds': skill_decision_seconds,
+                'replay_total_wall_seconds': replay_decision_seconds,
+                'candidate_mean_wall_seconds_per_step':
+                    skill_decision_seconds / skill_steps,
+                'replay_mean_wall_seconds_per_step':
+                    replay_decision_seconds / replay_steps,
+                'candidate_mean_steps_per_episode': skill_steps / len(skill_episodes),
+                'replay_mean_steps_per_episode': replay_steps / len(replay_episodes),
+                'timing_note': (
+                    'Local descriptive wall time; excludes environment simulation, '
+                    'safety filtering, serialization, and any trained world-model '
+                    'supervision or intervention.'
+                ),
+            },
             'manifest_path': str(output / task / 'manifest.json'),
         }
 
@@ -63,6 +89,8 @@ def run_sweep(seed_start: int, seed_count: int, source_root: str | Path,
         'limits': [
             'Exploratory train-seed sweep only; not held-out generalization.',
             'Variant distance and promotion margins remain unlocked.',
+            'Decision timing covers action proposal only and is local/descriptive; '
+            'it is not integrated adaptive-compute accounting.',
             'No skill promotion or compute-savings claim is made.',
         ],
     }
