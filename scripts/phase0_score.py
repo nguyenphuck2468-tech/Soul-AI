@@ -67,6 +67,25 @@ def score(checkpoint: str | Path, output: str | Path, seeds: list[int],
         raise ValueError('derived episode seeds overlap; choose non-overlapping seed ranges')
 
     saved = torch.load(checkpoint, map_location='cpu', weights_only=False)
+    provenance = saved.get('phase0_provenance')
+    if not isinstance(provenance, dict) or provenance.get('schema_version') != 1:
+        raise ValueError('checkpoint lacks Phase 0 train provenance')
+    if provenance.get('status') != 'TRAIN_ONLY' or provenance.get('split') != 'train':
+        raise ValueError('checkpoint provenance is not train-only')
+    for key in ('collection_seeds', 'fit_seeds'):
+        values = provenance.get(key)
+        if (not isinstance(values, list) or not values
+                or any(isinstance(value, bool) or not isinstance(value, int)
+                       or not 0 <= value <= 999 for value in values)
+                or values != sorted(set(values))):
+            raise ValueError(f'checkpoint has invalid train-only {key} provenance')
+    if not set(provenance['fit_seeds']).issubset(provenance['collection_seeds']):
+        raise ValueError('checkpoint fit seeds are absent from collection seeds')
+    for key in ('data_sha256', 'protocol_config_sha256'):
+        value = provenance.get(key)
+        if (not isinstance(value, str) or len(value) != 64
+                or any(char not in '0123456789abcdef' for char in value)):
+            raise ValueError(f'checkpoint has invalid {key} provenance')
     cfg = Config.from_dict(saved['config'])
     if cfg.model.action_dim != 9 or cfg.model.discrete_dim != 9:
         raise ValueError('checkpoint must use MiniCraft nine-way discrete actions')

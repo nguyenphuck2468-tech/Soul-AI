@@ -145,38 +145,60 @@ def train(data_path: str | Path, checkpoint_path: str | Path,
         losses.append(loss)
 
     checkpoint = Path(checkpoint_path)
-    soul.save(str(checkpoint))
     git_revision = subprocess.run(
         ['git', 'rev-parse', 'HEAD'], capture_output=True, text=True,
         check=False).stdout.strip() or None
     git_status = subprocess.run(
         ['git', 'status', '--porcelain'], capture_output=True, text=True,
         check=False).stdout.strip()
+    data_sha256 = hashlib.sha256(Path(data_path).read_bytes()).hexdigest()
+    protocol_sha256 = hashlib.sha256(
+        Path('configs/phase0_protocol_draft.yaml').read_bytes()).hexdigest()
+    source_hashes = {
+        name: hashlib.sha256(Path(name).read_bytes()).hexdigest()
+        for name in ('scripts/phase0_train.py', 'soul/obs.py',
+                     'soul/trainer.py', 'soul/model.py',
+                     'scripts/phase0_collect.py', 'minicraft/safety.py',
+                     'configs/phase0_protocol_draft.yaml')
+    }
+    collection_seeds = sorted({int(row['seed']) for row in rows})
+    fit_seeds = sorted({int(row['seed']) for row in training_rows})
+    checkpoint_provenance = {
+        'schema_version': 1,
+        'status': 'TRAIN_ONLY',
+        'split': 'train',
+        'data_sha256': data_sha256,
+        'collection_seeds': collection_seeds,
+        'fit_seeds': fit_seeds,
+        'code_revision': git_revision,
+        'working_tree_dirty': bool(git_status),
+        'working_tree_status_sha256': hashlib.sha256(
+            git_status.encode('utf-8')).hexdigest() if git_status else None,
+        'protocol_config_sha256': protocol_sha256,
+        'source_sha256': source_hashes,
+    }
+    soul.save(str(checkpoint))
+    checkpoint_state = torch.load(checkpoint, map_location='cpu', weights_only=False)
+    checkpoint_state['phase0_provenance'] = checkpoint_provenance
+    torch.save(checkpoint_state, checkpoint)
     return {
         'schema_version': 2,
         'kind': 'phase0_train',
         'status': 'TRAIN_ONLY',
         'data_path': str(data_path),
-        'data_sha256': hashlib.sha256(Path(data_path).read_bytes()).hexdigest(),
+        'data_sha256': data_sha256,
         'checkpoint_path': str(checkpoint),
         'checkpoint_sha256': hashlib.sha256(checkpoint.read_bytes()).hexdigest(),
         'seed_min': min(int(row['seed']) for row in rows),
         'seed_max': max(int(row['seed']) for row in rows),
-        'collection_seeds': sorted({int(row['seed']) for row in rows}),
-        'fit_seeds': sorted({int(row['seed']) for row in training_rows}),
+        'collection_seeds': collection_seeds,
+        'fit_seeds': fit_seeds,
         'code_revision': git_revision,
         'working_tree_dirty': bool(git_status),
         'working_tree_status_sha256': hashlib.sha256(
             git_status.encode('utf-8')).hexdigest() if git_status else None,
-        'protocol_config_sha256': hashlib.sha256(
-            Path('configs/phase0_protocol_draft.yaml').read_bytes()).hexdigest(),
-        'source_sha256': {
-            name: hashlib.sha256(Path(name).read_bytes()).hexdigest()
-            for name in ('scripts/phase0_train.py', 'soul/obs.py',
-                         'soul/trainer.py', 'soul/model.py',
-                         'scripts/phase0_collect.py', 'minicraft/safety.py',
-                         'configs/phase0_protocol_draft.yaml')
-        },
+        'protocol_config_sha256': protocol_sha256,
+        'source_sha256': source_hashes,
         'action_counts': np.bincount([int(row['action']) for row in rows], minlength=9).tolist(),
         'candidate_action_counts': np.bincount(
             [int(row['candidate_action']) for row in rows], minlength=9).tolist(),

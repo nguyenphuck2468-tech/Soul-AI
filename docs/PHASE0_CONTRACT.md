@@ -100,7 +100,10 @@ needs independent calibration against held-out train/dev outcomes before use.
   split, checkpoint hash, feature
   schema hash, run/model config, code revision, dirty-tree indicator and status
   hash, action counts, and raw predictions, targets, masks, and persistence
-  values. Train, score, and cost reports store protocol-config hashes. A commit
+  values. Train, score, and cost reports store protocol-config hashes. Fitted
+  checkpoints embed the train-only split, dataset hash, collection/fit seeds,
+  protocol hash, and source hashes; the scorer validates this provenance before
+  loading dev observations. A commit
   hash alone does not identify modified working-tree code;
   source-file hashes cover the scorer and model/environment files listed in
   the report, including the protocol draft, while the dirty-tree status hash

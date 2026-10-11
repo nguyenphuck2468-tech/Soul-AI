@@ -15,3 +15,4 @@ CHANGELOG_SOUL.md — sửa tối thiểu cho RAWA (G3.0 transition mask, G3.1 i
 2026-10-11 — Add `scripts/phase0_measure_cost.py` to measure the 9-action MiniCraft WM adapter at H={1,5,20,100}, with runtime/source provenance; `ρ(h)` remains deferred until skill-step cost is measurable.
 2026-10-11 — Prevent the Soul adapter's surprise consistency check from double-counting omitted encoder features in overflow provenance.
 2026-10-11 — Add an explicit protocol-config SHA-256 field to Phase 0 scorer reports, matching the train and cost report provenance contract.
+2026-10-11 — Embed Phase 0 train split, dataset, seed, protocol, and source provenance in fitted checkpoints; scorer now rejects checkpoints without valid train-only provenance.
