@@ -25,6 +25,13 @@ P3 quy tắc dừng/rollback: chưa chốt.
 P4 tiêu chí chấp nhận Confirm: chưa chốt.
 Quyết định: không phê duyệt, không đặt số.
 
+### Cập nhật 2026-10-11 — B6 xong; P0 cần cụ thể hóa trước Phase 0
+- B5/B6 đã hoàn tất; expert đạt 200/200 T_wood, 200/200 T_tools, 198/200 T_iron trên 200 seed train/task. Gate B được gắn tag `gate-B`; toàn bộ suite 56 test PASS. Chi tiết và dữ liệu raw ở `docs/LOGBOOK.md` và `results/B6_expert_solvable.jsonl`.
+- Đọc lại kế hoạch gốc đính kèm: tài liệu v1.0 kết thúc ở B6, không có tác vụ C1 trở đi. Báo cáo v2.6 bổ sung lộ trình Phase 0–8 nhưng chưa có tiêu chí nghiệm thu theo tác vụ hoặc giá trị số cho các biên thống kê/compute.
+- Trạng thái hiện tại không còn là thiếu pha B. Việc tiếp theo là P0/Phase 0: ánh xạ hợp đồng SafetyController, xác nhận schema quan sát và viết protocol benchmark thích ứng compute theo v2.6. SoulAdapter hiện chưa có uncertainty/reality-violation thật; cần đặc tả cách đo trước khi gọi Phase 0 hoàn tất.
+- Confirm vẫn NOT ACCESSED; không có seed Confirm trong cấu hình và không chạy seed held-out. B6 train seeds chỉ kiểm tra expert solvability, không dùng làm bằng chứng cho giả thuyết lõi.
+- Bản đối chiếu và thứ tự đề xuất nằm ở `docs/PHASE0_READINESS.md`. Chưa chạy mô hình/benchmark Phase 0 hoặc đóng protocol; không suy diễn con số chưa có căn cứ.
+
 ### Cập nhật 2026-10-11 — A1 đã giải quyết
 - Các lỗi test cũ thuộc fixture: một mẫu tách tập không khai báo seed; hai mock evaluator dùng decoder dưới ba giá trị, không khớp hợp đồng Pendulum hiện hành. Đã cập nhật fixture và giữ nguyên kiểm tra semantic.
 - Đã chạy `.venv\Scripts\python.exe -m pytest tests -q`: 34 passed.
