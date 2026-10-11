@@ -1,0 +1,22 @@
+usage: diag_final.py [-h] [--seed SEED] [--updates UPDATES]
+                     [--warmup-episodes WARMUP_EPISODES]
+                     [--learn-per-collect LEARN_PER_COLLECT]
+                     [--eval-episodes EVAL_EPISODES] [--eval-steps EVAL_STEPS]
+                     [--plan-samples PLAN_SAMPLES]
+
+Policy co thuc su HOC khong? Tren bo cua no, phan thuong R2 = 92.4% (truoc khi
+sua `head_lr` thi -14.4%). Tin hieu advantage cuoi cung da co that. Cau hoi
+bay gio la cua policy: no co phan ung voi trang thai, va co lam diem cua
+episode tot hon cua so khong dieu khien khong. Ky vong: he la `v += (-k*x +
+a)*dt`, nen de dua x ve 0 can `a ≈ -k*x` — tức `corr(x, a)` phai AM. Doan duoc
+gia tri am thi policy dung huong; gia tri duong la policy chay nguoc.
+
+options:
+  -h, --help            show this help message and exit
+  --seed SEED
+  --updates UPDATES
+  --warmup-episodes WARMUP_EPISODES
+  --learn-per-collect LEARN_PER_COLLECT
+  --eval-episodes EVAL_EPISODES
+  --eval-steps EVAL_STEPS
+  --plan-samples PLAN_SAMPLES

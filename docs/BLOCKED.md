@@ -35,3 +35,6 @@ Quyết định: không phê duyệt, không đặt số.
 - `diag_actioncausal.py` và `diag_final.py` không có CLI parser; `--help` không được gọi vì sẽ khởi chạy training mặc định (1200 và 3000 cập nhật).
 - Lượt action-causality mặc định được ngắt do chi phí CPU cao; bản kiểm tra nhỏ chạy được và ghi ở `results/A2_diag_actioncausal.txt`, nhưng không thay thế baseline mặc định.
 - A2 vẫn đang làm; chưa có điều kiện thất bại test lặp lại cần quyết định.
+
+### Cập nhật A2 — 2026-10-11
+A2 hoàn tất với sáu tệp đầu ra và sáu nhận xét trong `docs/LOGBOOK.md`. Các lệnh là smoke run nhỏ, không thay thế benchmark mặc định và không thay đổi trạng thái G3.1/Confirm.

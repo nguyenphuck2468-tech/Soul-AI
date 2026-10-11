@@ -19,6 +19,7 @@ Khong dung lai the nao cung mot kiem chung: neu hai so bang nhau,
 test bao "khong phan biet duoc" chu khong ket luan sai.
 """
 
+import argparse
 import os
 import sys
 
@@ -37,7 +38,8 @@ def _banner(s):
     print(f'\n{"=" * 72}\n{s}\n{"=" * 72}')
 
 
-def build(seed=0, steps=1200):
+def build(seed=0, steps=1200, warmup_episodes=30,
+          learn_per_collect=20):
     cfg = Config()
     cfg.model.hidden_dim, cfg.model.latent_dim = 64, 16
     cfg.model.action_dim, cfg.model.discrete_dim = 1, 0
@@ -48,10 +50,10 @@ def build(seed=0, steps=1200):
     from .demo import PendulumEnv
     from .verify import collect_episodes
     env = PendulumEnv(seed=seed)
-    collect_episodes(s, 30, env, rng)
+    collect_episodes(s, warmup_episodes, env, rng)
     while s.trainer.updates < steps:
         collect_episodes(s, 1, env, rng)
-        for _ in range(20):
+        for _ in range(learn_per_collect):
             s.learn(force=True)
     s.save(CKPT)
     return s
@@ -90,6 +92,13 @@ def measure(s, rng, shuffle, n_batches=10):
 
 
 def main():
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument('--seed', type=int, default=0)
+    ap.add_argument('--steps', type=int, default=1200)
+    ap.add_argument('--warmup-episodes', type=int, default=30)
+    ap.add_argument('--learn-per-collect', type=int, default=20)
+    ap.add_argument('--batches', type=int, default=10)
+    args = ap.parse_args()
     if os.path.exists(CKPT):
         print(f'  Load checkpoint: {CKPT}')
         cfg = Config()
@@ -100,13 +109,15 @@ def main():
         s.load(CKPT)
     else:
         _banner('Huan 1200 buoc (lan dau)')
-        s = build()
+        s = build(args.seed, args.steps, args.warmup_episodes,
+                  args.learn_per_collect)
         print('  xong.')
-    rng = np.random.default_rng(7)
+    rng = np.random.default_rng(args.seed + 7)
 
     _banner('KL prior||posterior cua hanh dung va hanh xao tron')
-    real = measure(s, rng, False)
-    shuf = measure(s, np.random.default_rng(7), True)
+    real = measure(s, rng, False, n_batches=args.batches)
+    shuf = measure(s, np.random.default_rng(args.seed + 7), True,
+                   n_batches=args.batches)
     print(f'  hanh dong THAT     : KL = {real:.4f} nats')
     print(f'  hanh dong XAO TRON : KL = {shuf:.4f} nats')
     print(f'  chenh lech         : {shuf - real:+.4f} nats')

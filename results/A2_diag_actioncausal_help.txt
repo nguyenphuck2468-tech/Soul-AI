@@ -1,0 +1,23 @@
+usage: diag_actioncausal.py [-h] [--seed SEED] [--steps STEPS]
+                            [--warmup-episodes WARMUP_EPISODES]
+                            [--learn-per-collect LEARN_PER_COLLECT]
+                            [--batches BATCHES]
+
+TEST NHAN QUA: ban sua lech MOT BUOC co that khong? `observe_sequence` truoc
+day dung `actions[:, t-1]` trong khi `obs[t]` do `actions[t]` sinh ra. Ban sua
+doi kha nang dung hon, nhung: - doc code khong phai bang chung. - Do KL cua ca
+hai cach tren checkpoint da huanc o cau hinh CU cho ra 0.4913 (dung) va 0.4879
+(sai) — gan như bang nhau. Do la do tren mo hinh DA THICH NGHI voi quy uoc
+sai, nen no khong phan biet duoc. Test nay do tren mo hinh HOC DUNG cach moi:
+Dung hanh dong thật -> prior phai do khop tot Xao tron hanh dong -> prior phai
+do te hon Neu hai so nay cach nhau nhieu, prior THAT SU dung hanh dong, va ban
+sua lech-mot-buoc da co hieu luc. Khong dung lai the nao cung mot kiem chung:
+neu hai so bang nhau, test bao "khong phan biet duoc" chu khong ket luan sai.
+
+options:
+  -h, --help            show this help message and exit
+  --seed SEED
+  --steps STEPS
+  --warmup-episodes WARMUP_EPISODES
+  --learn-per-collect LEARN_PER_COLLECT
+  --batches BATCHES

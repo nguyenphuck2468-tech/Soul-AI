@@ -1,2 +1,3 @@
-config: warmup_eps=1; plan_samples=0; target_updates=1; actual_updates=20; batches=1
-real_KL=0.0819; shuffled_KL=0.0833; difference=+0.0014
+[Soul] Loaded checkpoint: steps=6200, updates=20
+Small smoke only; saved checkpoint updates: 20
+real_KL=0.0726; shuffled_KL=0.0729; difference=+0.0003

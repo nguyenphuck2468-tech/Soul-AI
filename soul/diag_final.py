@@ -25,24 +25,29 @@ def _banner(s):
     print(f'\n{"=" * 70}\n{s}\n{"=" * 70}')
 
 
-def train(updates=3000, seed=0):
-    cfg = make_config()
+def train(updates=3000, seed=0, warmup_episodes=30,
+          learn_per_collect=75, plan_samples=96):
+    cfg = make_config(plan_samples=plan_samples)
     torch.manual_seed(seed)
     s = Soul(cfg)
     rng = np.random.default_rng(seed)
-    env = PendulumEnv()
-    collect_episodes(s, 30, env, rng)
+    env = PendulumEnv(seed=seed)
+    collect_episodes(s, warmup_episodes, env, rng)
     while s.trainer.updates < updates:
         collect_episodes(s, 1, env, rng)
-        for _ in range(75):
+        for _ in range(learn_per_collect):
             s.learn()
     return s, rng, env
 
 
-def main(seed=0):
+def main(seed=0, updates=3000, warmup_episodes=30,
+         learn_per_collect=75, eval_episodes=12, eval_steps=60,
+         plan_samples=96):
     t0 = time.time()
-    _banner('1. Huan 3000 buoc')
-    s, rng, env = train(3000, seed=seed)
+    _banner(f'1. Huan {updates} buoc')
+    s, rng, env = train(
+        updates, seed=seed, warmup_episodes=warmup_episodes,
+        learn_per_collect=learn_per_collect, plan_samples=plan_samples)
     print(f'  xong ({time.time() - t0:.0f}s)')
 
     _banner('2. Phan thuong (tin hieu advantage co that chua)')
@@ -50,8 +55,8 @@ def main(seed=0):
     t = lambda a: torch.as_tensor(a, dtype=torch.float32)
     v_, m_, tx = t(b['values']), t(b['masks']), t(b['texts'])
     ac, va, rw = t(b['actions']), t(b['valid']), t(b['rewards'])
-    seq = b['values'].shape[1]
-    oi = torch.cat([v_, m_, tx], -1)
+    seq = ac.shape[1]
+    oi = torch.cat([v_, m_, tx], -1)[:, :seq]
     with torch.no_grad():
         out = s.model.dynamics.observe_sequence(oi, ac, s.model.encoder, va)
         pr = s.model.reward_head(out['h_seq'], out['z_seq'])
@@ -83,7 +88,7 @@ def main(seed=0):
     print(f'  do lech a giua cac trang thai = {as_.max() - as_.min():.4f}')
 
     _banner('4. Diem cua episode thuc te')
-    def run_eval(det, n=12):
+    def run_eval(det, n=eval_episodes):
         tot = []
         r2g = np.random.default_rng(7)
         for i in range(n):
@@ -95,7 +100,7 @@ def main(seed=0):
 
     def run_one(soul, e, det):
         s_total = 0.0
-        for _ in range(60):
+        for _ in range(eval_steps):
             a = soul.act(e._obs(), deterministic=det)
             obs, r, done, info = e.step(a)
             s_total += r
@@ -108,13 +113,13 @@ def main(seed=0):
                 break
         return s_total
 
-    def run_zero(e, n=12):
+    def run_zero(e, n=eval_episodes):
         tot = []
         r2g = np.random.default_rng(7)
         for i in range(n):
             e.reset(r2g)
             t_ = 0.0
-            for _ in range(60):
+            for _ in range(eval_steps):
                 obs, r, done, _ = e.step(np.zeros(1, np.float32))
                 t_ += r
                 if done:
@@ -140,8 +145,8 @@ def main(seed=0):
     v_, m_, tx = t(b['values']), t(b['masks']), t(b['texts'])
     ac, va, rw = t(b['actions']), t(b['valid']), t(b['rewards'])
     gl = t(b['goals'])
-    seq = b['values'].shape[1]
-    oi = torch.cat([v_, m_, tx], -1)
+    seq = ac.shape[1]
+    oi = torch.cat([v_, m_, tx], -1)[:, :seq]
     with torch.no_grad():
         out = s.model.dynamics.observe_sequence(oi, ac, s.model.encoder, va)
     rts, vs, acts_s = [], [], []
@@ -189,4 +194,19 @@ def main(seed=0):
 
 
 if __name__ == '__main__':
-    sys.exit(main())
+    import argparse
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--seed', type=int, default=0)
+    parser.add_argument('--updates', type=int, default=3000)
+    parser.add_argument('--warmup-episodes', type=int, default=30)
+    parser.add_argument('--learn-per-collect', type=int, default=75)
+    parser.add_argument('--eval-episodes', type=int, default=12)
+    parser.add_argument('--eval-steps', type=int, default=60)
+    parser.add_argument('--plan-samples', type=int, default=96)
+    args = parser.parse_args()
+    sys.exit(main(
+        seed=args.seed, updates=args.updates,
+        warmup_episodes=args.warmup_episodes,
+        learn_per_collect=args.learn_per_collect,
+        eval_episodes=args.eval_episodes, eval_steps=args.eval_steps,
+        plan_samples=args.plan_samples))

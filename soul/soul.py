@@ -376,7 +376,8 @@ class Soul:
 
     def observe(self, observation: Any, action: np.ndarray,
                 reward: float, done: bool, goal: Optional[np.ndarray] = None,
-                *, applied_action: Optional[np.ndarray] = None):
+                *, applied_action: Optional[np.ndarray] = None,
+                record: bool = True):
         """Ghi nhận kết quả của hành động vừa thực hiện.
 
         `observation` là quan sát SAU khi đã thực hiện `action`.
@@ -385,6 +386,8 @@ class Soul:
         `goal` (tùy chọn): ghi đè mục tiêu cho bước này.
         `applied_action` (tùy chọn): hành động môi trường thực sự áp dụng
         sau khi clip/biến đổi; nếu không truyền thì dùng `action`.
+        `record=False` chỉ cập nhật trạng thái runtime, không ghi replay hay
+        memory; dùng cho episode đánh giá.
         """
         recorded_action = np.asarray(
             action if applied_action is None else applied_action,
@@ -399,34 +402,37 @@ class Soul:
                        (self._goal if self._goal is not None
                         else np.zeros(self.model.goal_dim, np.float32)),
                        dtype=np.float32).reshape(-1)
-        self._cur_ep.append(enc, recorded_action, reward,
-                           0.0 if done else 1.0,
-                           g)
-        self.ep_reward += reward
-        self.ep_len += 1
-        event = {
-            'time': self.steps,
-            'action': recorded_action.copy(),
-            'reward': float(reward),
-            'done': bool(done),
-            'goal': g.copy(),
-            'context': {'observation': enc, 'goal': g.copy()},
-        }
-        self.memory_manager.record_event(event, important=(abs(float(reward)) > 0.05 or bool(done)))
-        self.memory_manager.refresh_skills(current_time=self.steps, decay=0.02)
-        if abs(float(reward)) > 0.05 or bool(done):
-            name = 'success_pattern' if float(reward) >= 0.0 else 'avoid_failure'
-            self.memory_manager.extract_skill(
-                event,
-                name=name,
-                tags=['important', 'runtime'],
-                confidence=min(0.99, 0.5 + abs(float(reward))),
-            )
+        if record:
+            self._cur_ep.append(enc, recorded_action, reward,
+                                0.0 if done else 1.0,
+                                g)
+            self.ep_reward += reward
+            self.ep_len += 1
+            event = {
+                'time': self.steps,
+                'action': recorded_action.copy(),
+                'reward': float(reward),
+                'done': bool(done),
+                'goal': g.copy(),
+                'context': {'observation': enc, 'goal': g.copy()},
+            }
+            self.memory_manager.record_event(
+                event, important=(abs(float(reward)) > 0.05 or bool(done)))
+            self.memory_manager.refresh_skills(current_time=self.steps, decay=0.02)
+            if abs(float(reward)) > 0.05 or bool(done):
+                name = 'success_pattern' if float(reward) >= 0.0 else 'avoid_failure'
+                self.memory_manager.extract_skill(
+                    event,
+                    name=name,
+                    tags=['important', 'runtime'],
+                    confidence=min(0.99, 0.5 + abs(float(reward))),
+                )
         self.steps += 1
 
         if done:
             # Episode kết thúc -> đẩy vào replay, reset trạng thái.
-            self.replay.add_episode(self._cur_ep)
+            if record:
+                self.replay.add_episode(self._cur_ep)
             self._cur_ep = Episode()
             self._h = None
             self._z = None

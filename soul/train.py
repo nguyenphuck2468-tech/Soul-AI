@@ -77,8 +77,12 @@ def health(soul: Soul, n_batches: int = 4) -> Optional[Dict[str, float]]:
         v_, m_, tx = t(b['values']), t(b['masks']), t(b['texts'])
         ac, va, rw = t(b['actions']), t(b['valid']), t(b['rewards'])
         gl = t(b['goals'])
-        seq = v_.shape[1]
+        # Replay observations include the terminal/next observation, while
+        # actions only cover transitions. Keep the model inputs aligned to
+        # the action sequence, as in Trainer.learn().
+        seq = ac.shape[1]
         obs_in = torch.cat([v_, m_, tx], -1)
+        obs_in = obs_in[:, :seq]
 
         with torch.no_grad():
             out = soul.model.dynamics.observe_sequence(
@@ -126,10 +130,8 @@ def health(soul: Soul, n_batches: int = 4) -> Optional[Dict[str, float]]:
                 aa = am + torch.randn_like(am) * _logstd_to_std(lsc)
                 continuous_dim = aa.shape[-1] - soul.cfg.model.discrete_dim
                 applied_aa = torch.cat((
-                    aa[..., :continuous_dim].clamp(
-                        soul.cfg.model.action_low,
-                        soul.cfg.model.action_high,
-                    ),
+                    # PendulumEnv clips its continuous action to [-1, 1].
+                    aa[..., :continuous_dim].clamp(-1.0, 1.0),
                     aa[..., continuous_dim:],
                 ), dim=-1)
                 hh, mu, lv = soul.model.dynamics.step(hh, zz, applied_aa)

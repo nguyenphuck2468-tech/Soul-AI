@@ -1,0 +1,18 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\Admin\Documents\Codex\2026-10-11\ran-terminal-command-echo-status-check\work\Soul-AI\soul\eval.py", line 420, in <module>
+    main()
+  File "C:\Users\Admin\Documents\Codex\2026-10-11\ran-terminal-command-echo-status-check\work\Soul-AI\soul\eval.py", line 351, in main
+    health_metrics = health(soul)
+                     ^^^^^^^^^^^^
+  File "C:\Users\Admin\Documents\Codex\2026-10-11\ran-terminal-command-echo-status-check\work\Soul-AI\soul\train.py", line 134, in health
+    soul.cfg.model.action_low,
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'ModelConfig' object has no attribute 'action_low'. Did you mean: 'action_dim'?
+Evaluation (fixed baselines; not a promotion benchmark)
+config: episodes=1, env_steps=20, updates=1, warmup=8, plan_samples=0
+
+========================================================================
+Seed 0 — train 1 optimizer updates
+========================================================================

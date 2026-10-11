@@ -1,0 +1,18 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\Admin\Documents\Codex\2026-10-11\ran-terminal-command-echo-status-check\work\Soul-AI\soul\eval.py", line 419, in <module>
+    main()
+  File "C:\Users\Admin\Documents\Codex\2026-10-11\ran-terminal-command-echo-status-check\work\Soul-AI\soul\eval.py", line 353, in main
+    soul_results = _evaluate_soul(
+                   ^^^^^^^^^^^^^^^
+  File "C:\Users\Admin\Documents\Codex\2026-10-11\ran-terminal-command-echo-status-check\work\Soul-AI\soul\eval.py", line 90, in _evaluate_soul
+    None if soul._state_observation is None else soul._state_observation.copy(),
+            ^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Soul' object has no attribute '_state_observation'. Did you mean: 'explain_observation'?
+Evaluation (fixed baselines; not a promotion benchmark)
+config: episodes=1, env_steps=20, updates=1, warmup=8, plan_samples=0
+
+========================================================================
+Seed 0 — train 1 optimizer updates
+========================================================================

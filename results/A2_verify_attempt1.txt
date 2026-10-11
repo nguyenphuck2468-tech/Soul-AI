@@ -1,0 +1,28 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\Admin\Documents\Codex\2026-10-11\ran-terminal-command-echo-status-check\work\Soul-AI\soul\verify.py", line 653, in <module>
+    main()
+  File "C:\Users\Admin\Documents\Codex\2026-10-11\ran-terminal-command-echo-status-check\work\Soul-AI\soul\verify.py", line 625, in main
+    ('act dung quan sat', test_act_uses_observation()),
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Admin\Documents\Codex\2026-10-11\ran-terminal-command-echo-status-check\work\Soul-AI\soul\verify.py", line 497, in test_act_uses_observation
+    banner("10. H�nh �\u1ed9ng c� ph\u1ea3n \u1ee9ng v\u1edbi quan s�t kh�ng")
+  File "C:\Users\Admin\Documents\Codex\2026-10-11\ran-terminal-command-echo-status-check\work\Soul-AI\soul\verify.py", line 37, in banner
+    print(f"  {title}")
+  File "C:\Users\Admin\AppData\Local\Programs\Python\Python312\Lib\encodings\cp1258.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u1ed9' in position 12: character maps to <undefined>
+Kiem chung mo hinh Soul � ket luan dua tren SO DO, khong tren bao cao
+SMOKE VERIFICATION � not a learning benchmark or full verification run
+
+====================================================================
+  8. Bo chuan hoa du lieu on dinh va dung
+====================================================================
+  [PASS] hai encoder cho cung ket qua
+  [PASS] bool doc dung (khong phai 1/0)
+  [PASS] gia tri lon khong tao NaN/Inf
+  [PASS] truong NaN/inf bi bo qua hoan toan
+
+====================================================================

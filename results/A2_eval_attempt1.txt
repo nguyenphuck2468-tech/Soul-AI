@@ -1,0 +1,21 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\Admin\Documents\Codex\2026-10-11\ran-terminal-command-echo-status-check\work\Soul-AI\soul\eval.py", line 420, in <module>
+    main()
+  File "C:\Users\Admin\Documents\Codex\2026-10-11\ran-terminal-command-echo-status-check\work\Soul-AI\soul\eval.py", line 351, in main
+    health_metrics = health(soul)
+                     ^^^^^^^^^^^^
+  File "C:\Users\Admin\Documents\Codex\2026-10-11\ran-terminal-command-echo-status-check\work\Soul-AI\soul\train.py", line 84, in health
+    out = soul.model.dynamics.observe_sequence(
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Admin\Documents\Codex\2026-10-11\ran-terminal-command-echo-status-check\work\Soul-AI\soul\model.py", line 215, in observe_sequence
+    a_t = torch.zeros_like(actions[:, 0]) if t == 0 else actions[:, t]
+                                                         ~~~~~~~^^^^^^
+IndexError: index 16 is out of bounds for dimension 1 with size 16
+Evaluation (fixed baselines; not a promotion benchmark)
+config: episodes=1, env_steps=20, updates=1, warmup=8, plan_samples=0
+
+========================================================================
+Seed 0 � train 1 optimizer updates
+========================================================================

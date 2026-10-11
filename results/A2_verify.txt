@@ -1,0 +1,34 @@
+Kiem chung mo hinh Soul — ket luan dua tren SO DO, khong tren bao cao
+SMOKE VERIFICATION — not a learning benchmark or full verification run
+
+====================================================================
+  8. Bo chuan hoa du lieu on dinh va dung
+====================================================================
+  [PASS] hai encoder cho cung ket qua
+  [PASS] bool doc dung (khong phai 1/0)
+  [PASS] gia tri lon khong tao NaN/Inf
+  [PASS] truong NaN/inf bi bo qua hoan toan
+
+====================================================================
+  10. Hành động có phản ứng với quan sát không
+====================================================================
+  [PASS] cung trang thai, khac quan sat -> khac hanh dong — [0.08229999989271164] vs [0.08229999989271164]
+  [PASS] vi tri sat nhau van phai ra hanh dong khac — [0.08229999989271164] vs [0.08229999989271164]
+  [PASS] hanh dong trong [-1, 1]
+
+====================================================================
+  11. Mật độ xác suất của policy chuẩn hoá đúng
+====================================================================
+  [PASS] mật độ tích phân = 1 — [1.0004, 1.0004, 1.00041]
+  [PASS] log_prob khop mat do — got=-4.56168 want=-4.56168
+  [PASS] entropy khop cong thuc Gauss — got=4.24599 want=4.24599
+
+====================================================================
+  TONG KET
+====================================================================
+  [PASS] chuan hoa du lieu
+  [PASS] act dung quan sat
+  [PASS] mat do policy chuan hoa
+
+  3/3 phep kiem dat
+  thoi gian: 3.3s
