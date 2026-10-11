@@ -113,6 +113,7 @@ def train(data_path: str | Path, checkpoint_path: str | Path,
         soul.enc.encode(row['next_observation'])
 
     accepted, skipped = 0, 0
+    training_rows = []
     for entries in validated_groups.values():
         episode_rows = [row for _, row in entries]
         if len(episode_rows) < seq_len + 1:
@@ -126,6 +127,7 @@ def train(data_path: str | Path, checkpoint_path: str | Path,
                       0.0 if row['done'] else 1.0,
                       np.zeros(cfg.model.goal_dim, dtype=np.float32))
         soul.replay.add_episode(ep)
+        training_rows.extend(episode_rows)
         accepted += 1
     if not accepted:
         raise ValueError('no train episodes are long enough for seq_len + 1')
@@ -175,6 +177,13 @@ def train(data_path: str | Path, checkpoint_path: str | Path,
             [int(row['action']) for row in rows], minlength=9).tolist(),
         'safety_blocks': int(sum(bool(row['safety']['blocked']) for row in rows)),
         'transitions': len(rows),
+        'transitions_used_for_fit': len(training_rows),
+        'training_candidate_action_counts': np.bincount(
+            [int(row['candidate_action']) for row in training_rows], minlength=9).tolist(),
+        'training_applied_action_counts': np.bincount(
+            [int(row['action']) for row in training_rows], minlength=9).tolist(),
+        'training_safety_blocks': int(sum(
+            bool(row['safety']['blocked']) for row in training_rows)),
         'episodes_loaded': accepted,
         'episodes_skipped_short': skipped,
         'updates': len(losses),
