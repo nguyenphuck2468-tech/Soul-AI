@@ -24,3 +24,9 @@ P2 phương pháp thống kê: chưa chốt.
 P3 quy tắc dừng/rollback: chưa chốt.
 P4 tiêu chí chấp nhận Confirm: chưa chốt.
 Quyết định: không phê duyệt, không đặt số.
+
+### Cập nhật 2026-10-11 — A1 đã giải quyết
+- Các lỗi test cũ thuộc fixture: một mẫu tách tập không khai báo seed; hai mock evaluator dùng decoder dưới ba giá trị, không khớp hợp đồng Pendulum hiện hành. Đã cập nhật fixture và giữ nguyên kiểm tra semantic.
+- Đã chạy `.venv\Scripts\python.exe -m pytest tests -q`: 34 passed.
+- Demo tối thiểu hoàn tất; xem kết quả đầy đủ ở `docs/LOGBOOK.md`.
+- A1 không còn bị chặn. Ghi chú ban đầu được giữ làm lịch sử.

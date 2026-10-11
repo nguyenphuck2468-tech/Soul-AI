@@ -1,1 +1,1 @@
-*.jsonl -text
+*.jsonl text eol=lf
