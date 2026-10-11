@@ -1,4 +1,4 @@
-"""Fit the Phase 0 MiniCraft RSSM on train-only collector JSONL."""
+"""Fit the Phase 0 MiniCraft RSSM on audited, train-only collector JSONL."""
 
 import argparse
 import hashlib
@@ -13,6 +13,7 @@ import torch
 from soul.config import Config
 from soul.memory import Episode
 from soul.soul import Soul
+from minicraft import MiniCraftSafetyController
 
 
 TRAIN_MIN, TRAIN_MAX = 0, 999
@@ -30,6 +31,30 @@ def train(data_path: str | Path, checkpoint_path: str | Path,
            or not TRAIN_MIN <= int(row.get('seed', -1)) <= TRAIN_MAX
            for row in rows):
         raise ValueError('training input must contain train split seeds 0..999 only')
+    safety = MiniCraftSafetyController()
+    for row_index, row in enumerate(rows):
+        if row.get('schema_version') != 2:
+            raise ValueError(f'transition {row_index} must use collector schema_version 2')
+        candidate = row.get('candidate_action')
+        applied = row.get('action')
+        if (isinstance(candidate, bool) or not isinstance(candidate, int)
+                or not 0 <= candidate < 9):
+            raise ValueError(f'transition {row_index} has invalid candidate_action')
+        if (isinstance(applied, bool) or not isinstance(applied, int)
+                or not 0 <= applied < 9):
+            raise ValueError(f'transition {row_index} has invalid applied action')
+        expected = safety.filter(row.get('observation', {}), candidate)
+        if applied != expected.applied_action:
+            raise ValueError(
+                f'transition {row_index} applied action does not match safety filter')
+        safety_record = row.get('safety')
+        if not isinstance(safety_record, dict):
+            raise ValueError(f'transition {row_index} is missing safety decision')
+        if (safety_record.get('blocked') is not expected.blocked
+                or safety_record.get('reason') != expected.reason
+                or safety_record.get('mode') != expected.mode
+                or safety_record.get('allowed_actions') != list(expected.allowed_actions)):
+            raise ValueError(f'transition {row_index} safety decision record is inconsistent')
     if updates < 1 or seq_len < 1 or batch_size < 1:
         raise ValueError('updates, seq_len and batch_size must be positive')
 
@@ -80,7 +105,7 @@ def train(data_path: str | Path, checkpoint_path: str | Path,
     checkpoint = Path(checkpoint_path)
     soul.save(str(checkpoint))
     return {
-        'schema_version': 1,
+        'schema_version': 2,
         'kind': 'phase0_train',
         'status': 'TRAIN_ONLY',
         'data_path': str(data_path),
@@ -98,9 +123,16 @@ def train(data_path: str | Path, checkpoint_path: str | Path,
         'source_sha256': {
             name: hashlib.sha256(Path(name).read_bytes()).hexdigest()
             for name in ('scripts/phase0_train.py', 'soul/obs.py',
-                         'soul/trainer.py', 'soul/model.py')
+                         'soul/trainer.py', 'soul/model.py',
+                         'scripts/phase0_collect.py', 'minicraft/safety.py',
+                         'configs/phase0_protocol_draft.yaml')
         },
         'action_counts': np.bincount([int(row['action']) for row in rows], minlength=9).tolist(),
+        'candidate_action_counts': np.bincount(
+            [int(row['candidate_action']) for row in rows], minlength=9).tolist(),
+        'applied_action_counts': np.bincount(
+            [int(row['action']) for row in rows], minlength=9).tolist(),
+        'safety_blocks': int(sum(bool(row['safety']['blocked']) for row in rows)),
         'transitions': len(rows),
         'episodes_loaded': accepted,
         'episodes_skipped_short': skipped,

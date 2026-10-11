@@ -97,7 +97,10 @@ calibration against held-out train/dev outcomes before use.
   uniform candidates filtered through the same hard-safety controller as the
   dev scorer; both candidate and applied actions plus the filter decision are
   retained. The recorded applied action is the world-model input;
-  `scripts/phase0_train.py` fits and saves the schema/config with the checkpoint;
+  `scripts/phase0_train.py` accepts only schema-v2 transitions, recomputes each
+  safety decision from the recorded observation/candidate, rejects inconsistent
+  candidate→applied logs, and saves action/filter counts plus collector,
+  controller, and protocol hashes with the train report/checkpoint;
   `scripts/phase0_score.py` rejects non-dev seeds and reports exploratory
   anchored/open-loop model-vs-persistence at horizons 1, 5, 20, and 100, group
   diagnostics, and an action-shuffle diagnostic without applying thresholds.

@@ -10,6 +10,7 @@ data_splits:
   train: {range: [0, 999], allowed_for: [collection, fitting]}
   dev: {range: [1000, 1999], allowed_for: [exploratory_evaluation, iteration]}
   confirm: {range: null, status: NOT_DEFINED_OR_ACCESSED}
+  collector_schema_version: 2
 
 environment:
   class: minicraft.env.MiniCraftEnv
