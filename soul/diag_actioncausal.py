@@ -66,8 +66,10 @@ def measure(s, rng, shuffle, n_batches=10):
         t = lambda a: torch.as_tensor(a, dtype=torch.float32)
         v_, m_, tx = t(b['values']), t(b['masks']), t(b['texts'])
         ac, va = t(b['actions']), t(b['valid'])
-        seq = v_.shape[1]
-        oi = torch.cat([v_, m_, tx], -1)
+        seq = ac.shape[1]
+        # The replay batch adds one lookahead observation for target use,
+        # while actions/valid cover only the input sequence.
+        oi = torch.cat([v_, m_, tx], -1)[:, :seq]
         if shuffle:
             # Xao tron hanh dong theo THOI GIAN: dung mot bien do rieng
             # cho moi chuoi. Do la cach bao "dung sai lan" ma van giu

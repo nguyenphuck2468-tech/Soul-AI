@@ -99,7 +99,9 @@ class PendulumEnv:
         # Thuong: am binh phuong vi tri (muon ve 0).
         reward = -(self.x ** 2 + 0.1 * self.v ** 2)
         done = self.t >= 200 or abs(self.x) > 10.0
-        return self._obs(), reward, done, {}
+        return self._obs(), reward, done, {
+            'applied_action': np.array([a], dtype=np.float32),
+        }
 
     # Muc tieu: vi tri = 0. Dung vector one-hot 4 chieu: [1,0,0,0] = ve 0.
     def goal_vec(self):

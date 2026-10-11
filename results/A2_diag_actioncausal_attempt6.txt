@@ -1,0 +1,2 @@
+config: warmup_eps=1; plan_samples=0; target_updates=1; actual_updates=20; batches=1
+real_KL=0.0819; shuffled_KL=0.0833; difference=+0.0014

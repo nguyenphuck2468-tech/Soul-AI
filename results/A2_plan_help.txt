@@ -1,0 +1,18 @@
+usage: plan.py [-h] [--steps STEPS] [--seed SEED] [--episodes EPISODES]
+               [--env-steps ENV_STEPS] [--horizon HORIZON] [--pop POP]
+               [--iters ITERS] [--elite ELITE] [--ckpt CKPT]
+               [--free-nats FREE_NATS] [--w-kl W_KL]
+
+options:
+  -h, --help            show this help message and exit
+  --steps STEPS
+  --seed SEED
+  --episodes EPISODES
+  --env-steps ENV_STEPS
+  --horizon HORIZON
+  --pop POP
+  --iters ITERS
+  --elite ELITE
+  --ckpt CKPT
+  --free-nats FREE_NATS
+  --w-kl W_KL

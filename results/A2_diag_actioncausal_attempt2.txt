@@ -1,0 +1,18 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\Admin\Documents\Codex\2026-10-11\ran-terminal-command-echo-status-check\work\Soul-AI\soul\diag_actioncausal.py", line 125, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "C:\Users\Admin\Documents\Codex\2026-10-11\ran-terminal-command-echo-status-check\work\Soul-AI\soul\diag_actioncausal.py", line 101, in main
+    s = build()
+        ^^^^^^^
+  File "C:\Users\Admin\Documents\Codex\2026-10-11\ran-terminal-command-echo-status-check\work\Soul-AI\soul\diag_actioncausal.py", line 51, in build
+    collect_episodes(s, 30, env, rng)
+  File "C:\Users\Admin\Documents\Codex\2026-10-11\ran-terminal-command-echo-status-check\work\Soul-AI\soul\verify.py", line 77, in collect_episodes
+    soul.observe(
+TypeError: Soul.observe() got an unexpected keyword argument 'applied_action'
+
+========================================================================
+Huan 1200 buoc (lan dau)
+========================================================================

@@ -30,3 +30,8 @@ Quyết định: không phê duyệt, không đặt số.
 - Đã chạy `.venv\Scripts\python.exe -m pytest tests -q`: 34 passed.
 - Demo tối thiểu hoàn tất; xem kết quả đầy đủ ở `docs/LOGBOOK.md`.
 - A1 không còn bị chặn. Ghi chú ban đầu được giữ làm lịch sử.
+
+### Ghi chú A2 — 2026-10-11
+- `diag_actioncausal.py` và `diag_final.py` không có CLI parser; `--help` không được gọi vì sẽ khởi chạy training mặc định (1200 và 3000 cập nhật).
+- Lượt action-causality mặc định được ngắt do chi phí CPU cao; bản kiểm tra nhỏ chạy được và ghi ở `results/A2_diag_actioncausal.txt`, nhưng không thay thế baseline mặc định.
+- A2 vẫn đang làm; chưa có điều kiện thất bại test lặp lại cần quyết định.
