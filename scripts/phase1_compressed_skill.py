@@ -65,6 +65,28 @@ def _validate_limits(value: object, *, label: str) -> list[str]:
     return value
 
 
+def _reject_duplicate_json_keys(
+        pairs: list[tuple[str, object]]) -> dict[str, object]:
+    result: dict[str, object] = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError(f'duplicate JSON key: {key}')
+        result[key] = value
+    return result
+
+
+def _read_json_object(path: Path, *, label: str) -> dict:
+    try:
+        value = json.loads(
+            path.read_text(encoding='utf-8'),
+            object_pairs_hook=_reject_duplicate_json_keys)
+    except (OSError, json.JSONDecodeError, ValueError) as exc:
+        raise ValueError(f'invalid {label}: {exc}') from exc
+    if not isinstance(value, dict):
+        raise ValueError(f'invalid {label}: root must be an object')
+    return value
+
+
 def _validate_tree(node: object, *, feature_count: int, label: str) -> dict:
     pending = [(node, label, False, 0)]
     active_ids = set()
@@ -200,10 +222,8 @@ def validate_manifest(output_dir: str | Path) -> dict:
     """Fail closed if a compressed-skill run is incomplete or tampered with."""
     output = Path(output_dir)
     aggregate_path = output / 'manifest.json'
-    try:
-        aggregate = json.loads(aggregate_path.read_text(encoding='utf-8'))
-    except (OSError, json.JSONDecodeError) as exc:
-        raise ValueError(f'invalid compressed-skill aggregate manifest: {exc}') from exc
+    aggregate = _read_json_object(
+        aggregate_path, label='compressed-skill aggregate manifest')
     if aggregate.get('kind') != 'phase1_compressed_skill_alpha':
         raise ValueError('compressed-skill aggregate kind mismatch')
     if aggregate.get('status') != EXPECTED_STATUS:
@@ -243,7 +263,14 @@ def validate_manifest(output_dir: str | Path) -> dict:
         manifest_bytes = manifest_path.read_bytes()
         if hashlib.sha256(manifest_bytes).hexdigest() != entry.get('manifest_sha256'):
             raise ValueError(f'{task}: task manifest hash mismatch')
-        manifest = json.loads(manifest_bytes.decode('utf-8'))
+        try:
+            manifest = json.loads(
+                manifest_bytes.decode('utf-8'),
+                object_pairs_hook=_reject_duplicate_json_keys)
+        except (json.JSONDecodeError, ValueError) as exc:
+            raise ValueError(f'{task}: invalid task manifest: {exc}') from exc
+        if not isinstance(manifest, dict):
+            raise ValueError(f'{task}: task manifest root must be an object')
         if manifest.get('schema_version') != 1:
             raise ValueError(f'{task}: task manifest schema mismatch')
         if manifest.get('status') != EXPECTED_STATUS:
@@ -282,10 +309,8 @@ def validate_manifest(output_dir: str | Path) -> dict:
             filename='skill.json', label=f'{task} skill artifact')
         if hashlib.sha256(skill_path.read_bytes()).hexdigest() != manifest.get('skill_sha256'):
             raise ValueError(f'{task}: skill artifact hash mismatch')
-        try:
-            skill_artifact = json.loads(skill_path.read_text(encoding='utf-8'))
-        except (OSError, json.JSONDecodeError) as exc:
-            raise ValueError(f'{task}: invalid skill artifact: {exc}') from exc
+        skill_artifact = _read_json_object(
+            skill_path, label=f'{task} skill artifact')
         if skill_artifact.get('schema_version') != 1:
             raise ValueError(f'{task}: skill artifact schema mismatch')
         if skill_artifact.get('kind') != (

@@ -214,6 +214,48 @@ def test_compressed_manifest_validator_rejects_nested_manifest_path(tmp_path):
         validate_manifest(tmp_path)
 
 
+def test_compressed_manifest_validator_rejects_duplicate_aggregate_keys(tmp_path):
+    from scripts.phase1_compressed_skill import run
+
+    run(tmp_path, train_seeds=[20], eval_seeds=[400], max_ticks=2)
+    aggregate_path = tmp_path / 'manifest.json'
+    raw = aggregate_path.read_text(encoding='utf-8')
+    aggregate_path.write_text(
+        raw.replace('"schema_version": 1,', '"schema_version": 1,\n'
+                    '  "schema_version": 1,', 1),
+        encoding='utf-8')
+
+    with pytest.raises(ValueError, match='duplicate JSON key'):
+        validate_manifest(tmp_path)
+
+
+def test_compressed_manifest_validator_rejects_duplicate_skill_keys(tmp_path):
+    from scripts.phase1_compressed_skill import run
+
+    run(tmp_path, train_seeds=[20], eval_seeds=[400], max_ticks=2)
+    skill_path = tmp_path / 'T_wood' / 'skill.json'
+    raw = skill_path.read_text(encoding='utf-8')
+    skill_path.write_text(
+        raw.replace('"status": "Candidate",', '"status": "Candidate",\n'
+                    '  "status": "Candidate",', 1),
+        encoding='utf-8')
+    task_path = tmp_path / 'T_wood' / 'manifest.json'
+    task_manifest = json.loads(task_path.read_text(encoding='utf-8'))
+    task_manifest['skill_sha256'] = hashlib.sha256(
+        skill_path.read_bytes()).hexdigest()
+    task_path.write_text(
+        json.dumps(task_manifest, indent=2) + '\n', encoding='utf-8')
+    aggregate_path = tmp_path / 'manifest.json'
+    aggregate = json.loads(aggregate_path.read_text(encoding='utf-8'))
+    aggregate['tasks']['T_wood']['manifest_sha256'] = hashlib.sha256(
+        task_path.read_bytes()).hexdigest()
+    aggregate_path.write_text(
+        json.dumps(aggregate, indent=2) + '\n', encoding='utf-8')
+
+    with pytest.raises(ValueError, match='duplicate JSON key'):
+        validate_manifest(tmp_path)
+
+
 def test_compressed_manifest_validator_rejects_limits_drift(tmp_path):
     from scripts.phase1_compressed_skill import run
 

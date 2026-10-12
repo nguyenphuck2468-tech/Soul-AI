@@ -183,7 +183,9 @@ an archive cannot silently mix outputs from different runs. Referenced
 artifacts must remain directly inside their task directory; path escapes and
 nested artifact paths are rejected.
 Limits metadata is required to be a unique, non-empty list of strings and must
-match across aggregate and task manifests.
+match across aggregate and task manifests. JSON objects are parsed with
+duplicate-key rejection so the validated artifact has one unambiguous value
+for every field.
 
 An existing archive can be checked without rerunning training or episodes:
 
