@@ -1,6 +1,6 @@
 # Soul-AI project status
 
-Updated: 2026-10-11
+Updated: 2026-10-12
 
 ## Direction
 
@@ -57,6 +57,10 @@ AI-generated execution plan and its B6 endpoint are not the project endpoint.
   runnable integration infrastructure, not a pure learned skill, promotion
   result, or compute-saving claim. Run
   `python -m scripts.phase1_compressed_skill`.
+- Clean-checkout validation now executes the Phase 0 validator instead of only
+  checking its help path. It also normalizes historical Windows artifact paths
+  and accepts the recorded manifest/trace hashes under LF or CRLF checkout
+  line endings while remaining fail-closed for missing or changed content.
 - The mapped Candidate now reports a one-step expected state signature;
   checked fields matched the next observation on all 539 recorded checks for
   seeds 400–409. Its cheap monitor reports deviations and invalidates cached
@@ -98,5 +102,8 @@ AI-generated execution plan and its B6 endpoint are not the project endpoint.
 
 ## Repository state
 
-Recent implementation is committed and pushed to `origin/main`; check `git log`
-for the current head. The pre-existing untracked `work/` directory is retained.
+Recent implementation is committed and pushed to the open Phase 0 validation
+PR branch; check `git log` and PR #1 for the current head. The pre-existing
+untracked `work/` directory is retained. Codespace validation passed with the
+Phase 0 validator, alpha sanity, and the full 65-test suite. No CI checks are
+reported by GitHub yet.

@@ -1,6 +1,6 @@
 # Alpha scope and completion
 
-Updated: 2026-10-11
+Updated: 2026-10-12
 
 ## What “alpha complete” means here
 
@@ -34,6 +34,7 @@ non-evidentiary and does not validate model quality or the project hypothesis.
 | Held-out variant family and distance `d` | Not defined | Must be specified from the source project direction before generalization evaluation |
 | Locked promotion and performance margins | Not defined | Keep open; do not promote or use Confirm |
 | Integrated runtime accounting | Done (diagnostic) | `scripts.phase1_compressed_skill` records skill proposal, safety-filter, environment-step, and integrated wall time per episode/step; matched-performance comparison and world-model supervision costs remain open |
+| Clean-checkout fail-closed validation | Done | `python -m scripts.alpha_sanity` executes the protocol validator, checks six alpha CLI paths, and verifies archived artifacts across Windows/POSIX line endings |
 
 **Engineering alpha estimate: 75%** of the checklist above is implemented and
 run. This is a progress estimate for Phase 1 alpha software only, not a
@@ -78,16 +79,18 @@ writes a unique run directory under `work/` unless `--output-dir` is supplied.
    safety, and environment components separately; it is not yet a matched
    performance or world-model-inclusive accounting.
 4. Keep per-task and aggregate manifests self-contained and hash-linked.
-5. Provide a clean-checkout validation command that checks imports/CLI help,
-   documented output layout, and archived manifest/hash consistency without
-   accessing held-out or Confirm seeds.
+5. Extend the clean-checkout validation only when new alpha artifacts are
+   added; the current command checks imports/CLI help, executes the protocol
+   gate, and verifies archived manifest/hash consistency without accessing
+   held-out or Confirm seeds.
 
 The fail-closed protocol check is `python -m scripts.phase0_validate_protocol`.
 It verifies the draft status, train/dev range agreement, disjointness, and
 unset Confirm/threshold fields without constructing the simulator or accessing
 any seeds. The offline sanity command
-`python -m scripts.alpha_sanity` runs that check, five alpha CLI help paths, and
+`python -m scripts.alpha_sanity` runs that check, six alpha CLI paths, and
 archived Phase 1 trace/model/example/manifest hashes. It resolves the
 recorded historical `work/phase1_skill_sweeps/...` paths to their checked-in
-`results/phase1_skill_sweep_20261011/` copies and still fails if the artifact
-or its hash is missing.
+`results/phase1_skill_sweep_20261011/` copies, normalizes historical Windows
+separators, and accepts only the recorded content under LF/CRLF line endings.
+It still fails if an artifact is missing, tampered with, or hash-inconsistent.
