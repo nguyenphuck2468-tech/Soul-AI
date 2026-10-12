@@ -178,6 +178,21 @@ def test_compressed_manifest_validator_rejects_bad_manifest_filename(tmp_path):
         validate_manifest(tmp_path)
 
 
+def test_compressed_manifest_validator_rejects_manifest_path_escape(tmp_path):
+    from scripts.phase1_compressed_skill import run
+
+    run(tmp_path, train_seeds=[20], eval_seeds=[400], max_ticks=2)
+    aggregate_path = tmp_path / 'manifest.json'
+    aggregate = json.loads(aggregate_path.read_text(encoding='utf-8'))
+    aggregate['tasks']['T_wood']['manifest_path'] = str(
+        tmp_path / 'manifest.json')
+    aggregate_path.write_text(
+        json.dumps(aggregate, indent=2) + '\n', encoding='utf-8')
+
+    with pytest.raises(ValueError, match='task manifest escapes task archive'):
+        validate_manifest(tmp_path)
+
+
 def test_compressed_manifest_validator_rejects_limits_drift(tmp_path):
     from scripts.phase1_compressed_skill import run
 

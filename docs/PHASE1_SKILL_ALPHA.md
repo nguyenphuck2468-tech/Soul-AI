@@ -179,7 +179,8 @@ be the deterministic majority action represented by its histogram.
 The aggregate archive must contain exactly the declared task set, and task
 manifest fit metrics must match the corresponding skill artifact. Task-level
 limits and artifact filenames are also checked against the archive contract so
-an archive cannot silently mix outputs from different runs.
+an archive cannot silently mix outputs from different runs. Referenced
+artifacts must remain inside their task directory; path escapes are rejected.
 
 An existing archive can be checked without rerunning training or episodes:
 

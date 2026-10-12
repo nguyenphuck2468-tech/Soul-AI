@@ -168,6 +168,23 @@ def _validate_fit_metrics(value: object, *, tree_stats: dict, label: str) -> Non
         raise ValueError(f'{label}.depth exceeds max_depth_config')
 
 
+def _resolve_archive_path(
+        value: object, *, output: Path, task: str, filename: str,
+        label: str) -> Path:
+    if not isinstance(value, str) or not value:
+        raise ValueError(f'{label} must be a path string')
+    candidate = Path(value)
+    if candidate.name != filename:
+        raise ValueError(f'{label} filename mismatch')
+    resolved = candidate.resolve()
+    task_root = (output / task).resolve()
+    try:
+        resolved.relative_to(task_root)
+    except ValueError as exc:
+        raise ValueError(f'{label} escapes task archive') from exc
+    return resolved
+
+
 def validate_manifest(output_dir: str | Path) -> dict:
     """Fail closed if a compressed-skill run is incomplete or tampered with."""
     output = Path(output_dir)
@@ -209,11 +226,9 @@ def validate_manifest(output_dir: str | Path) -> dict:
         _validate_fraction(
             entry['learned_agreement_fraction'],
             label=f'{task} aggregate learned_agreement_fraction')
-        manifest_path = Path(entry['manifest_path'])
-        if manifest_path.name != 'manifest.json':
-            raise ValueError(f'{task}: task manifest filename mismatch')
-        if not manifest_path.is_absolute():
-            manifest_path = output / task / manifest_path.name
+        manifest_path = _resolve_archive_path(
+            entry['manifest_path'], output=output, task=task,
+            filename='manifest.json', label=f'{task} task manifest')
         manifest_bytes = manifest_path.read_bytes()
         if hashlib.sha256(manifest_bytes).hexdigest() != entry.get('manifest_sha256'):
             raise ValueError(f'{task}: task manifest hash mismatch')
@@ -250,11 +265,9 @@ def validate_manifest(output_dir: str | Path) -> dict:
             raise ValueError(f'{task}: evaluation seed provenance mismatch')
         if set(train_seeds) & set(evaluation_seeds):
             raise ValueError(f'{task}: train/evaluation seeds must be disjoint')
-        skill_path = Path(manifest['skill_path'])
-        if skill_path.name != 'skill.json':
-            raise ValueError(f'{task}: skill artifact filename mismatch')
-        if not skill_path.is_absolute():
-            skill_path = output / task / skill_path.name
+        skill_path = _resolve_archive_path(
+            manifest['skill_path'], output=output, task=task,
+            filename='skill.json', label=f'{task} skill artifact')
         if hashlib.sha256(skill_path.read_bytes()).hexdigest() != manifest.get('skill_sha256'):
             raise ValueError(f'{task}: skill artifact hash mismatch')
         try:
