@@ -162,3 +162,24 @@ def test_compressed_manifest_validator_rejects_seed_provenance_drift(tmp_path):
 
     with pytest.raises(ValueError, match='episode seed provenance mismatch'):
         validate_manifest(tmp_path)
+
+
+def test_compressed_manifest_validator_rejects_nonfinite_runtime(tmp_path):
+    from scripts.phase1_compressed_skill import run
+
+    run(tmp_path, train_seeds=[20], eval_seeds=[400], max_ticks=2)
+    task_path = tmp_path / 'T_wood' / 'manifest.json'
+    task_manifest = json.loads(task_path.read_text(encoding='utf-8'))
+    task_manifest['runtime_seconds']['integrated'] = float('nan')
+    task_path.write_text(
+        json.dumps(task_manifest, indent=2, allow_nan=True) + '\n',
+        encoding='utf-8')
+    aggregate_path = tmp_path / 'manifest.json'
+    aggregate = json.loads(aggregate_path.read_text(encoding='utf-8'))
+    aggregate['tasks']['T_wood']['manifest_sha256'] = hashlib.sha256(
+        task_path.read_bytes()).hexdigest()
+    aggregate_path.write_text(
+        json.dumps(aggregate, indent=2) + '\n', encoding='utf-8')
+
+    with pytest.raises(ValueError, match='must be finite'):
+        validate_manifest(tmp_path)

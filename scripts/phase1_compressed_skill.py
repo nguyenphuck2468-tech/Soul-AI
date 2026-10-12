@@ -4,6 +4,7 @@ import argparse
 from datetime import datetime, timezone
 import hashlib
 import json
+import math
 from pathlib import Path
 import numpy as np
 
@@ -31,6 +32,24 @@ def _validate_seed_list(value: object, *, label: str) -> list[int]:
     if len(set(value)) != len(value):
         raise ValueError(f'{label} must not contain duplicates')
     return value
+
+
+def _validate_fraction(value: object, *, label: str) -> float:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise ValueError(f'{label} must be numeric')
+    number = float(value)
+    if not math.isfinite(number) or not 0.0 <= number <= 1.0:
+        raise ValueError(f'{label} must be finite and in [0, 1]')
+    return number
+
+
+def _validate_nonnegative_number(value: object, *, label: str) -> float:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise ValueError(f'{label} must be numeric')
+    number = float(value)
+    if not math.isfinite(number) or number < 0.0:
+        raise ValueError(f'{label} must be finite and non-negative')
+    return number
 
 
 def validate_manifest(output_dir: str | Path) -> dict:
@@ -65,6 +84,11 @@ def validate_manifest(output_dir: str | Path) -> dict:
                 'manifest_sha256'):
             if field not in entry:
                 raise ValueError(f'{task}: aggregate field is required: {field}')
+        _validate_fraction(
+            entry['success_fraction'], label=f'{task} aggregate success_fraction')
+        _validate_fraction(
+            entry['learned_agreement_fraction'],
+            label=f'{task} aggregate learned_agreement_fraction')
         manifest_path = Path(entry['manifest_path'])
         if not manifest_path.is_absolute():
             manifest_path = output / task / manifest_path.name
@@ -86,6 +110,11 @@ def validate_manifest(output_dir: str | Path) -> dict:
                 raise ValueError(f'{task}: task manifest field is required: {field}')
         if manifest['task'] != task:
             raise ValueError(f'{task}: task manifest task mismatch')
+        _validate_fraction(
+            manifest['success_fraction'], label=f'{task} success_fraction')
+        _validate_fraction(
+            manifest['learned_agreement_fraction'],
+            label=f'{task} learned_agreement_fraction')
         train_seeds = _validate_seed_list(
             manifest['train_seeds'], label=f'{task} train_seeds')
         evaluation_seeds = _validate_seed_list(
@@ -117,6 +146,8 @@ def validate_manifest(output_dir: str | Path) -> dict:
                     raise ValueError(f'{task}: episode field is required: {field}')
             if row['task'] != task:
                 raise ValueError(f'{task}: episode task mismatch')
+            if not isinstance(row['success'], bool):
+                raise ValueError(f'{task}: episode success must be boolean')
         episode_seeds = [row['seed'] for row in episodes]
         _validate_seed_list(episode_seeds, label=f'{task} episode seeds')
         if episode_seeds != evaluation_seeds:
@@ -168,6 +199,12 @@ def validate_manifest(output_dir: str | Path) -> dict:
                     f'{task}: aggregate runtime summary mismatch for {component}')
         steps = sum(row['steps'] for row in episodes)
         for component in RUNTIME_COMPONENTS:
+            _validate_nonnegative_number(
+                manifest['runtime_seconds'].get(component),
+                label=f'{task} runtime_seconds.{component}')
+            _validate_nonnegative_number(
+                manifest['runtime_seconds_per_step'].get(component),
+                label=f'{task} runtime_seconds_per_step.{component}')
             measured = sum(row['runtime_seconds'][component] for row in episodes)
             recorded = manifest['runtime_seconds'][component]
             if not np.isclose(measured, recorded, rtol=1e-9, atol=1e-12):
