@@ -130,6 +130,26 @@ def validate_manifest(output_dir: str | Path) -> dict:
             skill_path = output / task / skill_path.name
         if hashlib.sha256(skill_path.read_bytes()).hexdigest() != manifest.get('skill_sha256'):
             raise ValueError(f'{task}: skill artifact hash mismatch')
+        try:
+            skill_artifact = json.loads(skill_path.read_text(encoding='utf-8'))
+        except (OSError, json.JSONDecodeError) as exc:
+            raise ValueError(f'{task}: invalid skill artifact: {exc}') from exc
+        if skill_artifact.get('schema_version') != 1:
+            raise ValueError(f'{task}: skill artifact schema mismatch')
+        if skill_artifact.get('kind') != (
+                'minicraft_observation_only_compressed_skill'):
+            raise ValueError(f'{task}: skill artifact kind mismatch')
+        if skill_artifact.get('task') != task:
+            raise ValueError(f'{task}: skill artifact task mismatch')
+        if skill_artifact.get('version') != '0.1.0-alpha-compressed':
+            raise ValueError(f'{task}: skill artifact version mismatch')
+        if skill_artifact.get('status') != 'Candidate':
+            raise ValueError(f'{task}: skill artifact status mismatch')
+        artifact_train_seeds = _validate_seed_list(
+            skill_artifact.get('training_seeds'),
+            label=f'{task} skill training_seeds')
+        if artifact_train_seeds != train_seeds:
+            raise ValueError(f'{task}: skill training seed provenance mismatch')
         episodes = manifest.get('episodes', [])
         if len(episodes) != len(manifest.get('evaluation_seeds', [])):
             raise ValueError(f'{task}: episode/evaluation seed count mismatch')
