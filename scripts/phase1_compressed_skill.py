@@ -22,6 +22,17 @@ RUNTIME_COMPONENTS = (
 )
 
 
+def _validate_seed_list(value: object, *, label: str) -> list[int]:
+    if not isinstance(value, list) or not value:
+        raise ValueError(f'{label} must be a non-empty list')
+    if any(isinstance(seed, bool) or not isinstance(seed, int)
+           or not 0 <= seed <= 999 for seed in value):
+        raise ValueError(f'{label} must contain train seeds 0..999')
+    if len(set(value)) != len(value):
+        raise ValueError(f'{label} must not contain duplicates')
+    return value
+
+
 def validate_manifest(output_dir: str | Path) -> dict:
     """Fail closed if a compressed-skill run is incomplete or tampered with."""
     output = Path(output_dir)
@@ -36,8 +47,12 @@ def validate_manifest(output_dir: str | Path) -> dict:
         raise ValueError('compressed-skill run must remain exploratory/no-promotion')
     if aggregate.get('schema_version') != 1:
         raise ValueError('compressed-skill aggregate schema mismatch')
-    if aggregate.get('train_seeds') is None or aggregate.get('evaluation_seeds') is None:
-        raise ValueError('compressed-skill aggregate seed lists are required')
+    aggregate_train_seeds = _validate_seed_list(
+        aggregate.get('train_seeds'), label='aggregate train_seeds')
+    aggregate_evaluation_seeds = _validate_seed_list(
+        aggregate.get('evaluation_seeds'), label='aggregate evaluation_seeds')
+    if set(aggregate_train_seeds) & set(aggregate_evaluation_seeds):
+        raise ValueError('aggregate train/evaluation seeds must be disjoint')
     if not isinstance(aggregate.get('tasks'), dict):
         raise ValueError('compressed-skill aggregate tasks are required')
     for task in TASKS:
@@ -71,6 +86,16 @@ def validate_manifest(output_dir: str | Path) -> dict:
                 raise ValueError(f'{task}: task manifest field is required: {field}')
         if manifest['task'] != task:
             raise ValueError(f'{task}: task manifest task mismatch')
+        train_seeds = _validate_seed_list(
+            manifest['train_seeds'], label=f'{task} train_seeds')
+        evaluation_seeds = _validate_seed_list(
+            manifest['evaluation_seeds'], label=f'{task} evaluation_seeds')
+        if train_seeds != aggregate_train_seeds:
+            raise ValueError(f'{task}: train seed provenance mismatch')
+        if evaluation_seeds != aggregate_evaluation_seeds:
+            raise ValueError(f'{task}: evaluation seed provenance mismatch')
+        if set(train_seeds) & set(evaluation_seeds):
+            raise ValueError(f'{task}: train/evaluation seeds must be disjoint')
         skill_path = Path(manifest['skill_path'])
         if not skill_path.is_absolute():
             skill_path = output / task / skill_path.name
@@ -92,6 +117,10 @@ def validate_manifest(output_dir: str | Path) -> dict:
                     raise ValueError(f'{task}: episode field is required: {field}')
             if row['task'] != task:
                 raise ValueError(f'{task}: episode task mismatch')
+        episode_seeds = [row['seed'] for row in episodes]
+        _validate_seed_list(episode_seeds, label=f'{task} episode seeds')
+        if episode_seeds != evaluation_seeds:
+            raise ValueError(f'{task}: episode seed provenance mismatch')
         for field in (
                 'safety_blocks', 'expectation_checks', 'expectation_mismatches'):
             if any(not isinstance(row.get(field), int) or row[field] < 0
