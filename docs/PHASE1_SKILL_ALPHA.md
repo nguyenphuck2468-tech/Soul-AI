@@ -156,3 +156,8 @@ skill proposal, safety filter, environment step, and their integrated total,
 including per-step values. These measurements are local instrumentation only:
 they do not include a world-model supervisor, do not establish matched task
 performance, and do not support a compute-savings claim.
+
+The runner performs a fail-closed self-check before reporting completion:
+task-manifest and skill-artifact hashes, exploratory/no-promotion status,
+episode counts, and runtime totals/per-step values must agree. A malformed or
+tampered output raises an error instead of producing a success-shaped result.

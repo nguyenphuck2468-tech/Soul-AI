@@ -16,6 +16,61 @@ from minicraft.experts import MiniCraftExpert
 
 
 TASKS = ('T_wood', 'T_tools', 'T_iron')
+EXPECTED_STATUS = 'EXPLORATORY_TRAIN_SEEDS_NO_PROMOTION'
+RUNTIME_COMPONENTS = (
+    'skill_proposal', 'safety_filter', 'environment_step', 'integrated',
+)
+
+
+def validate_manifest(output_dir: str | Path) -> dict:
+    """Fail closed if a compressed-skill run is incomplete or tampered with."""
+    output = Path(output_dir)
+    aggregate_path = output / 'manifest.json'
+    try:
+        aggregate = json.loads(aggregate_path.read_text(encoding='utf-8'))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ValueError(f'invalid compressed-skill aggregate manifest: {exc}') from exc
+    if aggregate.get('kind') != 'phase1_compressed_skill_alpha':
+        raise ValueError('compressed-skill aggregate kind mismatch')
+    if aggregate.get('status') != EXPECTED_STATUS:
+        raise ValueError('compressed-skill run must remain exploratory/no-promotion')
+    for task in TASKS:
+        entry = aggregate.get('tasks', {}).get(task)
+        if not isinstance(entry, dict):
+            raise ValueError(f'missing compressed-skill task entry: {task}')
+        manifest_path = Path(entry['manifest_path'])
+        if not manifest_path.is_absolute():
+            manifest_path = output / task / manifest_path.name
+        manifest_bytes = manifest_path.read_bytes()
+        if hashlib.sha256(manifest_bytes).hexdigest() != entry.get('manifest_sha256'):
+            raise ValueError(f'{task}: task manifest hash mismatch')
+        manifest = json.loads(manifest_bytes.decode('utf-8'))
+        if manifest.get('status') != EXPECTED_STATUS:
+            raise ValueError(f'{task}: task manifest status mismatch')
+        skill_path = Path(manifest['skill_path'])
+        if not skill_path.is_absolute():
+            skill_path = output / task / skill_path.name
+        if hashlib.sha256(skill_path.read_bytes()).hexdigest() != manifest.get('skill_sha256'):
+            raise ValueError(f'{task}: skill artifact hash mismatch')
+        episodes = manifest.get('episodes', [])
+        if len(episodes) != len(manifest.get('evaluation_seeds', [])):
+            raise ValueError(f'{task}: episode/evaluation seed count mismatch')
+        if not episodes or any(set(row.get('runtime_seconds', {})) != set(RUNTIME_COMPONENTS)
+                               for row in episodes):
+            raise ValueError(f'{task}: runtime component schema mismatch')
+        steps = sum(row['steps'] for row in episodes)
+        for component in RUNTIME_COMPONENTS:
+            measured = sum(row['runtime_seconds'][component] for row in episodes)
+            recorded = manifest['runtime_seconds'][component]
+            if not np.isclose(measured, recorded, rtol=1e-9, atol=1e-12):
+                raise ValueError(f'{task}: runtime total mismatch for {component}')
+            expected_per_step = measured / max(1, steps)
+            if not np.isclose(
+                    expected_per_step,
+                    manifest['runtime_seconds_per_step'][component],
+                    rtol=1e-9, atol=1e-12):
+                raise ValueError(f'{task}: runtime per-step mismatch for {component}')
+    return aggregate
 
 
 def _fit_artifact(task: str, seeds: list[int], max_ticks: int) -> dict:
@@ -95,7 +150,7 @@ def run(output_dir: str | Path, *, train_seeds: list[int],
     aggregate = {
         'schema_version': 1,
         'kind': 'phase1_compressed_skill_alpha',
-        'status': 'EXPLORATORY_TRAIN_SEEDS_NO_PROMOTION',
+        'status': EXPECTED_STATUS,
         'recorded_at_utc': datetime.now(timezone.utc).isoformat(),
         'train_seeds': train_seeds,
         'evaluation_seeds': eval_seeds,
@@ -170,6 +225,7 @@ def run(output_dir: str | Path, *, train_seeds: list[int],
     aggregate_path.write_text(
         json.dumps(aggregate, indent=2, ensure_ascii=False, allow_nan=False) + '\n',
         encoding='utf-8')
+    validate_manifest(output)
     print(f'Compressed-skill manifest: {aggregate_path}')
     return aggregate
 
