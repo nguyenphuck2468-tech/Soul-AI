@@ -170,3 +170,6 @@ thresholds must be finite numeric values, and predictions must be valid action
 IDs. The recorded feature count is checked against the published 72-value
 observation schema, so changing both the tree metadata and split indexes cannot
 silently redefine the input contract.
+The serialized fit metrics are checked against the tree's sample count, node
+count, leaf count, and observed depth; accuracy and tree-size configuration
+fields must remain finite and structurally valid.

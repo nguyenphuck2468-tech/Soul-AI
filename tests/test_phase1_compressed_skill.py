@@ -340,6 +340,43 @@ def test_compressed_manifest_validator_rejects_observation_schema_drift(tmp_path
         validate_manifest(tmp_path)
 
 
+@pytest.mark.parametrize(
+    ('field', 'value', 'message'),
+    [
+        ('sample_count', 0, 'sample_count does not match tree'),
+        ('leaf_count', 0, 'leaf_count does not match tree'),
+        ('training_action_accuracy', float('inf'),
+         'training_action_accuracy must be finite'),
+    ],
+)
+def test_compressed_manifest_validator_rejects_fit_metric_drift(
+        tmp_path, field, value, message):
+    from scripts.phase1_compressed_skill import run
+
+    run(tmp_path, train_seeds=[20], eval_seeds=[400], max_ticks=2)
+    skill_path = tmp_path / 'T_wood' / 'skill.json'
+    skill = json.loads(skill_path.read_text(encoding='utf-8'))
+    skill['fit_metrics'][field] = value
+    skill_path.write_text(
+        json.dumps(skill, indent=2, allow_nan=True) + '\n',
+        encoding='utf-8')
+    task_path = tmp_path / 'T_wood' / 'manifest.json'
+    task_manifest = json.loads(task_path.read_text(encoding='utf-8'))
+    task_manifest['skill_sha256'] = hashlib.sha256(
+        skill_path.read_bytes()).hexdigest()
+    task_path.write_text(
+        json.dumps(task_manifest, indent=2) + '\n', encoding='utf-8')
+    aggregate_path = tmp_path / 'manifest.json'
+    aggregate = json.loads(aggregate_path.read_text(encoding='utf-8'))
+    aggregate['tasks']['T_wood']['manifest_sha256'] = hashlib.sha256(
+        task_path.read_bytes()).hexdigest()
+    aggregate_path.write_text(
+        json.dumps(aggregate, indent=2) + '\n', encoding='utf-8')
+
+    with pytest.raises(ValueError, match=message):
+        validate_manifest(tmp_path)
+
+
 def test_compressed_manifest_validator_rejects_episode_integrated_drift(tmp_path):
     from scripts.phase1_compressed_skill import run
 

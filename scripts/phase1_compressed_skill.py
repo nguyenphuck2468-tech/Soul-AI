@@ -56,11 +56,12 @@ def _validate_nonnegative_number(value: object, *, label: str) -> float:
     return number
 
 
-def _validate_tree(node: object, *, feature_count: int, label: str) -> None:
-    pending = [(node, label, False)]
+def _validate_tree(node: object, *, feature_count: int, label: str) -> dict:
+    pending = [(node, label, False, 0)]
     active_ids = set()
+    stats = {'sample_count': 0, 'node_count': 0, 'leaf_count': 0, 'depth': 0}
     while pending:
-        current, current_label, exiting = pending.pop()
+        current, current_label, exiting, depth = pending.pop()
         if exiting:
             active_ids.remove(id(current))
             continue
@@ -70,7 +71,9 @@ def _validate_tree(node: object, *, feature_count: int, label: str) -> None:
         if current_id in active_ids:
             raise ValueError(f'{current_label} contains a cycle')
         active_ids.add(current_id)
-        pending.append((current, current_label, True))
+        pending.append((current, current_label, True, depth))
+        stats['node_count'] += 1
+        stats['depth'] = max(stats['depth'], depth)
         for field in ('n', 'prediction', 'class_counts', 'leaf'):
             if field not in current:
                 raise ValueError(f'{current_label} missing field: {field}')
@@ -92,6 +95,9 @@ def _validate_tree(node: object, *, feature_count: int, label: str) -> None:
         if not isinstance(current['leaf'], bool):
             raise ValueError(f'{current_label}.leaf must be boolean')
         if current['leaf']:
+            stats['leaf_count'] += 1
+            if depth == 0:
+                stats['sample_count'] = current['n']
             continue
         for field in ('feature', 'threshold', 'left', 'right'):
             if field not in current:
@@ -105,8 +111,40 @@ def _validate_tree(node: object, *, feature_count: int, label: str) -> None:
             raise ValueError(f'{current_label}.threshold must be numeric')
         if not math.isfinite(float(threshold)):
             raise ValueError(f'{current_label}.threshold must be finite')
-        pending.append((current['right'], f'{current_label}.right', False))
-        pending.append((current['left'], f'{current_label}.left', False))
+        pending.append((current['right'], f'{current_label}.right', False, depth + 1))
+        pending.append((current['left'], f'{current_label}.left', False, depth + 1))
+        if depth == 0:
+            stats['sample_count'] = current['n']
+    return stats
+
+
+def _validate_fit_metrics(value: object, *, tree_stats: dict, label: str) -> None:
+    if not isinstance(value, dict):
+        raise ValueError(f'{label} must be an object')
+    required = (
+        'sample_count', 'training_action_accuracy', 'node_count',
+        'leaf_count', 'depth', 'max_depth_config', 'min_samples_leaf',
+    )
+    for field in required:
+        if field not in value:
+            raise ValueError(f'{label} missing field: {field}')
+    if (isinstance(value['sample_count'], bool)
+            or not isinstance(value['sample_count'], int)
+            or value['sample_count'] != tree_stats['sample_count']):
+        raise ValueError(f'{label}.sample_count does not match tree')
+    _validate_fraction(
+        value['training_action_accuracy'],
+        label=f'{label}.training_action_accuracy')
+    for field in ('node_count', 'leaf_count', 'depth'):
+        if (isinstance(value[field], bool) or not isinstance(value[field], int)
+                or value[field] != tree_stats[field]):
+            raise ValueError(f'{label}.{field} does not match tree')
+    for field in ('max_depth_config', 'min_samples_leaf'):
+        if (isinstance(value[field], bool) or not isinstance(value[field], int)
+                or value[field] < 1):
+            raise ValueError(f'{label}.{field} must be a positive integer')
+    if tree_stats['depth'] > value['max_depth_config']:
+        raise ValueError(f'{label}.depth exceeds max_depth_config')
 
 
 def validate_manifest(output_dir: str | Path) -> dict:
@@ -211,10 +249,14 @@ def validate_manifest(output_dir: str | Path) -> dict:
             label=f'{task} skill training_seeds')
         if artifact_train_seeds != train_seeds:
             raise ValueError(f'{task}: skill training seed provenance mismatch')
-        _validate_tree(
+        tree_stats = _validate_tree(
             skill_artifact.get('tree'),
             feature_count=feature_count,
             label=f'{task} skill tree')
+        _validate_fit_metrics(
+            skill_artifact.get('fit_metrics'),
+            tree_stats=tree_stats,
+            label=f'{task} skill fit_metrics')
         episodes = manifest.get('episodes', [])
         if len(episodes) != len(manifest.get('evaluation_seeds', [])):
             raise ValueError(f'{task}: episode/evaluation seed count mismatch')
