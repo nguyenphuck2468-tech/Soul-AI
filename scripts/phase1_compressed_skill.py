@@ -176,6 +176,19 @@ def validate_manifest(output_dir: str | Path) -> dict:
             if row['expectation_mismatches'] > row['expectation_checks']:
                 raise ValueError(
                     f'{task}: expectation mismatch count exceeds checks')
+            for component in RUNTIME_COMPONENTS:
+                _validate_nonnegative_number(
+                    row['runtime_seconds'].get(component),
+                    label=f'{task} episode runtime_seconds.{component}')
+            stage_total = sum(
+                row['runtime_seconds'][component]
+                for component in RUNTIME_COMPONENTS
+                if component != 'integrated')
+            if not np.isclose(
+                    row['runtime_seconds']['integrated'], stage_total,
+                    rtol=1e-9, atol=1e-12):
+                raise ValueError(
+                    f'{task}: episode integrated runtime mismatch')
         if not np.isclose(
                 entry.get('success_fraction', float('nan')),
                 manifest.get('success_fraction', float('nan')),
