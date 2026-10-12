@@ -52,46 +52,57 @@ def _validate_nonnegative_number(value: object, *, label: str) -> float:
     return number
 
 
-def _validate_tree(node: object, *, feature_count: int, label: str,
-                   depth: int = 0) -> None:
-    if not isinstance(node, dict):
-        raise ValueError(f'{label} must be an object')
-    for field in ('n', 'prediction', 'class_counts', 'leaf'):
-        if field not in node:
-            raise ValueError(f'{label} missing field: {field}')
-    if (isinstance(node['n'], bool) or not isinstance(node['n'], int)
-            or node['n'] < 1):
-        raise ValueError(f'{label}.n must be a positive integer')
-    if (isinstance(node['prediction'], bool)
-            or not isinstance(node['prediction'], int)
-            or not 0 <= node['prediction'] <= 8):
-        raise ValueError(f'{label}.prediction must be an action 0..8')
-    counts = node['class_counts']
-    if (not isinstance(counts, list) or len(counts) != 9
-            or any(isinstance(value, bool) or not isinstance(value, int)
-                   or value < 0 for value in counts)
-            or sum(counts) != node['n']):
-        raise ValueError(f'{label}.class_counts must sum to n across 9 actions')
-    if not isinstance(node['leaf'], bool):
-        raise ValueError(f'{label}.leaf must be boolean')
-    if node['leaf']:
-        return
-    for field in ('feature', 'threshold', 'left', 'right'):
-        if field not in node:
-            raise ValueError(f'{label} missing internal field: {field}')
-    if (isinstance(node['feature'], bool)
-            or not isinstance(node['feature'], int)
-            or not 0 <= node['feature'] < feature_count):
-        raise ValueError(f'{label}.feature is outside observation schema')
-    threshold = node['threshold']
-    if isinstance(threshold, bool) or not isinstance(threshold, (int, float)):
-        raise ValueError(f'{label}.threshold must be numeric')
-    if not math.isfinite(float(threshold)):
-        raise ValueError(f'{label}.threshold must be finite')
-    _validate_tree(node['left'], feature_count=feature_count,
-                   label=f'{label}.left', depth=depth + 1)
-    _validate_tree(node['right'], feature_count=feature_count,
-                   label=f'{label}.right', depth=depth + 1)
+def _validate_tree(node: object, *, feature_count: int, label: str) -> None:
+    pending = [(node, label, False)]
+    active_ids = set()
+    while pending:
+        current, current_label, exiting = pending.pop()
+        if exiting:
+            active_ids.remove(id(current))
+            continue
+        if not isinstance(current, dict):
+            raise ValueError(f'{current_label} must be an object')
+        current_id = id(current)
+        if current_id in active_ids:
+            raise ValueError(f'{current_label} contains a cycle')
+        active_ids.add(current_id)
+        pending.append((current, current_label, True))
+        for field in ('n', 'prediction', 'class_counts', 'leaf'):
+            if field not in current:
+                raise ValueError(f'{current_label} missing field: {field}')
+        if (isinstance(current['n'], bool)
+                or not isinstance(current['n'], int)
+                or current['n'] < 1):
+            raise ValueError(f'{current_label}.n must be a positive integer')
+        if (isinstance(current['prediction'], bool)
+                or not isinstance(current['prediction'], int)
+                or not 0 <= current['prediction'] <= 8):
+            raise ValueError(f'{current_label}.prediction must be an action 0..8')
+        counts = current['class_counts']
+        if (not isinstance(counts, list) or len(counts) != 9
+                or any(isinstance(value, bool) or not isinstance(value, int)
+                       or value < 0 for value in counts)
+                or sum(counts) != current['n']):
+            raise ValueError(
+                f'{current_label}.class_counts must sum to n across 9 actions')
+        if not isinstance(current['leaf'], bool):
+            raise ValueError(f'{current_label}.leaf must be boolean')
+        if current['leaf']:
+            continue
+        for field in ('feature', 'threshold', 'left', 'right'):
+            if field not in current:
+                raise ValueError(f'{current_label} missing internal field: {field}')
+        if (isinstance(current['feature'], bool)
+                or not isinstance(current['feature'], int)
+                or not 0 <= current['feature'] < feature_count):
+            raise ValueError(f'{current_label}.feature is outside observation schema')
+        threshold = current['threshold']
+        if isinstance(threshold, bool) or not isinstance(threshold, (int, float)):
+            raise ValueError(f'{current_label}.threshold must be numeric')
+        if not math.isfinite(float(threshold)):
+            raise ValueError(f'{current_label}.threshold must be finite')
+        pending.append((current['right'], f'{current_label}.right', False))
+        pending.append((current['left'], f'{current_label}.left', False))
 
 
 def validate_manifest(output_dir: str | Path) -> dict:

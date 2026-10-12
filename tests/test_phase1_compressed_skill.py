@@ -252,6 +252,68 @@ def test_compressed_manifest_validator_rejects_invalid_tree_feature(tmp_path):
         validate_manifest(tmp_path)
 
 
+@pytest.mark.parametrize(
+    ('tree_mutation', 'message'),
+    [
+        (lambda tree: tree.update(prediction=9), 'prediction must be an action'),
+        (lambda tree: tree.update(class_counts=[1] * 9), 'class_counts'),
+        (lambda tree: tree.update(leaf='true'), 'leaf must be boolean'),
+        (lambda tree: tree.update(threshold=float('nan')),
+         'threshold must be finite'),
+    ],
+)
+def test_tree_validator_rejects_malformed_nodes(tree_mutation, message):
+    from scripts.phase1_compressed_skill import _validate_tree
+
+    tree = {
+        'n': 1,
+        'prediction': 0,
+        'class_counts': [1, 0, 0, 0, 0, 0, 0, 0, 0],
+        'leaf': False,
+        'feature': 0,
+        'threshold': 0.0,
+        'left': {
+            'n': 1,
+            'prediction': 0,
+            'class_counts': [1, 0, 0, 0, 0, 0, 0, 0, 0],
+            'leaf': True,
+        },
+        'right': {
+            'n': 1,
+            'prediction': 0,
+            'class_counts': [1, 0, 0, 0, 0, 0, 0, 0, 0],
+            'leaf': True,
+        },
+    }
+    tree_mutation(tree)
+
+    with pytest.raises(ValueError, match=message):
+        _validate_tree(tree, feature_count=1, label='tree')
+
+
+def test_tree_validator_rejects_cycles_without_recursion_error():
+    from scripts.phase1_compressed_skill import _validate_tree
+
+    tree = {
+        'n': 1,
+        'prediction': 0,
+        'class_counts': [1, 0, 0, 0, 0, 0, 0, 0, 0],
+        'leaf': False,
+        'feature': 0,
+        'threshold': 0.0,
+    }
+    tree['left'] = tree
+    tree['right'] = {
+        'n': 1,
+        'prediction': 0,
+        'class_counts': [1, 0, 0, 0, 0, 0, 0, 0, 0],
+        'leaf': True,
+    }
+
+    with pytest.raises(ValueError, match='contains a cycle'):
+        _validate_tree(tree, feature_count=1, label='tree')
+
+
 def test_compressed_manifest_validator_rejects_episode_integrated_drift(tmp_path):
     from scripts.phase1_compressed_skill import run
 
