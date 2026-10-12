@@ -65,6 +65,23 @@ def validate_manifest(output_dir: str | Path) -> dict:
                 raise ValueError(f'{task}: invalid {field} diagnostic')
             if sum(row[field] for row in episodes) != manifest.get(field):
                 raise ValueError(f'{task}: {field} total mismatch')
+        for row in episodes:
+            counters = (
+                'learned_agreement_steps', 'mapped_fallback_steps',
+                'safety_blocks', 'expectation_checks',
+                'expectation_mismatches', 'steps',
+            )
+            if any(not isinstance(row.get(field), int) or row[field] < 0
+                   for field in counters):
+                raise ValueError(f'{task}: invalid episode counters')
+            if (row['learned_agreement_steps']
+                    + row['mapped_fallback_steps'] != row['steps']):
+                raise ValueError(f'{task}: proposal source totals mismatch')
+            if row['safety_blocks'] > row['steps']:
+                raise ValueError(f'{task}: safety block count exceeds steps')
+            if row['expectation_mismatches'] > row['expectation_checks']:
+                raise ValueError(
+                    f'{task}: expectation mismatch count exceeds checks')
         steps = sum(row['steps'] for row in episodes)
         for component in RUNTIME_COMPONENTS:
             measured = sum(row['runtime_seconds'][component] for row in episodes)
