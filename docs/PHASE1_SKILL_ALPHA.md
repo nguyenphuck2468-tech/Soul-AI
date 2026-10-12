@@ -135,3 +135,32 @@ The tree and examples are preserved under
 `results/phase1_distillation_20261011/`; this prototype is not the active
 Candidate. It shows that straightforward action imitation is insufficient
 for these long-horizon tasks.
+
+## Compressed alpha candidate
+
+`minicraft/compressed_skill.py` combines the learned tree proposal with the
+observation-only mapped Candidate. The tree controls only when both proposals
+agree; otherwise the mapped planner remains in control. This makes a runnable
+compressed-skill integration without presenting the failed pure tree as a
+usable skill. Run it with:
+
+```powershell
+python -m scripts.phase1_compressed_skill
+```
+
+The output is exploratory train-seed evidence only. Agreement fraction is a
+diagnostic, not a promotion rule or compute-savings result.
+
+Each compressed-skill task manifest also records diagnostic wall time for the
+skill proposal, safety filter, environment step, expectation monitor, and
+their integrated total, including per-step values. The reusable
+`minicraft.runtime.CompressedSkillRuntime` owns this ordering and records
+safety blocks plus expectation checks/mismatches alongside each episode.
+These measurements are local instrumentation only: they do not include a
+world-model supervisor, do not establish matched task performance, and do not
+support a compute-savings claim.
+
+The runner performs a fail-closed self-check before reporting completion:
+task-manifest and skill-artifact hashes, exploratory/no-promotion status,
+episode counts, and runtime totals/per-step values must agree. A malformed or
+tampered output raises an error instead of producing a success-shaped result.

@@ -1,6 +1,6 @@
 # Soul-AI project status
 
-Updated: 2026-10-11
+Updated: 2026-10-12
 
 ## Direction
 
@@ -31,6 +31,10 @@ AI-generated execution plan and its B6 endpoint are not the project endpoint.
   metrics, feature groups, and schema overflow paths.
 - `python -m scripts.phase0_alpha_run` provides a small end-to-end run-through;
   it defaults to unique output under `work/` and labels the manifest smoke-only.
+- `python -m scripts.phase0_validate_protocol` now fail-closes the Phase 0
+  draft if train/dev ranges drift, Confirm becomes configured, or numeric
+  thresholds are introduced before protocol review. It is configuration-only
+  and does not access any seeds.
 - Phase 1 now has a Candidate skill wrapper around the existing privileged
   MiniCraft expert. It reports its task goal, status, risks, and descriptive
   episode outcome, plus fixed-action replay comparison and a three-task batch
@@ -47,6 +51,20 @@ AI-generated execution plan and its B6 endpoint are not the project endpoint.
   is archived as a negative engineering result, not a released skill. See
   `results/phase1_mapped_skill_20261011/` and
   `results/phase1_distillation_20261011/`.
+- A compressed alpha Candidate now combines that learned tree with the mapped
+  observation-only planner through an agreement gate: learned actions control
+  only on agreement, otherwise the mapped planner remains in control. This is
+  runnable integration infrastructure, not a pure learned skill, promotion
+  result, or compute-saving claim. Run
+  `python -m scripts.phase1_compressed_skill`.
+- Clean-checkout validation now executes the Phase 0 validator instead of only
+  checking its help path. It also normalizes historical Windows artifact paths
+  and accepts the recorded manifest/trace hashes under LF or CRLF checkout
+  line endings while remaining fail-closed for missing or changed content.
+- The compressed runtime loop is now reusable in `minicraft/runtime.py` and
+  records safety blocks plus hand-coded expectation checks/mismatches in each
+  exploratory episode. This remains instrumentation, not an OOD detector or
+  promotion gate.
 - The mapped Candidate now reports a one-step expected state signature;
   checked fields matched the next observation on all 539 recorded checks for
   seeds 400–409. Its cheap monitor reports deviations and invalidates cached
@@ -81,8 +99,15 @@ AI-generated execution plan and its B6 endpoint are not the project endpoint.
 - Phase 5 values such as `delta`, `h_OOD`, headroom margins, `rho/sigma`
   sweeps, and `R_max` remain open because the source report supplies no numeric
   values.
+- The remaining Phase 0 blocker is protocol review: seed subsets, feature
+  weighting, statistical procedure, uncertainty method, and acceptance
+  criteria are still unresolved. The validator intentionally preserves this
+  fail-closed state rather than selecting values.
 
 ## Repository state
 
-Recent implementation is committed and pushed to `origin/main`; check `git log`
-for the current head. The pre-existing untracked `work/` directory is retained.
+Recent implementation is committed and pushed to the open Phase 0 validation
+PR branch; check `git log` and PR #1 for the current head. The pre-existing
+untracked `work/` directory is retained. Codespace validation passed with the
+Phase 0 validator, alpha sanity, and the full 65-test suite. No CI checks are
+reported by GitHub yet.
