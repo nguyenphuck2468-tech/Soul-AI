@@ -508,8 +508,22 @@ def main() -> None:
     parser.add_argument('--train-seeds', default=','.join(map(str, range(20, 40))))
     parser.add_argument('--eval-seeds', default=','.join(map(str, range(400, 410))))
     parser.add_argument('--output-dir', default=None)
+    parser.add_argument(
+        '--validate-dir',
+        default=None,
+        help='validate an existing compressed-skill archive without rerunning it',
+    )
     parser.add_argument('--max-ticks', type=int, default=300)
     args = parser.parse_args()
+    if args.validate_dir is not None:
+        try:
+            validate_manifest(args.validate_dir)
+        except (OSError, ValueError, RuntimeError) as exc:
+            parser.error(str(exc))
+        print(
+            'Validated compressed-skill manifest: '
+            f'{Path(args.validate_dir) / "manifest.json"}')
+        return
     output = args.output_dir
     if output is None:
         run_id = datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S%fZ')

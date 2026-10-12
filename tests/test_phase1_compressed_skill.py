@@ -1,5 +1,7 @@
 import hashlib
 import json
+import subprocess
+import sys
 
 import numpy as np
 import pytest
@@ -87,6 +89,27 @@ def test_compressed_manifest_validator_rejects_tampered_skill(tmp_path):
 
     with pytest.raises(ValueError, match='skill artifact hash mismatch'):
         validate_manifest(tmp_path)
+
+
+def test_compressed_cli_validates_existing_archive(tmp_path):
+    from scripts.phase1_compressed_skill import run
+
+    run(tmp_path, train_seeds=[20], eval_seeds=[400], max_ticks=2)
+    result = subprocess.run(
+        [
+            sys.executable,
+            '-m',
+            'scripts.phase1_compressed_skill',
+            '--validate-dir',
+            str(tmp_path),
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0
+    assert 'Validated compressed-skill manifest:' in result.stdout
 
 
 def test_compressed_manifest_validator_rejects_inconsistent_episode_counters(

@@ -176,3 +176,9 @@ fields must remain finite and structurally valid.
 For split nodes, the validator also requires child sample counts and class
 histograms to sum exactly to the parent, and requires each node prediction to
 be the deterministic majority action represented by its histogram.
+
+An existing archive can be checked without rerunning training or episodes:
+
+```powershell
+python -m scripts.phase1_compressed_skill --validate-dir <archive-directory>
+```
