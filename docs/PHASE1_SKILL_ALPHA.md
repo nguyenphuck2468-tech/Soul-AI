@@ -173,3 +173,6 @@ silently redefine the input contract.
 The serialized fit metrics are checked against the tree's sample count, node
 count, leaf count, and observed depth; accuracy and tree-size configuration
 fields must remain finite and structurally valid.
+For split nodes, the validator also requires child sample counts and class
+histograms to sum exactly to the parent, and requires each node prediction to
+be the deterministic majority action represented by its histogram.

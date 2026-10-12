@@ -314,6 +314,48 @@ def test_tree_validator_rejects_cycles_without_recursion_error():
         _validate_tree(tree, feature_count=1, label='tree')
 
 
+@pytest.mark.parametrize(
+    ('mutation', 'message'),
+    [
+        (lambda tree: tree.update(
+            n=3, class_counts=[3, 0, 0, 0, 0, 0, 0, 0, 0]),
+         'n does not equal child totals'),
+        (lambda tree: tree.update(class_counts=[1, 1, 0, 0, 0, 0, 0, 0, 0]),
+         'class_counts do not equal child totals'),
+        (lambda tree: tree.update(prediction=1),
+         'prediction is not the majority action'),
+    ],
+)
+def test_tree_validator_rejects_inconsistent_split_statistics(mutation, message):
+    from scripts.phase1_compressed_skill import _validate_tree
+
+    leaf = {
+        'n': 1,
+        'prediction': 0,
+        'class_counts': [1, 0, 0, 0, 0, 0, 0, 0, 0],
+        'leaf': True,
+    }
+    tree = {
+        'n': 2,
+        'prediction': 0,
+        'class_counts': [2, 0, 0, 0, 0, 0, 0, 0, 0],
+        'leaf': False,
+        'feature': 0,
+        'threshold': 0.0,
+        'left': leaf,
+        'right': {
+            'n': 1,
+            'prediction': 0,
+            'class_counts': [1, 0, 0, 0, 0, 0, 0, 0, 0],
+            'leaf': True,
+        },
+    }
+    mutation(tree)
+
+    with pytest.raises(ValueError, match=message):
+        _validate_tree(tree, feature_count=1, label='tree')
+
+
 def test_compressed_manifest_validator_rejects_observation_schema_drift(tmp_path):
     from scripts.phase1_compressed_skill import run
 

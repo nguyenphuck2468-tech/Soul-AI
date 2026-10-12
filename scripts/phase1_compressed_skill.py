@@ -59,11 +59,29 @@ def _validate_nonnegative_number(value: object, *, label: str) -> float:
 def _validate_tree(node: object, *, feature_count: int, label: str) -> dict:
     pending = [(node, label, False, 0)]
     active_ids = set()
+    validated_nodes = {}
     stats = {'sample_count': 0, 'node_count': 0, 'leaf_count': 0, 'depth': 0}
     while pending:
         current, current_label, exiting, depth = pending.pop()
         if exiting:
             active_ids.remove(id(current))
+            counts = current['class_counts']
+            if current['leaf']:
+                validated_nodes[id(current)] = (
+                    current['n'], tuple(counts))
+            else:
+                left = validated_nodes[id(current['left'])]
+                right = validated_nodes[id(current['right'])]
+                expected_counts = tuple(
+                    left_count + right_count
+                    for left_count, right_count in zip(left[1], right[1]))
+                if current['n'] != left[0] + right[0]:
+                    raise ValueError(
+                        f'{current_label}.n does not equal child totals')
+                if tuple(counts) != expected_counts:
+                    raise ValueError(
+                        f'{current_label}.class_counts do not equal child totals')
+                validated_nodes[id(current)] = (current['n'], tuple(counts))
             continue
         if not isinstance(current, dict):
             raise ValueError(f'{current_label} must be an object')
@@ -92,6 +110,9 @@ def _validate_tree(node: object, *, feature_count: int, label: str) -> dict:
                 or sum(counts) != current['n']):
             raise ValueError(
                 f'{current_label}.class_counts must sum to n across 9 actions')
+        if current['prediction'] != max(
+                range(len(counts)), key=lambda index: counts[index]):
+            raise ValueError(f'{current_label}.prediction is not the majority action')
         if not isinstance(current['leaf'], bool):
             raise ValueError(f'{current_label}.leaf must be boolean')
         if current['leaf']:
