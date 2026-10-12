@@ -51,6 +51,12 @@ AI-generated execution plan and its B6 endpoint are not the project endpoint.
   is archived as a negative engineering result, not a released skill. See
   `results/phase1_mapped_skill_20261011/` and
   `results/phase1_distillation_20261011/`.
+- A compressed alpha Candidate now combines that learned tree with the mapped
+  observation-only planner through an agreement gate: learned actions control
+  only on agreement, otherwise the mapped planner remains in control. This is
+  runnable integration infrastructure, not a pure learned skill, promotion
+  result, or compute-saving claim. Run
+  `python -m scripts.phase1_compressed_skill`.
 - The mapped Candidate now reports a one-step expected state signature;
   checked fields matched the next observation on all 539 recorded checks for
   seeds 400–409. Its cheap monitor reports deviations and invalidates cached
