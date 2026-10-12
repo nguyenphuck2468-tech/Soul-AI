@@ -167,4 +167,6 @@ tampered output raises an error instead of producing a success-shaped result.
 The self-check also validates the serialized decision tree: leaf counts must
 sum consistently, split features must fit the recorded observation schema,
 thresholds must be finite numeric values, and predictions must be valid action
-IDs.
+IDs. The recorded feature count is checked against the published 72-value
+observation schema, so changing both the tree metadata and split indexes cannot
+silently redefine the input contract.

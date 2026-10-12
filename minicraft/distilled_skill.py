@@ -17,6 +17,7 @@ _TASK_GOALS = {
     'T_tools': {'field': 'inv.stone_pickaxe', 'operator': '>=', 'value': 1},
     'T_iron': {'field': 'inv.iron', 'operator': '>=', 'value': 1},
 }
+OBSERVATION_FEATURE_COUNT = 5 + 6 + (7 * 7) + 1 + (3 * 3) + 2
 
 
 def observation_features(observation: dict[str, Any]) -> np.ndarray:
@@ -45,7 +46,10 @@ def observation_features(observation: dict[str, Any]) -> np.ndarray:
         _EVENT_CODES.get(events.get('last_result', 'none'), 0),
         events.get('damage', 0),
     ))
-    return np.asarray(features, dtype=np.float32)
+    result = np.asarray(features, dtype=np.float32)
+    if result.shape != (OBSERVATION_FEATURE_COUNT,):
+        raise AssertionError('published observation feature schema drifted')
+    return result
 
 
 def _gini(counts: np.ndarray) -> float:

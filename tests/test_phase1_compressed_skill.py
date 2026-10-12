@@ -314,6 +314,32 @@ def test_tree_validator_rejects_cycles_without_recursion_error():
         _validate_tree(tree, feature_count=1, label='tree')
 
 
+def test_compressed_manifest_validator_rejects_observation_schema_drift(tmp_path):
+    from scripts.phase1_compressed_skill import run
+
+    run(tmp_path, train_seeds=[20], eval_seeds=[400], max_ticks=2)
+    skill_path = tmp_path / 'T_wood' / 'skill.json'
+    skill = json.loads(skill_path.read_text(encoding='utf-8'))
+    skill['observation_feature_count'] -= 1
+    skill_path.write_text(
+        json.dumps(skill, indent=2) + '\n', encoding='utf-8')
+    task_path = tmp_path / 'T_wood' / 'manifest.json'
+    task_manifest = json.loads(task_path.read_text(encoding='utf-8'))
+    task_manifest['skill_sha256'] = hashlib.sha256(
+        skill_path.read_bytes()).hexdigest()
+    task_path.write_text(
+        json.dumps(task_manifest, indent=2) + '\n', encoding='utf-8')
+    aggregate_path = tmp_path / 'manifest.json'
+    aggregate = json.loads(aggregate_path.read_text(encoding='utf-8'))
+    aggregate['tasks']['T_wood']['manifest_sha256'] = hashlib.sha256(
+        task_path.read_bytes()).hexdigest()
+    aggregate_path.write_text(
+        json.dumps(aggregate, indent=2) + '\n', encoding='utf-8')
+
+    with pytest.raises(ValueError, match='invalid observation feature count'):
+        validate_manifest(tmp_path)
+
+
 def test_compressed_manifest_validator_rejects_episode_integrated_drift(tmp_path):
     from scripts.phase1_compressed_skill import run
 

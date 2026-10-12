@@ -10,7 +10,11 @@ import numpy as np
 
 from minicraft import MiniCraftEnv
 from minicraft.compressed_skill import CompressedObservationSkill
-from minicraft.distilled_skill import fit_decision_tree, observation_features
+from minicraft.distilled_skill import (
+    OBSERVATION_FEATURE_COUNT,
+    fit_decision_tree,
+    observation_features,
+)
 from minicraft.experts import MiniCraftExpert
 from minicraft.runtime import CompressedSkillRuntime
 
@@ -200,7 +204,7 @@ def validate_manifest(output_dir: str | Path) -> dict:
             raise ValueError(f'{task}: skill artifact status mismatch')
         feature_count = skill_artifact.get('observation_feature_count')
         if (isinstance(feature_count, bool) or not isinstance(feature_count, int)
-                or feature_count < 1):
+                or feature_count != OBSERVATION_FEATURE_COUNT):
             raise ValueError(f'{task}: invalid observation feature count')
         artifact_train_seeds = _validate_seed_list(
             skill_artifact.get('training_seeds'),
@@ -332,7 +336,7 @@ def _fit_artifact(task: str, seeds: list[int], max_ticks: int) -> dict:
         'task': task,
         'version': '0.1.0-alpha-compressed',
         'status': 'Candidate',
-        'observation_feature_count': len(features[0]),
+        'observation_feature_count': OBSERVATION_FEATURE_COUNT,
         'training_seeds': seeds,
         'fit_metrics': metrics,
         'tree': tree,
