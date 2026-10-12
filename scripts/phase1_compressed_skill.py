@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 import hashlib
 import json
 from pathlib import Path
+import time
 
 import numpy as np
 
@@ -49,12 +50,19 @@ def _episode(task: str, seed: int, artifact: dict, max_ticks: int) -> dict:
     safety = MiniCraftSafetyController()
     obs = env.observe()
     learned_agreements = fallbacks = steps = 0
+    proposal_seconds = safety_seconds = environment_seconds = 0.0
     while not env.done:
+        started = time.perf_counter()
         proposal = skill.propose(obs)
+        proposal_seconds += time.perf_counter() - started
         learned_agreements += int(proposal.source == 'learned_agreement')
         fallbacks += int(proposal.source == 'mapped_fallback')
+        started = time.perf_counter()
         decision = safety.filter(obs, proposal.candidate_action)
+        safety_seconds += time.perf_counter() - started
+        started = time.perf_counter()
         obs, _, _, info = env.step(decision.applied_action)
+        environment_seconds += time.perf_counter() - started
         skill.observe_outcome(obs, applied_action=decision.applied_action)
         steps += 1
     return {
@@ -64,6 +72,12 @@ def _episode(task: str, seed: int, artifact: dict, max_ticks: int) -> dict:
         'steps': steps,
         'learned_agreement_steps': learned_agreements,
         'mapped_fallback_steps': fallbacks,
+        'runtime_seconds': {
+            'skill_proposal': proposal_seconds,
+            'safety_filter': safety_seconds,
+            'environment_step': environment_seconds,
+            'integrated': proposal_seconds + safety_seconds + environment_seconds,
+        },
     }
 
 
@@ -113,6 +127,26 @@ def run(output_dir: str | Path, *, train_seeds: list[int],
             'learned_agreement_fraction': (
                 sum(row['learned_agreement_steps'] for row in episodes)
                 / max(1, sum(row['steps'] for row in episodes))),
+            'runtime_seconds': {
+                component: sum(
+                    row['runtime_seconds'][component] for row in episodes)
+                for component in (
+                    'skill_proposal', 'safety_filter', 'environment_step',
+                    'integrated',
+                )
+            },
+            'runtime_seconds_per_step': {
+                component: (
+                    manifest_value / max(1, sum(row['steps'] for row in episodes)))
+                for component, manifest_value in {
+                    component: sum(
+                        row['runtime_seconds'][component] for row in episodes)
+                    for component in (
+                        'skill_proposal', 'safety_filter', 'environment_step',
+                        'integrated',
+                    )
+                }.items()
+            },
             'skill_path': str(skill_path),
             'skill_sha256': hashlib.sha256(skill_path.read_bytes()).hexdigest(),
             'fit_metrics': artifact['fit_metrics'],
@@ -125,6 +159,7 @@ def run(output_dir: str | Path, *, train_seeds: list[int],
         aggregate['tasks'][task] = {
             'success_fraction': manifest['success_fraction'],
             'learned_agreement_fraction': manifest['learned_agreement_fraction'],
+            'runtime_seconds_per_step': manifest['runtime_seconds_per_step'],
             'manifest_path': str(manifest_path),
             'manifest_sha256': hashlib.sha256(manifest_path.read_bytes()).hexdigest(),
         }

@@ -33,7 +33,7 @@ non-evidentiary and does not validate model quality or the project hypothesis.
 | Compressed skill runtime | Done (alpha candidate) | `minicraft/compressed_skill.py` gates the learned tree on agreement with the observation-only mapped planner; disagreement falls back to the existing route. `python -m scripts.phase1_compressed_skill` writes exploratory manifests |
 | Held-out variant family and distance `d` | Not defined | Must be specified from the source project direction before generalization evaluation |
 | Locked promotion and performance margins | Not defined | Keep open; do not promote or use Confirm |
-| Matched-performance integrated compute accounting | Not done | Current timing excludes simulation, safety, and learned world-model costs; replay mostly fails |
+| Integrated runtime accounting | Done (diagnostic) | `scripts.phase1_compressed_skill` records skill proposal, safety-filter, environment-step, and integrated wall time per episode/step; matched-performance comparison and world-model supervision costs remain open |
 
 **Engineering alpha estimate: 75%** of the checklist above is implemented and
 run. This is a progress estimate for Phase 1 alpha software only, not a
@@ -74,7 +74,9 @@ writes a unique run directory under `work/` unless `--output-dir` is supplied.
 2. Define the held-out variant family and distance `d` from the source project
    direction; keep Confirm absent until a protocol is locked.
 3. Measure skill, detector, safety and world-model costs in one runtime at
-   matched task performance.
+   matched task performance. The compressed alpha now records the skill,
+   safety, and environment components separately; it is not yet a matched
+   performance or world-model-inclusive accounting.
 4. Keep per-task and aggregate manifests self-contained and hash-linked.
 5. Provide a clean-checkout validation command that checks imports/CLI help,
    documented output layout, and archived manifest/hash consistency without

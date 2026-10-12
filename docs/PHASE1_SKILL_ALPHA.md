@@ -150,3 +150,9 @@ python -m scripts.phase1_compressed_skill
 
 The output is exploratory train-seed evidence only. Agreement fraction is a
 diagnostic, not a promotion rule or compute-savings result.
+
+Each compressed-skill task manifest also records diagnostic wall time for the
+skill proposal, safety filter, environment step, and their integrated total,
+including per-step values. These measurements are local instrumentation only:
+they do not include a world-model supervisor, do not establish matched task
+performance, and do not support a compute-savings claim.
