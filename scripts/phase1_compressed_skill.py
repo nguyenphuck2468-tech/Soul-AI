@@ -82,6 +82,27 @@ def validate_manifest(output_dir: str | Path) -> dict:
             if row['expectation_mismatches'] > row['expectation_checks']:
                 raise ValueError(
                     f'{task}: expectation mismatch count exceeds checks')
+        if not np.isclose(
+                entry.get('success_fraction', float('nan')),
+                manifest.get('success_fraction', float('nan')),
+                rtol=1e-12, atol=1e-15):
+            raise ValueError(f'{task}: aggregate success summary mismatch')
+        if not np.isclose(
+                entry.get('learned_agreement_fraction', float('nan')),
+                manifest.get('learned_agreement_fraction', float('nan')),
+                rtol=1e-12, atol=1e-15):
+            raise ValueError(f'{task}: aggregate agreement summary mismatch')
+        aggregate_runtime = entry.get('runtime_seconds_per_step', {})
+        manifest_runtime = manifest.get('runtime_seconds_per_step', {})
+        if set(aggregate_runtime) != set(RUNTIME_COMPONENTS):
+            raise ValueError(f'{task}: aggregate runtime schema mismatch')
+        for component in RUNTIME_COMPONENTS:
+            if not np.isclose(
+                    aggregate_runtime[component],
+                    manifest_runtime.get(component, float('nan')),
+                    rtol=1e-9, atol=1e-12):
+                raise ValueError(
+                    f'{task}: aggregate runtime summary mismatch for {component}')
         steps = sum(row['steps'] for row in episodes)
         for component in RUNTIME_COMPONENTS:
             measured = sum(row['runtime_seconds'][component] for row in episodes)

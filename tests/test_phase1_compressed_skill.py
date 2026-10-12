@@ -108,3 +108,17 @@ def test_compressed_manifest_validator_rejects_inconsistent_episode_counters(
 
     with pytest.raises(ValueError, match='proposal source totals mismatch'):
         validate_manifest(tmp_path)
+
+
+def test_compressed_manifest_validator_rejects_aggregate_summary_drift(tmp_path):
+    from scripts.phase1_compressed_skill import run
+
+    run(tmp_path, train_seeds=[20], eval_seeds=[400], max_ticks=2)
+    aggregate_path = tmp_path / 'manifest.json'
+    aggregate = json.loads(aggregate_path.read_text(encoding='utf-8'))
+    aggregate['tasks']['T_wood']['success_fraction'] = 1.0
+    aggregate_path.write_text(
+        json.dumps(aggregate, indent=2) + '\n', encoding='utf-8')
+
+    with pytest.raises(ValueError, match='aggregate success summary mismatch'):
+        validate_manifest(tmp_path)
