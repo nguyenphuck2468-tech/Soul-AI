@@ -209,7 +209,31 @@ def test_compressed_manifest_validator_rejects_limits_drift(tmp_path):
     aggregate_path.write_text(
         json.dumps(aggregate, indent=2) + '\n', encoding='utf-8')
 
-    with pytest.raises(ValueError, match='task limits mismatch'):
+    with pytest.raises(ValueError, match='limits must be a non-empty list'):
+        validate_manifest(tmp_path)
+
+
+@pytest.mark.parametrize(
+    'limits',
+    [
+        [],
+        [''],
+        ['duplicate', 'duplicate'],
+        [1],
+    ],
+)
+def test_compressed_manifest_validator_rejects_malformed_limits(
+        tmp_path, limits):
+    from scripts.phase1_compressed_skill import run
+
+    run(tmp_path, train_seeds=[20], eval_seeds=[400], max_ticks=2)
+    aggregate_path = tmp_path / 'manifest.json'
+    aggregate = json.loads(aggregate_path.read_text(encoding='utf-8'))
+    aggregate['limits'] = limits
+    aggregate_path.write_text(
+        json.dumps(aggregate, indent=2) + '\n', encoding='utf-8')
+
+    with pytest.raises(ValueError, match='aggregate limits'):
         validate_manifest(tmp_path)
 
 

@@ -56,6 +56,15 @@ def _validate_nonnegative_number(value: object, *, label: str) -> float:
     return number
 
 
+def _validate_limits(value: object, *, label: str) -> list[str]:
+    if (not isinstance(value, list) or not value
+            or any(not isinstance(item, str) or not item for item in value)):
+        raise ValueError(f'{label} must be a non-empty list of strings')
+    if len(set(value)) != len(value):
+        raise ValueError(f'{label} must not contain duplicate entries')
+    return value
+
+
 def _validate_tree(node: object, *, feature_count: int, label: str) -> dict:
     pending = [(node, label, False, 0)]
     active_ids = set()
@@ -207,8 +216,8 @@ def validate_manifest(output_dir: str | Path) -> dict:
         raise ValueError('aggregate train/evaluation seeds must be disjoint')
     if not isinstance(aggregate.get('tasks'), dict):
         raise ValueError('compressed-skill aggregate tasks are required')
-    if not isinstance(aggregate.get('limits'), list):
-        raise ValueError('compressed-skill aggregate limits are required')
+    aggregate_limits = _validate_limits(
+        aggregate.get('limits'), label='compressed-skill aggregate limits')
     if set(aggregate['tasks']) != set(TASKS):
         raise ValueError('compressed-skill aggregate task set mismatch')
     for task in TASKS:
@@ -248,7 +257,8 @@ def validate_manifest(output_dir: str | Path) -> dict:
                 raise ValueError(f'{task}: task manifest field is required: {field}')
         if manifest['task'] != task:
             raise ValueError(f'{task}: task manifest task mismatch')
-        if manifest['limits'] != aggregate['limits']:
+        _validate_limits(manifest['limits'], label=f'{task} limits')
+        if manifest['limits'] != aggregate_limits:
             raise ValueError(f'{task}: task limits mismatch')
         _validate_fraction(
             manifest['success_fraction'], label=f'{task} success_fraction')

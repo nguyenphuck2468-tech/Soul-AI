@@ -181,6 +181,8 @@ manifest fit metrics must match the corresponding skill artifact. Task-level
 limits and artifact filenames are also checked against the archive contract so
 an archive cannot silently mix outputs from different runs. Referenced
 artifacts must remain inside their task directory; path escapes are rejected.
+Limits metadata is required to be a unique, non-empty list of strings and must
+match across aggregate and task manifests.
 
 An existing archive can be checked without rerunning training or episodes:
 
