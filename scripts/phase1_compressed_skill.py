@@ -52,6 +52,48 @@ def _validate_nonnegative_number(value: object, *, label: str) -> float:
     return number
 
 
+def _validate_tree(node: object, *, feature_count: int, label: str,
+                   depth: int = 0) -> None:
+    if not isinstance(node, dict):
+        raise ValueError(f'{label} must be an object')
+    for field in ('n', 'prediction', 'class_counts', 'leaf'):
+        if field not in node:
+            raise ValueError(f'{label} missing field: {field}')
+    if (isinstance(node['n'], bool) or not isinstance(node['n'], int)
+            or node['n'] < 1):
+        raise ValueError(f'{label}.n must be a positive integer')
+    if (isinstance(node['prediction'], bool)
+            or not isinstance(node['prediction'], int)
+            or not 0 <= node['prediction'] <= 8):
+        raise ValueError(f'{label}.prediction must be an action 0..8')
+    counts = node['class_counts']
+    if (not isinstance(counts, list) or len(counts) != 9
+            or any(isinstance(value, bool) or not isinstance(value, int)
+                   or value < 0 for value in counts)
+            or sum(counts) != node['n']):
+        raise ValueError(f'{label}.class_counts must sum to n across 9 actions')
+    if not isinstance(node['leaf'], bool):
+        raise ValueError(f'{label}.leaf must be boolean')
+    if node['leaf']:
+        return
+    for field in ('feature', 'threshold', 'left', 'right'):
+        if field not in node:
+            raise ValueError(f'{label} missing internal field: {field}')
+    if (isinstance(node['feature'], bool)
+            or not isinstance(node['feature'], int)
+            or not 0 <= node['feature'] < feature_count):
+        raise ValueError(f'{label}.feature is outside observation schema')
+    threshold = node['threshold']
+    if isinstance(threshold, bool) or not isinstance(threshold, (int, float)):
+        raise ValueError(f'{label}.threshold must be numeric')
+    if not math.isfinite(float(threshold)):
+        raise ValueError(f'{label}.threshold must be finite')
+    _validate_tree(node['left'], feature_count=feature_count,
+                   label=f'{label}.left', depth=depth + 1)
+    _validate_tree(node['right'], feature_count=feature_count,
+                   label=f'{label}.right', depth=depth + 1)
+
+
 def validate_manifest(output_dir: str | Path) -> dict:
     """Fail closed if a compressed-skill run is incomplete or tampered with."""
     output = Path(output_dir)
@@ -145,11 +187,19 @@ def validate_manifest(output_dir: str | Path) -> dict:
             raise ValueError(f'{task}: skill artifact version mismatch')
         if skill_artifact.get('status') != 'Candidate':
             raise ValueError(f'{task}: skill artifact status mismatch')
+        feature_count = skill_artifact.get('observation_feature_count')
+        if (isinstance(feature_count, bool) or not isinstance(feature_count, int)
+                or feature_count < 1):
+            raise ValueError(f'{task}: invalid observation feature count')
         artifact_train_seeds = _validate_seed_list(
             skill_artifact.get('training_seeds'),
             label=f'{task} skill training_seeds')
         if artifact_train_seeds != train_seeds:
             raise ValueError(f'{task}: skill training seed provenance mismatch')
+        _validate_tree(
+            skill_artifact.get('tree'),
+            feature_count=feature_count,
+            label=f'{task} skill tree')
         episodes = manifest.get('episodes', [])
         if len(episodes) != len(manifest.get('evaluation_seeds', [])):
             raise ValueError(f'{task}: episode/evaluation seed count mismatch')
@@ -271,6 +321,7 @@ def _fit_artifact(task: str, seeds: list[int], max_ticks: int) -> dict:
         'task': task,
         'version': '0.1.0-alpha-compressed',
         'status': 'Candidate',
+        'observation_feature_count': len(features[0]),
         'training_seeds': seeds,
         'fit_metrics': metrics,
         'tree': tree,

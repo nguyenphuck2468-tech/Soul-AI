@@ -164,3 +164,7 @@ The runner performs a fail-closed self-check before reporting completion:
 task-manifest and skill-artifact hashes, exploratory/no-promotion status,
 episode counts, and runtime totals/per-step values must agree. A malformed or
 tampered output raises an error instead of producing a success-shaped result.
+The self-check also validates the serialized decision tree: leaf counts must
+sum consistently, split features must fit the recorded observation schema,
+thresholds must be finite numeric values, and predictions must be valid action
+IDs.
