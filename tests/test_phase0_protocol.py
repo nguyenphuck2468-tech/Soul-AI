@@ -49,3 +49,19 @@ def test_validator_rejects_protocol_seed_drift(tmp_path):
 
     with pytest.raises(ProtocolValidationError, match="dev range differs"):
         validate_protocol(ROOT / "configs" / "phase0_protocol_draft.yaml", seeds)
+
+
+def test_validator_rejects_confirm_allocation_alias(tmp_path):
+    protocol = tmp_path / "protocol.yaml"
+    protocol.write_text(
+        (ROOT / "configs" / "phase0_protocol_draft.yaml").read_text(
+            encoding="utf-8"
+        ).replace(
+            "confirm: {range: null, status:",
+            "confirm: {range: null, seed_list: [2000], status:",
+        ),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ProtocolValidationError, match="allocation fields"):
+        validate_protocol(protocol, ROOT / "configs" / "seeds.yaml")

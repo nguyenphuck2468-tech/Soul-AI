@@ -74,6 +74,15 @@ def validate_protocol(protocol_path: Path = PROTOCOL_PATH,
 
     confirm = _mapping(protocol_splits.get("confirm"), "protocol.data_splits.confirm")
     seed_confirm = _mapping(seed_splits.get("confirm"), "seeds.confirm")
+    for label, mapping, allowed in (
+        ("protocol.data_splits.confirm", confirm, {"range", "status"}),
+        ("seeds.confirm", seed_confirm, {"range", "status", "description", "note"}),
+    ):
+        unexpected = set(mapping) - allowed
+        if unexpected:
+            raise ProtocolValidationError(
+                f"{label} contains unsupported Confirm allocation fields: "
+                f"{sorted(unexpected)}")
     if confirm.get("range") is not None or seed_confirm.get("range") is not None:
         raise ProtocolValidationError("Confirm must remain unset until protocol approval")
     if confirm.get("status") != "NOT_DEFINED_OR_ACCESSED":

@@ -14,12 +14,20 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def _sha256_file(path: Path) -> set[str]:
+    """Return hashes for exact and canonical LF bytes."""
+    raw = path.read_bytes()
+    hashes = {hashlib.sha256(raw).hexdigest()}
+    hashes.add(hashlib.sha256(raw.replace(b'\r\n', b'\n')).hexdigest())
+    return hashes
+
+
 def _artifact_path(raw_path: str | Path) -> Path:
     """Resolve archived paths while preserving the recorded relative layout."""
     path = ROOT / Path(raw_path)
     if path.exists():
         return path
-    normalized = Path(raw_path).as_posix()
+    normalized = str(raw_path).replace('\\', '/')
     prefix = 'work/phase1_skill_sweeps/skill-sweep-alpha-audit-20261011/'
     if normalized.startswith(prefix):
         archived = ROOT / 'results' / 'phase1_skill_sweep_20261011' / \
@@ -29,9 +37,9 @@ def _artifact_path(raw_path: str | Path) -> Path:
     raise FileNotFoundError(f'archived artifact is missing: {raw_path}')
 
 
-def check_cli(module: str) -> None:
+def check_cli(module: str, *arguments: str) -> None:
     result = subprocess.run(
-        [sys.executable, '-m', module, '--help'],
+        [sys.executable, '-m', module, *arguments],
         cwd=ROOT,
         capture_output=True,
         text=True,
@@ -57,11 +65,11 @@ def check_phase1_archives() -> int:
     for task, entry in sweep['tasks'].items():
         task_path = _artifact_path(entry['manifest_path'])
         manifest_bytes = task_path.read_bytes()
-        if hashlib.sha256(manifest_bytes).hexdigest() != entry['manifest_sha256']:
+        if entry['manifest_sha256'] not in _sha256_file(task_path):
             raise ValueError(f'{task}: manifest hash mismatch')
         manifest = json.loads(manifest_bytes.decode('utf-8-sig'))
         trace_path = _artifact_path(manifest['trace_path'])
-        if hashlib.sha256(trace_path.read_bytes()).hexdigest() != manifest['trace_sha256']:
+        if manifest['trace_sha256'] not in _sha256_file(trace_path):
             raise ValueError(f'{task}: trace hash mismatch')
         if manifest.get('paired_success_outcomes') != entry.get('paired_success_outcomes'):
             raise ValueError(f'{task}: paired summary mismatch')
@@ -74,7 +82,7 @@ def check_phase1_archives() -> int:
         task_manifest_path = _artifact_path(entry['manifest_path'])
         task_manifest = json.loads(task_manifest_path.read_text(encoding='utf-8-sig'))
         trace_path = _artifact_path(task_manifest['trace_path'])
-        if hashlib.sha256(trace_path.read_bytes()).hexdigest() != task_manifest['trace_sha256']:
+        if task_manifest['trace_sha256'] not in _sha256_file(trace_path):
             raise ValueError(f'{task}: mapped-skill trace hash mismatch')
         if task_manifest['mapped_success_fraction'] != 1.0:
             raise ValueError(f'{task}: archived mapped-skill smoke result mismatch')
@@ -88,20 +96,21 @@ def check_phase1_archives() -> int:
     for task, entry in distilled['tasks'].items():
         task_manifest_path = _artifact_path(entry['manifest_path'])
         manifest_bytes = task_manifest_path.read_bytes()
-        if hashlib.sha256(manifest_bytes).hexdigest() != entry['manifest_sha256']:
+        if entry['manifest_sha256'] not in _sha256_file(task_manifest_path):
             raise ValueError(f'{task}: distillation manifest hash mismatch')
         task_manifest = json.loads(manifest_bytes.decode('utf-8-sig'))
         for path_key, hash_key in (
                 ('skill_path', 'skill_sha256'),
                 ('training_examples_path', 'training_examples_sha256')):
             artifact_path = _artifact_path(task_manifest[path_key])
-            if hashlib.sha256(artifact_path.read_bytes()).hexdigest() != task_manifest[hash_key]:
+            if task_manifest[hash_key] not in _sha256_file(artifact_path):
                 raise ValueError(f'{task}: distillation {path_key} hash mismatch')
         checked += 1
     return checked
 
 
 def main() -> None:
+    check_cli('scripts.phase0_validate_protocol', '--help')
     check_cli('scripts.phase0_validate_protocol')
     check_cli('scripts.phase0_alpha_run')
     check_cli('scripts.phase1_skill_sweep')
