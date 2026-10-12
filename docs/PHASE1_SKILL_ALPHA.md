@@ -164,3 +164,31 @@ The runner performs a fail-closed self-check before reporting completion:
 task-manifest and skill-artifact hashes, exploratory/no-promotion status,
 episode counts, and runtime totals/per-step values must agree. A malformed or
 tampered output raises an error instead of producing a success-shaped result.
+The self-check also validates the serialized decision tree: leaf counts must
+sum consistently, split features must fit the recorded observation schema,
+thresholds must be finite numeric values, and predictions must be valid action
+IDs. The recorded feature count is checked against the published 72-value
+observation schema, so changing both the tree metadata and split indexes cannot
+silently redefine the input contract.
+The serialized fit metrics are checked against the tree's sample count, node
+count, leaf count, and observed depth; accuracy and tree-size configuration
+fields must remain finite and structurally valid.
+For split nodes, the validator also requires child sample counts and class
+histograms to sum exactly to the parent, and requires each node prediction to
+be the deterministic majority action represented by its histogram.
+The aggregate archive must contain exactly the declared task set, and task
+manifest fit metrics must match the corresponding skill artifact. Task-level
+limits and artifact filenames are also checked against the archive contract so
+an archive cannot silently mix outputs from different runs. Referenced
+artifacts must remain directly inside their task directory; path escapes and
+nested artifact paths are rejected.
+Limits metadata is required to be a unique, non-empty list of strings and must
+match across aggregate and task manifests. JSON objects are parsed with
+duplicate-key rejection so the validated artifact has one unambiguous value
+for every field.
+
+An existing archive can be checked without rerunning training or episodes:
+
+```powershell
+python -m scripts.phase1_compressed_skill --validate-dir <archive-directory>
+```
