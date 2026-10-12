@@ -180,7 +180,8 @@ The aggregate archive must contain exactly the declared task set, and task
 manifest fit metrics must match the corresponding skill artifact. Task-level
 limits and artifact filenames are also checked against the archive contract so
 an archive cannot silently mix outputs from different runs. Referenced
-artifacts must remain inside their task directory; path escapes are rejected.
+artifacts must remain directly inside their task directory; path escapes and
+nested artifact paths are rejected.
 Limits metadata is required to be a unique, non-empty list of strings and must
 match across aggregate and task manifests.
 

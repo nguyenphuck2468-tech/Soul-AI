@@ -191,6 +191,8 @@ def _resolve_archive_path(
         resolved.relative_to(task_root)
     except ValueError as exc:
         raise ValueError(f'{label} escapes task archive') from exc
+    if resolved.parent != task_root:
+        raise ValueError(f'{label} must be directly under task archive')
     return resolved
 
 

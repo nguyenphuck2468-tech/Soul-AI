@@ -193,6 +193,27 @@ def test_compressed_manifest_validator_rejects_manifest_path_escape(tmp_path):
         validate_manifest(tmp_path)
 
 
+def test_compressed_manifest_validator_rejects_nested_manifest_path(tmp_path):
+    from scripts.phase1_compressed_skill import run
+
+    run(tmp_path, train_seeds=[20], eval_seeds=[400], max_ticks=2)
+    nested = tmp_path / 'T_wood' / 'nested'
+    nested.mkdir()
+    original = tmp_path / 'T_wood' / 'manifest.json'
+    nested_manifest = nested / 'manifest.json'
+    nested_manifest.write_bytes(original.read_bytes())
+    aggregate_path = tmp_path / 'manifest.json'
+    aggregate = json.loads(aggregate_path.read_text(encoding='utf-8'))
+    aggregate['tasks']['T_wood']['manifest_path'] = str(nested_manifest)
+    aggregate['tasks']['T_wood']['manifest_sha256'] = hashlib.sha256(
+        nested_manifest.read_bytes()).hexdigest()
+    aggregate_path.write_text(
+        json.dumps(aggregate, indent=2) + '\n', encoding='utf-8')
+
+    with pytest.raises(ValueError, match='directly under task archive'):
+        validate_manifest(tmp_path)
+
+
 def test_compressed_manifest_validator_rejects_limits_drift(tmp_path):
     from scripts.phase1_compressed_skill import run
 
