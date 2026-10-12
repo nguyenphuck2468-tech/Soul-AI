@@ -41,6 +41,8 @@ been collected.
    details without inventing values from the report. The register now separates
    the Phase 0 prerequisite measurement from Phase 5's OOD, headroom, Pareto,
    and intervention thresholds.
+   `python -m scripts.phase0_validate_protocol` checks this draft remains
+   fail-closed while those decisions are open.
 2. Use `python -m scripts.phase0_alpha_run` for a small end-to-end run-through;
    it writes to a unique directory under `work/` by default and marks its
    manifest non-evidentiary. Keep smoke data on train and dev only. Dev seeds

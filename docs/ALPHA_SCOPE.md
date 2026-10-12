@@ -78,6 +78,12 @@ writes a unique run directory under `work/` unless `--output-dir` is supplied.
    documented output layout, and archived manifest/hash consistency without
    accessing held-out or Confirm seeds.
 
-The offline sanity command is `python -m scripts.alpha_sanity`. It checks four
-alpha CLI help paths and archived Phase 1 trace/model/example/manifest hashes
-without constructing the simulator or accessing any seeds.
+The fail-closed protocol check is `python -m scripts.phase0_validate_protocol`.
+It verifies the draft status, train/dev range agreement, disjointness, and
+unset Confirm/threshold fields without constructing the simulator or accessing
+any seeds. The offline sanity command
+`python -m scripts.alpha_sanity` runs that check, five alpha CLI help paths, and
+archived Phase 1 trace/model/example/manifest hashes. It resolves the
+recorded historical `work/phase1_skill_sweeps/...` paths to their checked-in
+`results/phase1_skill_sweep_20261011/` copies and still fails if the artifact
+or its hash is missing.

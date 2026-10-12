@@ -31,6 +31,10 @@ AI-generated execution plan and its B6 endpoint are not the project endpoint.
   metrics, feature groups, and schema overflow paths.
 - `python -m scripts.phase0_alpha_run` provides a small end-to-end run-through;
   it defaults to unique output under `work/` and labels the manifest smoke-only.
+- `python -m scripts.phase0_validate_protocol` now fail-closes the Phase 0
+  draft if train/dev ranges drift, Confirm becomes configured, or numeric
+  thresholds are introduced before protocol review. It is configuration-only
+  and does not access any seeds.
 - Phase 1 now has a Candidate skill wrapper around the existing privileged
   MiniCraft expert. It reports its task goal, status, risks, and descriptive
   episode outcome, plus fixed-action replay comparison and a three-task batch
@@ -81,6 +85,10 @@ AI-generated execution plan and its B6 endpoint are not the project endpoint.
 - Phase 5 values such as `delta`, `h_OOD`, headroom margins, `rho/sigma`
   sweeps, and `R_max` remain open because the source report supplies no numeric
   values.
+- The remaining Phase 0 blocker is protocol review: seed subsets, feature
+  weighting, statistical procedure, uncertainty method, and acceptance
+  criteria are still unresolved. The validator intentionally preserves this
+  fail-closed state rather than selecting values.
 
 ## Repository state
 
