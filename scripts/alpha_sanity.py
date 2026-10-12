@@ -15,10 +15,14 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def _sha256_file(path: Path) -> set[str]:
-    """Return hashes for exact and canonical LF bytes."""
+    """Return hashes for exact bytes and normalized text line endings."""
     raw = path.read_bytes()
-    hashes = {hashlib.sha256(raw).hexdigest()}
-    hashes.add(hashlib.sha256(raw.replace(b'\r\n', b'\n')).hexdigest())
+    canonical = raw.replace(b'\r\n', b'\n')
+    hashes = {
+        hashlib.sha256(raw).hexdigest(),
+        hashlib.sha256(canonical).hexdigest(),
+        hashlib.sha256(canonical.replace(b'\n', b'\r\n')).hexdigest(),
+    }
     return hashes
 
 
