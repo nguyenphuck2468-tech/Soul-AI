@@ -34,10 +34,22 @@ def validate_manifest(output_dir: str | Path) -> dict:
         raise ValueError('compressed-skill aggregate kind mismatch')
     if aggregate.get('status') != EXPECTED_STATUS:
         raise ValueError('compressed-skill run must remain exploratory/no-promotion')
+    if aggregate.get('schema_version') != 1:
+        raise ValueError('compressed-skill aggregate schema mismatch')
+    if aggregate.get('train_seeds') is None or aggregate.get('evaluation_seeds') is None:
+        raise ValueError('compressed-skill aggregate seed lists are required')
+    if not isinstance(aggregate.get('tasks'), dict):
+        raise ValueError('compressed-skill aggregate tasks are required')
     for task in TASKS:
         entry = aggregate.get('tasks', {}).get(task)
         if not isinstance(entry, dict):
             raise ValueError(f'missing compressed-skill task entry: {task}')
+        for field in (
+                'success_fraction', 'learned_agreement_fraction',
+                'runtime_seconds_per_step', 'manifest_path',
+                'manifest_sha256'):
+            if field not in entry:
+                raise ValueError(f'{task}: aggregate field is required: {field}')
         manifest_path = Path(entry['manifest_path'])
         if not manifest_path.is_absolute():
             manifest_path = output / task / manifest_path.name
@@ -45,8 +57,20 @@ def validate_manifest(output_dir: str | Path) -> dict:
         if hashlib.sha256(manifest_bytes).hexdigest() != entry.get('manifest_sha256'):
             raise ValueError(f'{task}: task manifest hash mismatch')
         manifest = json.loads(manifest_bytes.decode('utf-8'))
+        if manifest.get('schema_version') != 1:
+            raise ValueError(f'{task}: task manifest schema mismatch')
         if manifest.get('status') != EXPECTED_STATUS:
             raise ValueError(f'{task}: task manifest status mismatch')
+        for field in (
+                'task', 'train_seeds', 'evaluation_seeds', 'episodes',
+                'success_fraction', 'learned_agreement_fraction',
+                'runtime_seconds', 'runtime_seconds_per_step',
+                'safety_blocks', 'expectation_checks',
+                'expectation_mismatches', 'skill_path', 'skill_sha256'):
+            if field not in manifest:
+                raise ValueError(f'{task}: task manifest field is required: {field}')
+        if manifest['task'] != task:
+            raise ValueError(f'{task}: task manifest task mismatch')
         skill_path = Path(manifest['skill_path'])
         if not skill_path.is_absolute():
             skill_path = output / task / skill_path.name
@@ -58,6 +82,16 @@ def validate_manifest(output_dir: str | Path) -> dict:
         if not episodes or any(set(row.get('runtime_seconds', {})) != set(RUNTIME_COMPONENTS)
                                for row in episodes):
             raise ValueError(f'{task}: runtime component schema mismatch')
+        for row in episodes:
+            for field in (
+                    'task', 'seed', 'success', 'steps',
+                    'learned_agreement_steps', 'mapped_fallback_steps',
+                    'safety_blocks', 'expectation_checks',
+                    'expectation_mismatches', 'runtime_seconds'):
+                if field not in row:
+                    raise ValueError(f'{task}: episode field is required: {field}')
+            if row['task'] != task:
+                raise ValueError(f'{task}: episode task mismatch')
         for field in (
                 'safety_blocks', 'expectation_checks', 'expectation_mismatches'):
             if any(not isinstance(row.get(field), int) or row[field] < 0
