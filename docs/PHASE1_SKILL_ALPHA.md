@@ -135,3 +135,18 @@ The tree and examples are preserved under
 `results/phase1_distillation_20261011/`; this prototype is not the active
 Candidate. It shows that straightforward action imitation is insufficient
 for these long-horizon tasks.
+
+## Compressed alpha candidate
+
+`minicraft/compressed_skill.py` combines the learned tree proposal with the
+observation-only mapped Candidate. The tree controls only when both proposals
+agree; otherwise the mapped planner remains in control. This makes a runnable
+compressed-skill integration without presenting the failed pure tree as a
+usable skill. Run it with:
+
+```powershell
+python -m scripts.phase1_compressed_skill
+```
+
+The output is exploratory train-seed evidence only. Agreement fraction is a
+diagnostic, not a promotion rule or compute-savings result.

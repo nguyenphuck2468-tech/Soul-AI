@@ -30,6 +30,7 @@ non-evidentiary and does not validate model quality or the project hypothesis.
 | Observation-only task skill | Done (Candidate) | `minicraft/mapped_skill.py` accumulates a map from observed 7x7 patches and explores/plans without a full-state API; train smoke 400–409 succeeded 10/10 per task |
 | Skill one-step expectation trigger | Done (hand-coded, uncalibrated) | Reports mismatched fields and invalidates cached route; matched 65/65, 151/151, and 323/323 checked fields on the smoke batch |
 | Learned/compressed skill | Not done | Behavior-cloning decision tree was tried; it scored 4/10 T_wood and 0/10 T_tools/T_iron on train evaluation seeds, so it is not presented as a usable skill |
+| Compressed skill runtime | Done (alpha candidate) | `minicraft/compressed_skill.py` gates the learned tree on agreement with the observation-only mapped planner; disagreement falls back to the existing route. `python -m scripts.phase1_compressed_skill` writes exploratory manifests |
 | Held-out variant family and distance `d` | Not defined | Must be specified from the source project direction before generalization evaluation |
 | Locked promotion and performance margins | Not defined | Keep open; do not promote or use Confirm |
 | Matched-performance integrated compute accounting | Not done | Current timing excludes simulation, safety, and learned world-model costs; replay mostly fails |
@@ -68,7 +69,8 @@ writes a unique run directory under `work/` unless `--output-dir` is supplied.
 ## Next engineering steps
 
 1. Develop a compressed learned skill that succeeds beyond the demonstration
-   trajectories while keeping only observation inputs.
+   trajectories while keeping only observation inputs. The current alpha
+   candidate is agreement-gated and is not yet a pure learned skill.
 2. Define the held-out variant family and distance `d` from the source project
    direction; keep Confirm absent until a protocol is locked.
 3. Measure skill, detector, safety and world-model costs in one runtime at

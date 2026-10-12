@@ -107,8 +107,9 @@ def main() -> None:
     check_cli('scripts.phase1_skill_sweep')
     check_cli('scripts.phase1_mapped_skill')
     check_cli('scripts.phase1_distill_skill')
+    check_cli('scripts.phase1_compressed_skill')
     checked = check_phase1_archives()
-    print(f'Alpha sanity passed: 5 CLIs, {checked} Phase 1 task archives.')
+    print(f'Alpha sanity passed: 6 CLIs, {checked} Phase 1 task archives.')
     print('No simulator seeds were accessed; this is not a model-quality test.')
 
 
