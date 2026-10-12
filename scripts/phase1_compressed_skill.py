@@ -190,6 +190,8 @@ def validate_manifest(output_dir: str | Path) -> dict:
         raise ValueError('aggregate train/evaluation seeds must be disjoint')
     if not isinstance(aggregate.get('tasks'), dict):
         raise ValueError('compressed-skill aggregate tasks are required')
+    if set(aggregate['tasks']) != set(TASKS):
+        raise ValueError('compressed-skill aggregate task set mismatch')
     for task in TASKS:
         entry = aggregate.get('tasks', {}).get(task)
         if not isinstance(entry, dict):
@@ -221,7 +223,8 @@ def validate_manifest(output_dir: str | Path) -> dict:
                 'success_fraction', 'learned_agreement_fraction',
                 'runtime_seconds', 'runtime_seconds_per_step',
                 'safety_blocks', 'expectation_checks',
-                'expectation_mismatches', 'skill_path', 'skill_sha256'):
+                'expectation_mismatches', 'skill_path', 'skill_sha256',
+                'fit_metrics'):
             if field not in manifest:
                 raise ValueError(f'{task}: task manifest field is required: {field}')
         if manifest['task'] != task:
@@ -278,6 +281,8 @@ def validate_manifest(output_dir: str | Path) -> dict:
             skill_artifact.get('fit_metrics'),
             tree_stats=tree_stats,
             label=f'{task} skill fit_metrics')
+        if manifest.get('fit_metrics') != skill_artifact.get('fit_metrics'):
+            raise ValueError(f'{task}: task/artifact fit metrics mismatch')
         episodes = manifest.get('episodes', [])
         if len(episodes) != len(manifest.get('evaluation_seeds', [])):
             raise ValueError(f'{task}: episode/evaluation seed count mismatch')

@@ -112,6 +112,58 @@ def test_compressed_cli_validates_existing_archive(tmp_path):
     assert 'Validated compressed-skill manifest:' in result.stdout
 
 
+def test_compressed_cli_rejects_missing_archive(tmp_path):
+    result = subprocess.run(
+        [
+            sys.executable,
+            '-m',
+            'scripts.phase1_compressed_skill',
+            '--validate-dir',
+            str(tmp_path / 'missing'),
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode != 0
+    assert 'invalid compressed-skill aggregate manifest' in result.stderr
+
+
+def test_compressed_manifest_validator_rejects_extra_task(tmp_path):
+    from scripts.phase1_compressed_skill import run
+
+    run(tmp_path, train_seeds=[20], eval_seeds=[400], max_ticks=2)
+    aggregate_path = tmp_path / 'manifest.json'
+    aggregate = json.loads(aggregate_path.read_text(encoding='utf-8'))
+    aggregate['tasks']['unexpected'] = {}
+    aggregate_path.write_text(
+        json.dumps(aggregate, indent=2) + '\n', encoding='utf-8')
+
+    with pytest.raises(ValueError, match='task set mismatch'):
+        validate_manifest(tmp_path)
+
+
+def test_compressed_manifest_validator_rejects_fit_metric_drift(tmp_path):
+    from scripts.phase1_compressed_skill import run
+
+    run(tmp_path, train_seeds=[20], eval_seeds=[400], max_ticks=2)
+    task_path = tmp_path / 'T_wood' / 'manifest.json'
+    task_manifest = json.loads(task_path.read_text(encoding='utf-8'))
+    task_manifest['fit_metrics']['sample_count'] += 1
+    task_path.write_text(
+        json.dumps(task_manifest, indent=2) + '\n', encoding='utf-8')
+    aggregate_path = tmp_path / 'manifest.json'
+    aggregate = json.loads(aggregate_path.read_text(encoding='utf-8'))
+    aggregate['tasks']['T_wood']['manifest_sha256'] = hashlib.sha256(
+        task_path.read_bytes()).hexdigest()
+    aggregate_path.write_text(
+        json.dumps(aggregate, indent=2) + '\n', encoding='utf-8')
+
+    with pytest.raises(ValueError, match='task/artifact fit metrics mismatch'):
+        validate_manifest(tmp_path)
+
+
 def test_compressed_manifest_validator_rejects_inconsistent_episode_counters(
         tmp_path):
     from scripts.phase1_compressed_skill import run
