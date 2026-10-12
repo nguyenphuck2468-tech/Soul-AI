@@ -190,6 +190,8 @@ def validate_manifest(output_dir: str | Path) -> dict:
         raise ValueError('aggregate train/evaluation seeds must be disjoint')
     if not isinstance(aggregate.get('tasks'), dict):
         raise ValueError('compressed-skill aggregate tasks are required')
+    if not isinstance(aggregate.get('limits'), list):
+        raise ValueError('compressed-skill aggregate limits are required')
     if set(aggregate['tasks']) != set(TASKS):
         raise ValueError('compressed-skill aggregate task set mismatch')
     for task in TASKS:
@@ -208,6 +210,8 @@ def validate_manifest(output_dir: str | Path) -> dict:
             entry['learned_agreement_fraction'],
             label=f'{task} aggregate learned_agreement_fraction')
         manifest_path = Path(entry['manifest_path'])
+        if manifest_path.name != 'manifest.json':
+            raise ValueError(f'{task}: task manifest filename mismatch')
         if not manifest_path.is_absolute():
             manifest_path = output / task / manifest_path.name
         manifest_bytes = manifest_path.read_bytes()
@@ -224,11 +228,13 @@ def validate_manifest(output_dir: str | Path) -> dict:
                 'runtime_seconds', 'runtime_seconds_per_step',
                 'safety_blocks', 'expectation_checks',
                 'expectation_mismatches', 'skill_path', 'skill_sha256',
-                'fit_metrics'):
+                'fit_metrics', 'limits'):
             if field not in manifest:
                 raise ValueError(f'{task}: task manifest field is required: {field}')
         if manifest['task'] != task:
             raise ValueError(f'{task}: task manifest task mismatch')
+        if manifest['limits'] != aggregate['limits']:
+            raise ValueError(f'{task}: task limits mismatch')
         _validate_fraction(
             manifest['success_fraction'], label=f'{task} success_fraction')
         _validate_fraction(
@@ -245,6 +251,8 @@ def validate_manifest(output_dir: str | Path) -> dict:
         if set(train_seeds) & set(evaluation_seeds):
             raise ValueError(f'{task}: train/evaluation seeds must be disjoint')
         skill_path = Path(manifest['skill_path'])
+        if skill_path.name != 'skill.json':
+            raise ValueError(f'{task}: skill artifact filename mismatch')
         if not skill_path.is_absolute():
             skill_path = output / task / skill_path.name
         if hashlib.sha256(skill_path.read_bytes()).hexdigest() != manifest.get('skill_sha256'):

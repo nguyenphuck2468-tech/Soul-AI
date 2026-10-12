@@ -164,6 +164,40 @@ def test_compressed_manifest_validator_rejects_fit_metric_drift(tmp_path):
         validate_manifest(tmp_path)
 
 
+def test_compressed_manifest_validator_rejects_bad_manifest_filename(tmp_path):
+    from scripts.phase1_compressed_skill import run
+
+    run(tmp_path, train_seeds=[20], eval_seeds=[400], max_ticks=2)
+    aggregate_path = tmp_path / 'manifest.json'
+    aggregate = json.loads(aggregate_path.read_text(encoding='utf-8'))
+    aggregate['tasks']['T_wood']['manifest_path'] = 'wrong.json'
+    aggregate_path.write_text(
+        json.dumps(aggregate, indent=2) + '\n', encoding='utf-8')
+
+    with pytest.raises(ValueError, match='task manifest filename mismatch'):
+        validate_manifest(tmp_path)
+
+
+def test_compressed_manifest_validator_rejects_limits_drift(tmp_path):
+    from scripts.phase1_compressed_skill import run
+
+    run(tmp_path, train_seeds=[20], eval_seeds=[400], max_ticks=2)
+    task_path = tmp_path / 'T_wood' / 'manifest.json'
+    task_manifest = json.loads(task_path.read_text(encoding='utf-8'))
+    task_manifest['limits'] = []
+    task_path.write_text(
+        json.dumps(task_manifest, indent=2) + '\n', encoding='utf-8')
+    aggregate_path = tmp_path / 'manifest.json'
+    aggregate = json.loads(aggregate_path.read_text(encoding='utf-8'))
+    aggregate['tasks']['T_wood']['manifest_sha256'] = hashlib.sha256(
+        task_path.read_bytes()).hexdigest()
+    aggregate_path.write_text(
+        json.dumps(aggregate, indent=2) + '\n', encoding='utf-8')
+
+    with pytest.raises(ValueError, match='task limits mismatch'):
+        validate_manifest(tmp_path)
+
+
 def test_compressed_manifest_validator_rejects_inconsistent_episode_counters(
         tmp_path):
     from scripts.phase1_compressed_skill import run
