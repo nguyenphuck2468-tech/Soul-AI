@@ -61,6 +61,10 @@ AI-generated execution plan and its B6 endpoint are not the project endpoint.
   checking its help path. It also normalizes historical Windows artifact paths
   and accepts the recorded manifest/trace hashes under LF or CRLF checkout
   line endings while remaining fail-closed for missing or changed content.
+- The compressed runtime loop is now reusable in `minicraft/runtime.py` and
+  records safety blocks plus hand-coded expectation checks/mismatches in each
+  exploratory episode. This remains instrumentation, not an OOD detector or
+  promotion gate.
 - The mapped Candidate now reports a one-step expected state signature;
   checked fields matched the next observation on all 539 recorded checks for
   seeds 400–409. Its cheap monitor reports deviations and invalidates cached

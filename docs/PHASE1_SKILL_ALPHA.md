@@ -152,10 +152,13 @@ The output is exploratory train-seed evidence only. Agreement fraction is a
 diagnostic, not a promotion rule or compute-savings result.
 
 Each compressed-skill task manifest also records diagnostic wall time for the
-skill proposal, safety filter, environment step, and their integrated total,
-including per-step values. These measurements are local instrumentation only:
-they do not include a world-model supervisor, do not establish matched task
-performance, and do not support a compute-savings claim.
+skill proposal, safety filter, environment step, expectation monitor, and
+their integrated total, including per-step values. The reusable
+`minicraft.runtime.CompressedSkillRuntime` owns this ordering and records
+safety blocks plus expectation checks/mismatches alongside each episode.
+These measurements are local instrumentation only: they do not include a
+world-model supervisor, do not establish matched task performance, and do not
+support a compute-savings claim.
 
 The runner performs a fail-closed self-check before reporting completion:
 task-manifest and skill-artifact hashes, exploratory/no-promotion status,

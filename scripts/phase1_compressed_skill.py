@@ -5,20 +5,20 @@ from datetime import datetime, timezone
 import hashlib
 import json
 from pathlib import Path
-import time
-
 import numpy as np
 
-from minicraft import MiniCraftEnv, MiniCraftSafetyController
+from minicraft import MiniCraftEnv
 from minicraft.compressed_skill import CompressedObservationSkill
 from minicraft.distilled_skill import fit_decision_tree, observation_features
 from minicraft.experts import MiniCraftExpert
+from minicraft.runtime import CompressedSkillRuntime
 
 
 TASKS = ('T_wood', 'T_tools', 'T_iron')
 EXPECTED_STATUS = 'EXPLORATORY_TRAIN_SEEDS_NO_PROMOTION'
 RUNTIME_COMPONENTS = (
-    'skill_proposal', 'safety_filter', 'environment_step', 'integrated',
+    'skill_proposal', 'safety_filter', 'environment_step',
+    'expectation_monitor', 'integrated',
 )
 
 
@@ -58,6 +58,13 @@ def validate_manifest(output_dir: str | Path) -> dict:
         if not episodes or any(set(row.get('runtime_seconds', {})) != set(RUNTIME_COMPONENTS)
                                for row in episodes):
             raise ValueError(f'{task}: runtime component schema mismatch')
+        for field in (
+                'safety_blocks', 'expectation_checks', 'expectation_mismatches'):
+            if any(not isinstance(row.get(field), int) or row[field] < 0
+                   for row in episodes):
+                raise ValueError(f'{task}: invalid {field} diagnostic')
+            if sum(row[field] for row in episodes) != manifest.get(field):
+                raise ValueError(f'{task}: {field} total mismatch')
         steps = sum(row['steps'] for row in episodes)
         for component in RUNTIME_COMPONENTS:
             measured = sum(row['runtime_seconds'][component] for row in episodes)
@@ -100,40 +107,8 @@ def _fit_artifact(task: str, seeds: list[int], max_ticks: int) -> dict:
 
 
 def _episode(task: str, seed: int, artifact: dict, max_ticks: int) -> dict:
-    env = MiniCraftEnv(seed=seed, max_ticks=max_ticks)
-    skill = CompressedObservationSkill(task, artifact)
-    safety = MiniCraftSafetyController()
-    obs = env.observe()
-    learned_agreements = fallbacks = steps = 0
-    proposal_seconds = safety_seconds = environment_seconds = 0.0
-    while not env.done:
-        started = time.perf_counter()
-        proposal = skill.propose(obs)
-        proposal_seconds += time.perf_counter() - started
-        learned_agreements += int(proposal.source == 'learned_agreement')
-        fallbacks += int(proposal.source == 'mapped_fallback')
-        started = time.perf_counter()
-        decision = safety.filter(obs, proposal.candidate_action)
-        safety_seconds += time.perf_counter() - started
-        started = time.perf_counter()
-        obs, _, _, info = env.step(decision.applied_action)
-        environment_seconds += time.perf_counter() - started
-        skill.observe_outcome(obs, applied_action=decision.applied_action)
-        steps += 1
-    return {
-        'task': task,
-        'seed': seed,
-        'success': bool(info['task_success'][task]),
-        'steps': steps,
-        'learned_agreement_steps': learned_agreements,
-        'mapped_fallback_steps': fallbacks,
-        'runtime_seconds': {
-            'skill_proposal': proposal_seconds,
-            'safety_filter': safety_seconds,
-            'environment_step': environment_seconds,
-            'integrated': proposal_seconds + safety_seconds + environment_seconds,
-        },
-    }
+    return CompressedSkillRuntime(
+        task, artifact, max_ticks=max_ticks).run_episode(seed)
 
 
 def run(output_dir: str | Path, *, train_seeds: list[int],
@@ -182,13 +157,14 @@ def run(output_dir: str | Path, *, train_seeds: list[int],
             'learned_agreement_fraction': (
                 sum(row['learned_agreement_steps'] for row in episodes)
                 / max(1, sum(row['steps'] for row in episodes))),
+            'safety_blocks': sum(row['safety_blocks'] for row in episodes),
+            'expectation_checks': sum(row['expectation_checks'] for row in episodes),
+            'expectation_mismatches': sum(
+                row['expectation_mismatches'] for row in episodes),
             'runtime_seconds': {
                 component: sum(
                     row['runtime_seconds'][component] for row in episodes)
-                for component in (
-                    'skill_proposal', 'safety_filter', 'environment_step',
-                    'integrated',
-                )
+                for component in RUNTIME_COMPONENTS
             },
             'runtime_seconds_per_step': {
                 component: (
@@ -196,10 +172,7 @@ def run(output_dir: str | Path, *, train_seeds: list[int],
                 for component, manifest_value in {
                     component: sum(
                         row['runtime_seconds'][component] for row in episodes)
-                    for component in (
-                        'skill_proposal', 'safety_filter', 'environment_step',
-                        'integrated',
-                    )
+                    for component in RUNTIME_COMPONENTS
                 }.items()
             },
             'skill_path': str(skill_path),

@@ -33,7 +33,7 @@ non-evidentiary and does not validate model quality or the project hypothesis.
 | Compressed skill runtime | Done (alpha candidate) | `minicraft/compressed_skill.py` gates the learned tree on agreement with the observation-only mapped planner; disagreement falls back to the existing route. `python -m scripts.phase1_compressed_skill` writes exploratory manifests |
 | Held-out variant family and distance `d` | Not defined | Must be specified from the source project direction before generalization evaluation |
 | Locked promotion and performance margins | Not defined | Keep open; do not promote or use Confirm |
-| Integrated runtime accounting | Done (diagnostic) | `scripts.phase1_compressed_skill` records skill proposal, safety-filter, environment-step, and integrated wall time per episode/step; matched-performance comparison and world-model supervision costs remain open |
+| Integrated runtime accounting | Done (diagnostic) | `minicraft/runtime.py` and `scripts.phase1_compressed_skill` record skill proposal, safety-filter, environment-step, expectation-monitor, and integrated wall time plus safety/expectation diagnostics; matched-performance comparison and world-model supervision costs remain open |
 | Clean-checkout fail-closed validation | Done | `python -m scripts.alpha_sanity` executes the protocol validator, checks six alpha CLI paths, and verifies archived artifacts across Windows/POSIX line endings |
 
 **Engineering alpha estimate: 75%** of the checklist above is implemented and
