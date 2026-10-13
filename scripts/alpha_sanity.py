@@ -64,17 +64,23 @@ def _artifact_path(raw_path: str | Path) -> Path:
 
 def check_cli(module: str, *arguments: str) -> None:
     timeout = CLI_TIMEOUT_SECONDS if '--help' in arguments else RUN_TIMEOUT_SECONDS
-    result = subprocess.run(
-        [sys.executable, '-m', module, *arguments],
-        cwd=ROOT,
-        capture_output=True,
-        text=True,
-        timeout=timeout,
-        check=False,
-    )
-    if result.returncode != 0:
+    try:
+        result = subprocess.run(
+            [sys.executable, '-m', module, *arguments],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+            check=False,
+        )
+    except subprocess.TimeoutExpired as exc:
+        mode = 'help check' if '--help' in arguments else 'execution'
         raise RuntimeError(
-            f'{module} --help failed ({result.returncode}):\n'
+            f'{module} {mode} timed out after {timeout} seconds') from exc
+    if result.returncode != 0:
+        mode = 'help check' if '--help' in arguments else 'execution'
+        raise RuntimeError(
+            f'{module} {mode} failed ({result.returncode}):\n'
             f'{result.stdout}\n{result.stderr}')
 
 

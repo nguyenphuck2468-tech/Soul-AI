@@ -40,5 +40,15 @@ def test_cli_failure_remains_explicit(monkeypatch):
 
     monkeypatch.setattr(alpha_sanity.subprocess, 'run', fake_run)
 
-    with pytest.raises(RuntimeError, match='scripts.phase1_compressed_skill'):
+    with pytest.raises(RuntimeError, match='scripts.phase1_compressed_skill help check'):
         alpha_sanity.check_cli('scripts.phase1_compressed_skill', '--help')
+
+
+def test_cli_timeout_remains_explicit(monkeypatch):
+    def fake_run(*args, **kwargs):
+        raise subprocess.TimeoutExpired(args[0], kwargs['timeout'])
+
+    monkeypatch.setattr(alpha_sanity.subprocess, 'run', fake_run)
+
+    with pytest.raises(RuntimeError, match='execution timed out after 180 seconds'):
+        alpha_sanity.check_cli('scripts.phase0_alpha_run')
