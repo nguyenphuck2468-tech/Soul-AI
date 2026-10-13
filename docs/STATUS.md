@@ -61,6 +61,9 @@ AI-generated execution plan and its B6 endpoint are not the project endpoint.
   checking its help path. It also normalizes historical Windows artifact paths
   and accepts the recorded manifest/trace hashes under LF or CRLF checkout
   line endings while remaining fail-closed for missing or changed content.
+  Actual execution paths have a separate 180-second sanity timeout for slower
+  environments; CLI/help checks retain a 60-second timeout, and any timeout
+  still fails validation.
 - The compressed runtime loop is now reusable in `minicraft/runtime.py` and
   records safety blocks plus hand-coded expectation checks/mismatches in each
   exploratory episode. This remains instrumentation, not an OOD detector or
@@ -106,8 +109,8 @@ AI-generated execution plan and its B6 endpoint are not the project endpoint.
 
 ## Repository state
 
-The Phase 0/Phase 1 validation implementation is merged through PR #2
-(`08825105c9c8b192bbc83b4a4f304ba8a11d1ee4`). The pre-existing untracked
+The Phase 0/Phase 1 validation implementation is merged through PR #3
+(`5de33e9`). The pre-existing untracked
 `work/` directory is retained. The latest hardening was validated in Codespace
 with the Phase 0 validator, alpha sanity, and the full 99-test suite before
 merge; subsequent local archive/provenance hardening is tracked on the next

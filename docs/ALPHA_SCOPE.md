@@ -94,4 +94,6 @@ recorded historical `work/phase1_skill_sweeps/...` paths to their checked-in
 `results/phase1_skill_sweep_20261011/` copies, normalizes historical Windows
 separators, and accepts only the recorded content under LF/CRLF line endings.
 It rejects duplicate JSON keys and still fails if an artifact is missing,
-tampered with, or hash-inconsistent.
+tampered with, or hash-inconsistent. The sanity wrapper allows actual execution paths up to 180 seconds on slower
+environments; CLI/help checks retain a 60-second timeout. A timeout remains a
+failure, and this budget does not alter any experiment threshold.

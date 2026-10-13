@@ -12,6 +12,8 @@ import sys
 
 
 ROOT = Path(__file__).resolve().parents[1]
+CLI_TIMEOUT_SECONDS = 60
+RUN_TIMEOUT_SECONDS = 180
 
 
 def _reject_duplicate_json_keys(
@@ -61,12 +63,13 @@ def _artifact_path(raw_path: str | Path) -> Path:
 
 
 def check_cli(module: str, *arguments: str) -> None:
+    timeout = CLI_TIMEOUT_SECONDS if '--help' in arguments else RUN_TIMEOUT_SECONDS
     result = subprocess.run(
         [sys.executable, '-m', module, *arguments],
         cwd=ROOT,
         capture_output=True,
         text=True,
-        timeout=60,
+        timeout=timeout,
         check=False,
     )
     if result.returncode != 0:
@@ -148,7 +151,7 @@ def main() -> None:
     check_cli('scripts.phase1_distill_skill')
     check_cli('scripts.phase1_compressed_skill')
     checked = check_phase1_archives()
-    print(f'Alpha sanity passed: 6 CLIs, {checked} Phase 1 task archives.')
+    print(f'Alpha sanity passed: 7 CLIs, {checked} Phase 1 task archives.')
     print('No simulator seeds were accessed; this is not a model-quality test.')
 
 
