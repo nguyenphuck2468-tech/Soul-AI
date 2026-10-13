@@ -20,6 +20,20 @@ class ProtocolValidationError(ValueError):
     """Raised when protocol configuration is unsafe or inconsistent."""
 
 
+class _UniqueKeySafeLoader(yaml.SafeLoader):
+    """Reject ambiguous YAML mappings instead of silently overwriting keys."""
+
+    def construct_mapping(self, node, deep=False):
+        mapping = {}
+        for key_node, value_node in node.value:
+            key = self.construct_object(key_node, deep=deep)
+            if key in mapping:
+                raise ProtocolValidationError(
+                    f"duplicate YAML key: {key!r}")
+            mapping[key] = self.construct_object(value_node, deep=deep)
+        return mapping
+
+
 def _mapping(value: Any, label: str) -> dict[str, Any]:
     if not isinstance(value, dict):
         raise ProtocolValidationError(f"{label} must be a mapping")
@@ -38,7 +52,8 @@ def _range(value: Any, label: str) -> tuple[int, int]:
 def _load(path: Path) -> dict[str, Any]:
     try:
         with path.open(encoding="utf-8") as stream:
-            return _mapping(yaml.safe_load(stream), str(path))
+            return _mapping(
+                yaml.load(stream, Loader=_UniqueKeySafeLoader), str(path))
     except FileNotFoundError as exc:
         raise ProtocolValidationError(f"missing protocol file: {path}") from exc
     except yaml.YAMLError as exc:
