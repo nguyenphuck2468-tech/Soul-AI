@@ -31,3 +31,11 @@ CHANGELOG_SOUL.md — sửa tối thiểu cho RAWA (G3.0 transition mask, G3.1 i
 2026-10-11 — Add an observation-only mapped Candidate with online local-map memory/frontier exploration; archive train smoke 400–409 (10/10 each task) and a failed decision-tree distillation attempt.
 2026-10-11 — Add hand-coded one-step outcome expectations to the mapped skill and record next-observation agreement in its exploratory traces.
 2026-10-11 — Add a cheap skill expectation monitor that reports field/action deviations and invalidates the cached route without a world-model call.
+# 2026-10-13 — Alpha protocol/provenance hardening
+
+- `phase0_validate_protocol` now rejects duplicate YAML keys instead of
+  accepting ambiguous configuration.
+- `alpha_sanity` distinguishes executed exploratory smoke paths from the
+  untouched Confirm split and uses explicit bounded runtime budgets.
+- Full regression validation reached 104 passing tests; these checks do not
+  establish model quality, promotion, or adaptive-compute evidence.
