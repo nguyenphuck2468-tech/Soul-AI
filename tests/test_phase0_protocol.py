@@ -65,3 +65,15 @@ def test_validator_rejects_confirm_allocation_alias(tmp_path):
 
     with pytest.raises(ProtocolValidationError, match="allocation fields"):
         validate_protocol(protocol, ROOT / "configs" / "seeds.yaml")
+
+
+def test_validator_rejects_duplicate_yaml_keys(tmp_path):
+    protocol = tmp_path / "protocol.yaml"
+    protocol.write_text(
+        "status: DRAFT_NOT_LOCKED\n"
+        "status: DRAFT_NOT_LOCKED\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ProtocolValidationError, match="duplicate YAML key"):
+        validate_protocol(protocol, ROOT / "configs" / "seeds.yaml")

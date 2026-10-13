@@ -80,9 +80,11 @@ writes a unique run directory under `work/` unless `--output-dir` is supplied.
    performance or world-model-inclusive accounting.
 4. Keep per-task and aggregate manifests self-contained and hash-linked.
 5. Extend the clean-checkout validation only when new alpha artifacts are
-   added; the current command checks imports/CLI help, executes the protocol
+   added; the current command executes the documented smoke CLI paths, runs the
+   protocol
    gate, and verifies archived manifest/hash consistency without accessing
-   held-out or Confirm seeds.
+   held-out or Confirm seeds. The smoke paths use only their documented
+   exploratory train/dev inputs; this is not a model-quality test.
 
 The fail-closed protocol check is `python -m scripts.phase0_validate_protocol`.
 It verifies the draft status, train/dev range agreement, disjointness, and
@@ -93,7 +95,7 @@ archived Phase 1 trace/model/example/manifest hashes. It resolves the
 recorded historical `work/phase1_skill_sweeps/...` paths to their checked-in
 `results/phase1_skill_sweep_20261011/` copies, normalizes historical Windows
 separators, and accepts only the recorded content under LF/CRLF line endings.
-It rejects duplicate JSON keys and still fails if an artifact is missing,
+It rejects duplicate JSON/YAML keys and still fails if an artifact is missing,
 tampered with, or hash-inconsistent. The sanity wrapper allows actual execution paths up to 180 seconds on slower
 environments; CLI/help checks retain a 60-second timeout. A timeout remains a
 failure, and this budget does not alter any experiment threshold.
