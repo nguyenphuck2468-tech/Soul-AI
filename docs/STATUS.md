@@ -106,8 +106,9 @@ AI-generated execution plan and its B6 endpoint are not the project endpoint.
 
 ## Repository state
 
-Recent implementation is committed and pushed to the open Phase 0 validation
-PR branch; check `git log` and PR #1 for the current head. The pre-existing
-untracked `work/` directory is retained. Codespace validation passed with the
-Phase 0 validator, alpha sanity, and the full 65-test suite. No CI checks are
-reported by GitHub yet.
+The Phase 0/Phase 1 validation implementation is merged through PR #2
+(`08825105c9c8b192bbc83b4a4f304ba8a11d1ee4`). The pre-existing untracked
+`work/` directory is retained. The latest hardening was validated in Codespace
+with the Phase 0 validator, alpha sanity, and the full 99-test suite before
+merge; subsequent local archive/provenance hardening is tracked on the next
+branch. No CI checks are reported by GitHub.
