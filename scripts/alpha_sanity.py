@@ -14,6 +14,25 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def _reject_duplicate_json_keys(
+        pairs: list[tuple[str, object]]) -> dict[str, object]:
+    result: dict[str, object] = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError(f'duplicate JSON key: {key}')
+        result[key] = value
+    return result
+
+
+def _read_json(path: Path) -> dict:
+    value = json.loads(
+        path.read_text(encoding='utf-8-sig'),
+        object_pairs_hook=_reject_duplicate_json_keys)
+    if not isinstance(value, dict):
+        raise ValueError(f'JSON root must be an object: {path}')
+    return value
+
+
 def _sha256_file(path: Path) -> set[str]:
     """Return hashes for exact bytes and normalized text line endings."""
     raw = path.read_bytes()
@@ -59,7 +78,7 @@ def check_cli(module: str, *arguments: str) -> None:
 def check_phase1_archives() -> int:
     root = ROOT / 'results' / 'phase1_skill_sweep_20261011'
     sweep_path = root / 'compute_manifest.json'
-    sweep = json.loads(sweep_path.read_text(encoding='utf-8-sig'))
+    sweep = _read_json(sweep_path)
     if sweep.get('status') != 'EXPLORATORY_TRAIN_SEEDS_NO_PROMOTION':
         raise ValueError('phase1 sweep status is not exploratory/no-promotion')
     if sweep.get('evaluation_seeds') != list(range(200, 210)):
@@ -71,7 +90,11 @@ def check_phase1_archives() -> int:
         manifest_bytes = task_path.read_bytes()
         if entry['manifest_sha256'] not in _sha256_file(task_path):
             raise ValueError(f'{task}: manifest hash mismatch')
-        manifest = json.loads(manifest_bytes.decode('utf-8-sig'))
+        manifest = json.loads(
+            manifest_bytes.decode('utf-8-sig'),
+            object_pairs_hook=_reject_duplicate_json_keys)
+        if not isinstance(manifest, dict):
+            raise ValueError(f'{task}: manifest root is not an object')
         trace_path = _artifact_path(manifest['trace_path'])
         if manifest['trace_sha256'] not in _sha256_file(trace_path):
             raise ValueError(f'{task}: trace hash mismatch')
@@ -81,10 +104,10 @@ def check_phase1_archives() -> int:
             raise ValueError(f'{task}: decision timing mismatch')
         checked += 1
     mapped_root = ROOT / 'results' / 'phase1_mapped_skill_20261011'
-    mapped = json.loads((mapped_root / 'manifest.json').read_text(encoding='utf-8-sig'))
+    mapped = _read_json(mapped_root / 'manifest.json')
     for task, entry in mapped['tasks'].items():
         task_manifest_path = _artifact_path(entry['manifest_path'])
-        task_manifest = json.loads(task_manifest_path.read_text(encoding='utf-8-sig'))
+        task_manifest = _read_json(task_manifest_path)
         trace_path = _artifact_path(task_manifest['trace_path'])
         if task_manifest['trace_sha256'] not in _sha256_file(trace_path):
             raise ValueError(f'{task}: mapped-skill trace hash mismatch')
@@ -95,14 +118,17 @@ def check_phase1_archives() -> int:
         checked += 1
 
     distill_root = ROOT / 'results' / 'phase1_distillation_20261011'
-    distilled = json.loads(
-        (distill_root / 'batch_manifest.json').read_text(encoding='utf-8-sig'))
+    distilled = _read_json(distill_root / 'batch_manifest.json')
     for task, entry in distilled['tasks'].items():
         task_manifest_path = _artifact_path(entry['manifest_path'])
         manifest_bytes = task_manifest_path.read_bytes()
         if entry['manifest_sha256'] not in _sha256_file(task_manifest_path):
             raise ValueError(f'{task}: distillation manifest hash mismatch')
-        task_manifest = json.loads(manifest_bytes.decode('utf-8-sig'))
+        task_manifest = json.loads(
+            manifest_bytes.decode('utf-8-sig'),
+            object_pairs_hook=_reject_duplicate_json_keys)
+        if not isinstance(task_manifest, dict):
+            raise ValueError(f'{task}: distillation manifest root is not an object')
         for path_key, hash_key in (
                 ('skill_path', 'skill_sha256'),
                 ('training_examples_path', 'training_examples_sha256')):

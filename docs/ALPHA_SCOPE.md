@@ -34,7 +34,7 @@ non-evidentiary and does not validate model quality or the project hypothesis.
 | Held-out variant family and distance `d` | Not defined | Must be specified from the source project direction before generalization evaluation |
 | Locked promotion and performance margins | Not defined | Keep open; do not promote or use Confirm |
 | Integrated runtime accounting | Done (diagnostic) | `minicraft/runtime.py` and `scripts.phase1_compressed_skill` record skill proposal, safety-filter, environment-step, expectation-monitor, and integrated wall time plus safety/expectation diagnostics; matched-performance comparison and world-model supervision costs remain open |
-| Clean-checkout fail-closed validation | Done | `python -m scripts.alpha_sanity` executes the protocol validator, checks six alpha CLI paths, and verifies archived artifacts across Windows/POSIX line endings |
+| Clean-checkout fail-closed validation | Done | `python -m scripts.alpha_sanity` executes the protocol validator, checks six alpha CLI paths, verifies archived artifacts across Windows/POSIX line endings, and rejects duplicate JSON keys |
 
 **Engineering alpha estimate: 75%** of the checklist above is implemented and
 run. This is a progress estimate for Phase 1 alpha software only, not a
@@ -93,4 +93,5 @@ archived Phase 1 trace/model/example/manifest hashes. It resolves the
 recorded historical `work/phase1_skill_sweeps/...` paths to their checked-in
 `results/phase1_skill_sweep_20261011/` copies, normalizes historical Windows
 separators, and accepts only the recorded content under LF/CRLF line endings.
-It still fails if an artifact is missing, tampered with, or hash-inconsistent.
+It rejects duplicate JSON keys and still fails if an artifact is missing,
+tampered with, or hash-inconsistent.
