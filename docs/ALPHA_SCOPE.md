@@ -1,6 +1,6 @@
 # Alpha scope and completion
 
-Updated: 2026-10-12
+Updated: 2026-10-13
 
 ## What “alpha complete” means here
 

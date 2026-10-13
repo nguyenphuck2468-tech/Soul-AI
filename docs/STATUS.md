@@ -1,6 +1,6 @@
 # Soul-AI project status
 
-Updated: 2026-10-12
+Updated: 2026-10-13
 
 ## Direction
 
@@ -109,8 +109,9 @@ AI-generated execution plan and its B6 endpoint are not the project endpoint.
 
 ## Repository state
 
-The Phase 0/Phase 1 validation implementation is merged through PR #3
-(`5de33e9`). The pre-existing untracked
+The Phase 0/Phase 1 validation implementation is merged through PR #5
+(`1109169`). It rejects duplicate JSON/YAML configuration keys and reports
+smoke execution separately from Confirm access. The pre-existing untracked
 `work/` directory is retained. The latest hardening was validated in Codespace
 with the Phase 0 validator, alpha sanity, and the full 99-test suite before
 merge; subsequent local archive/provenance hardening is tracked on the next
