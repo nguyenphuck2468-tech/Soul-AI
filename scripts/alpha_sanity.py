@@ -158,7 +158,8 @@ def main() -> None:
     check_cli('scripts.phase1_compressed_skill')
     checked = check_phase1_archives()
     print(f'Alpha sanity passed: 7 CLIs, {checked} Phase 1 task archives.')
-    print('No simulator seeds were accessed; this is not a model-quality test.')
+    print('Smoke CLI paths executed; this is not a model-quality test.')
+    print('No Confirm seeds were accessed; protocol and archive checks remain fail-closed.')
 
 
 if __name__ == '__main__':

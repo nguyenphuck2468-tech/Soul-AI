@@ -80,9 +80,11 @@ writes a unique run directory under `work/` unless `--output-dir` is supplied.
    performance or world-model-inclusive accounting.
 4. Keep per-task and aggregate manifests self-contained and hash-linked.
 5. Extend the clean-checkout validation only when new alpha artifacts are
-   added; the current command checks imports/CLI help, executes the protocol
+   added; the current command executes the documented smoke CLI paths, runs the
+   protocol
    gate, and verifies archived manifest/hash consistency without accessing
-   held-out or Confirm seeds.
+   held-out or Confirm seeds. The smoke paths use only their documented
+   exploratory train/dev inputs; this is not a model-quality test.
 
 The fail-closed protocol check is `python -m scripts.phase0_validate_protocol`.
 It verifies the draft status, train/dev range agreement, disjointness, and
