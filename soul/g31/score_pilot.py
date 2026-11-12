@@ -12,6 +12,7 @@ from soul.g31.evaluator import (
     EvaluatorState,
     evaluate_one_step,
     initial_state,
+    prime_episode_state,
     physical_metrics,
     raw_observation_to_physical,
 )
@@ -135,8 +136,27 @@ def run(checkpoint_path=None, predictions_path=None, metrics_path=None,
     records = []
     for episode_id, rows in grouped.items():
         rows.sort(key=lambda row: row['timestep'])
-        state = initial_state(model.dynamics, 'cpu')
-        for row in rows:
+        if len(rows) < 2:
+            raise ValueError(f'{episode_id}: at least two rows are required for aligned scoring')
+        if [row['timestep'] for row in rows] != list(range(len(rows))):
+            raise ValueError(f'{episode_id}: timesteps must be contiguous from zero')
+        # Dataset contract: each row's before-state must equal the previous
+        # row's after-state. Fail closed instead of silently scoring a broken sequence.
+        for previous, current_row in zip(rows, rows[1:]):
+            if not np.allclose(
+                previous['raw_observation_after'],
+                current_row['raw_observation_before'],
+                rtol=0.0, atol=1e-6,
+            ):
+                raise ValueError(f'{episode_id}: discontinuity before timestep {current_row["timestep"]}')
+        # The first recorded row is the training-sequence warm-up: training
+        # initializes h with (zero latent, zero action), then observes its
+        # after-state. It has no trained prior target, so prime from that row
+        # and score only rows 1..N-1.
+        state = prime_episode_state(
+            model, rows[0]['raw_observation_after'], encoder, device='cpu'
+        )
+        for row in rows[1:]:
             current = np.asarray(row['raw_observation_before'], dtype=np.float32)
             target = raw_observation_to_physical(row['raw_observation_after'])
             predicted, state = evaluate_one_step(
@@ -193,8 +213,10 @@ def run(checkpoint_path=None, predictions_path=None, metrics_path=None,
         'dataset': str(PILOT_PATH), 'pilot_sha256': PILOT_HASH,
         'checkpoint': str(checkpoint_path), 'checkpoint_sha256': checkpoint_sha256,
         'environment': 'Pendulum-v1 / Gymnasium 1.4.0',
-        'episodes': 5, 'transitions': 100,
-        'evaluator': 'prior mean + physical theta/velocity decode + real obs teacher forcing',
+        'episodes': len(model_ep), 'transitions': len(records),
+        'recorded_transitions': len(pilot_rows),
+        'warmup_transitions_skipped': len(model_ep),
+        'evaluator': 'training-aligned warm start + prior mean + physical decode + real obs teacher forcing',
         'confirm_accessed': False, 'optimizer_updates': 0,
         'deterministic': True, 'model_immutable': True,
         'threshold': 'TO_LOCK', 'gate': 'INCONCLUSIVE',
