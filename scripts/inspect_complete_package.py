@@ -9,8 +9,10 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 from pathlib import Path, PurePosixPath
 import stat
+import tempfile
 import unicodedata
 import zipfile
 
@@ -184,6 +186,29 @@ def inspect_package(archive_path: Path) -> dict[str, object]:
     }
 
 
+def _atomic_write_text(destination: Path, content: str) -> None:
+    """Write a complete report beside its destination, then atomically replace it."""
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            encoding="utf-8",
+            dir=destination.parent,
+            prefix=f".{destination.name}.",
+            suffix=".tmp",
+            delete=False,
+        ) as stream:
+            temporary = Path(stream.name)
+            stream.write(content)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temporary, destination)
+    finally:
+        if temporary is not None:
+            temporary.unlink(missing_ok=True)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("archive", type=Path, help="SOUL AI artifact ZIP")
@@ -204,7 +229,7 @@ def main() -> int:
         parser.exit(2, f"Package inspection failed: {error}\n")
     rendered = json.dumps(report, indent=2, ensure_ascii=False) + "\n"
     if args.output:
-        args.output.write_text(rendered, encoding="utf-8")
+        _atomic_write_text(args.output, rendered)
     print(rendered, end="")
     return 0
 
