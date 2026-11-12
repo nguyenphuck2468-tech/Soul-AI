@@ -11,6 +11,7 @@ import pytest
 from soul.g31.score_pilot import (
     DEFAULT_CHECKPOINT_PATH,
     PILOT_HASH,
+    PILOT_PATH,
     sha256,
     run,
 )
