@@ -82,7 +82,7 @@ def _validate_name(info: zipfile.ZipInfo) -> tuple[str, bool]:
     return "/".join(path.parts), is_directory
 
 
-def inspect_package(archive_path: Path) -> dict[str, object:
+def inspect_package(archive_path: Path) -> dict[str, object]:
     if not archive_path.is_file():
         raise ValueError(f"not a readable ZIP archive: {archive_path}")
 
@@ -93,6 +93,7 @@ def inspect_package(archive_path: Path) -> dict[str, object:
         if not zipfile.is_zipfile(raw_archive):
             raise ValueError(f"not a readable ZIP archive: {archive_path}")
         raw_archive.seek(0)
+
         inventory: list[dict[str, object]] = []
         seen: set[str] = set()
         seen_folded: set[str] = set()
@@ -104,7 +105,7 @@ def inspect_package(archive_path: Path) -> dict[str, object:
             archive_hash.update(chunk)
         raw_archive.seek(0)
 
-            with zipfile.ZipFile(raw_archive) as zf:
+        with zipfile.ZipFile(raw_archive) as zf:
             entries = zf.infolist()
             if not entries:
                 raise ValueError("empty ZIP archive")
@@ -112,19 +113,37 @@ def inspect_package(archive_path: Path) -> dict[str, object:
                 raise ValueError(
                     f"too many ZIP entries: {len(entries)} (limit {MAX_ARCHIVE_ENTRIES})"
                 )
-    
+
             validated: list[tuple[zipfile.ZipInfo, str, bool]] = []
             for info in entries:
                 name, is_directory = _validate_name(info)
                 folded = _collision_key(name)
                 if name in seen or folded in seen_folded:
-                    raise ValueError(f"duplicate or case-insensitive ZIP path collision: {info.filename}")
-                parents = ["/".join(PurePosixPath(name).parts[:i]) for i in range(1, len(PurePosixPath(name).parts))]
-                conflict = next((_collision_key(parent) for parent in parents if _collision_key(parent) in files_folded), None)
+                    raise ValueError(
+                        f"duplicate or case-insensitive ZIP path collision: {info.filename}"
+                    )
+                parents = [
+                    "/".join(PurePosixPath(name).parts[:i])
+                    for i in range(1, len(PurePosixPath(name).parts))
+                ]
+                conflict = next(
+                    (
+                        _collision_key(parent)
+                        for parent in parents
+                        if _collision_key(parent) in files_folded
+                    ),
+                    None,
+                )
                 if conflict is not None:
-                    raise ValueError(f"file/directory path collision: {info.filename} is below {conflict}")
-                if not is_directory and any(existing.startswith(folded + "/") for existing in seen_folded):
-                    raise ValueError(f"file/directory path collision: {info.filename} replaces a directory")
+                    raise ValueError(
+                        f"file/directory path collision: {info.filename} is below {conflict}"
+                    )
+                if not is_directory and any(
+                    existing.startswith(folded + "/") for existing in seen_folded
+                ):
+                    raise ValueError(
+                        f"file/directory path collision: {info.filename} replaces a directory"
+                    )
                 if info.flag_bits & 0x1:
                     raise ValueError(f"encrypted ZIP entry refused: {info.filename}")
                 if not is_directory:
@@ -139,7 +158,7 @@ def inspect_package(archive_path: Path) -> dict[str, object:
                 seen.add(name)
                 seen_folded.add(folded)
                 validated.append((info, name, is_directory))
-    
+
             for info, name, is_directory in validated:
                 if is_directory:
                     inventory.append({"path": name, "kind": "directory"})
@@ -151,7 +170,9 @@ def inspect_package(archive_path: Path) -> dict[str, object:
                     while chunk := source.read(CHUNK_SIZE):
                         actual_size += len(chunk)
                         if actual_size > MAX_MEMBER_UNCOMPRESSED_BYTES:
-                            raise ValueError(f"actual ZIP member size exceeds limit: {name}")
+                            raise ValueError(
+                                f"actual ZIP member size exceeds limit: {name}"
+                            )
                         digest.update(chunk)
                         if json_bytes is not None:
                             if len(json_bytes) + len(chunk) > MAX_JSON_BYTES:
@@ -171,7 +192,7 @@ def inspect_package(archive_path: Path) -> dict[str, object:
                     "sha256": digest.hexdigest(),
                     "json_validated": json_bytes is not None,
                 })
-    
+
         after = os.fstat(raw_archive.fileno())
         stable_fields = ("st_dev", "st_ino", "st_size", "st_mtime_ns", "st_ctime_ns")
         if any(getattr(before, field) != getattr(after, field) for field in stable_fields):
