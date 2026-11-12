@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 import pytest
 
-from scripts.inspect_complete_package import inspect_package
+from scripts.inspect_complete_package import inspect_package, main
 
 
 def test_inventory_hashes_model_files_without_loading_them(tmp_path: Path):
@@ -102,3 +102,35 @@ def test_rejects_symlink_entries(tmp_path: Path):
         zf.writestr(info, "target")
     with pytest.raises(ValueError, match="symlink entry refused"):
         inspect_package(archive)
+
+
+
+def test_cli_refuses_to_overwrite_input_archive(tmp_path: Path):
+    archive = tmp_path / "Soul_AI_Complete_Package.zip"
+    with zipfile.ZipFile(archive, "w") as zf:
+        zf.writestr("manifest.json", '{"schema_version":1}')
+    original = archive.read_bytes()
+    with patch(
+        "sys.argv",
+        ["inspect_complete_package.py", str(archive), "--output", str(archive)],
+    ):
+        with pytest.raises(SystemExit) as error:
+            main()
+    assert error.value.code == 2
+    assert archive.read_bytes() == original
+
+
+def test_cli_refuses_output_symlink_to_input_archive(tmp_path: Path):
+    archive = tmp_path / "Soul_AI_Complete_Package.zip"
+    with zipfile.ZipFile(archive, "w") as zf:
+        zf.writestr("manifest.json", '{"schema_version":1}')
+    alias = tmp_path / "inventory.json"
+    alias.symlink_to(archive)
+    with patch(
+        "sys.argv",
+        ["inspect_complete_package.py", str(archive), "--output", str(alias)],
+    ):
+        with pytest.raises(SystemExit) as error:
+            main()
+    assert error.value.code == 2
+    assert zipfile.is_zipfile(archive)
