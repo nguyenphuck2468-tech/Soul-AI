@@ -81,7 +81,7 @@ A Minecraft skill is not eligible for execution until all of the following are t
 - The adapter has deterministic contract tests, replay tests, fuzz/property tests for malformed observations, and end-to-end tests against a disposable Horizon world.
 - Proposal-only mode is the default. Execution is opt-in, bounded, interruptible, and auditable.
 
-## Immediate next work
+See [the full owner-supplied package report](EXTERNAL-TEST-REPORT-20261112.md) for the recorded training and skill metrics, including the explicit artifact-verification caveats.\n\n## Immediate next work
 
 1. Obtain and verify `Soul_AI_Complete_Package.zip`; do not infer artifact contents from its summary.
 2. Add an artifact inspection/verification command that checks all referenced files, duplicate JSON keys, schema versions, and SHA-256 hashes without loading untrusted model weights.
