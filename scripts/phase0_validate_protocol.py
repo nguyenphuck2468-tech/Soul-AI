@@ -81,8 +81,21 @@ def validate_protocol(protocol_path: Path = PROTOCOL_PATH,
         if ranges[split] != _range(seed_split.get("range"), f"seeds.{split}.range"):
             raise ProtocolValidationError(
                 f"{split} range differs between protocol and configs/seeds.yaml")
-        if protocol_split.get("allowed_for") in (None, []):
-            raise ProtocolValidationError(f"{split} split has no allowed uses")
+        allowed_for = protocol_split.get("allowed_for")
+        expected_uses = {
+            "train": {"collection", "fitting"},
+            "dev": {"exploratory_evaluation", "iteration"},
+        }[split]
+        if (
+            not isinstance(allowed_for, list)
+            or any(not isinstance(use, str) for use in allowed_for)
+            or len(allowed_for) != len(set(allowed_for))
+            or set(allowed_for) != expected_uses
+        ):
+            raise ProtocolValidationError(
+                f"{split} split allowed_for must be exactly "
+                f"{sorted(expected_uses)}; got {allowed_for!r}"
+            )
 
     if ranges["train"][1] >= ranges["dev"][0]:
         raise ProtocolValidationError("train and dev ranges overlap")
