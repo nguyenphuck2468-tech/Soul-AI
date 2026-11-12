@@ -68,6 +68,6 @@ Before promoting the package:
 5. Run ablations and safety fault injection; keep any confirm set sealed.
 6. Keep MiniCraft and Minecraft/Horizon observation/action schemas separate until a dedicated 3D adapter is validated.
 
-## 7. Current repository boundary
+## 7. Artifact intake tooling\n\nA safe ZIP inspector is now available at `scripts/inspect_complete_package.py`. After receiving the archive, run:\n\n```bash\npython -m scripts.inspect_complete_package Soul_AI_Complete_Package.zip --output package-inventory.json\n```\n\nIt hashes every file, checks archive paths and resource limits, validates JSON syntax and duplicate keys, and never deserializes `.pt` weights or `.npz` arrays. It deliberately does not claim to verify package-specific manifest references or reproduce metrics; those checks require the actual package schema and evidence.\n\n## 8. Current repository boundary
 
 This report does not change G3.1's existing evidence gate, checkpoint provenance, training state, or `TO_LOCK` threshold. It does not authorize CONFIRM access or automatic control of Horizon. The matching integration contract is [SOUL AI ↔ Horizon integration](SOUL-HORIZON-INTEGRATION.md).
