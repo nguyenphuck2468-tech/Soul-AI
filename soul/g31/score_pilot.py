@@ -9,9 +9,7 @@ import torch
 
 from soul.config import Config
 from soul.g31.evaluator import (
-    EvaluatorState,
     evaluate_one_step,
-    initial_state,
     prime_episode_state,
     physical_metrics,
     raw_observation_to_physical,
