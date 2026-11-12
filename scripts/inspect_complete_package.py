@@ -11,6 +11,7 @@ import hashlib
 import json
 from pathlib import Path, PurePosixPath
 import stat
+import unicodedata
 import zipfile
 
 MAX_ARCHIVE_ENTRIES = 100_000
@@ -47,6 +48,12 @@ def _reject_duplicate_keys(pairs: list[tuple[str, object]]) -> dict[str, object]
             raise ValueError(f"duplicate JSON key: {key}")
         result[key] = value
     return result
+
+
+def _collision_key(value: str) -> str:
+    """Normalize canonical Unicode equivalents before case-insensitive comparison."""
+    normalized = unicodedata.normalize("NFC", value)
+    return unicodedata.normalize("NFC", normalized.casefold())
 
 
 def _validate_name(info: zipfile.ZipInfo) -> tuple[str, bool]:
@@ -101,11 +108,11 @@ def inspect_package(archive_path: Path) -> dict[str, object]:
         validated: list[tuple[zipfile.ZipInfo, str, bool]] = []
         for info in entries:
             name, is_directory = _validate_name(info)
-            folded = name.casefold()
+            folded = _collision_key(name)
             if name in seen or folded in seen_folded:
                 raise ValueError(f"duplicate or case-insensitive ZIP path collision: {info.filename}")
             parents = ["/".join(PurePosixPath(name).parts[:i]) for i in range(1, len(PurePosixPath(name).parts))]
-            conflict = next((parent.casefold() for parent in parents if parent.casefold() in files_folded), None)
+            conflict = next((_collision_key(parent) for parent in parents if parent.casefold() in files_folded), None)
             if conflict is not None:
                 raise ValueError(f"file/directory path collision: {info.filename} is below {conflict}")
             if not is_directory and any(existing.startswith(folded + "/") for existing in seen_folded):
