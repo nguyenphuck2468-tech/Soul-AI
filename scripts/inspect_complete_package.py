@@ -19,6 +19,26 @@ MAX_TOTAL_UNCOMPRESSED_BYTES = 8 * 1024**3
 MAX_JSON_BYTES = 32 * 1024**2
 CHUNK_SIZE = 1024 * 1024
 
+WINDOWS_RESERVED_NAMES = {
+    "CON", "PRN", "AUX", "NUL",
+    *(f"COM{number}" for number in range(1, 10)),
+    *(f"LPT{number}" for number in range(1, 10)),
+    "COM¹", "COM²", "COM³", "LPT¹", "LPT²", "LPT³",
+}
+
+
+def _portable_windows_component(part: str) -> bool:
+    """Reject names that alias devices or alternate streams on Windows."""
+    stem = part.split(".", 1)[0].upper()
+    return (
+        bool(part)
+        and not part.endswith((" ", "."))
+        and not any(ord(char) < 32 or char in '<>:"|?*' for char in part)
+        and stem not in WINDOWS_RESERVED_NAMES
+    )
+
+
+
 
 def _reject_duplicate_keys(pairs: list[tuple[str, object]]) -> dict[str, object]:
     result: dict[str, object] = {}
@@ -38,7 +58,7 @@ def _validate_name(info: zipfile.ZipInfo) -> tuple[str, bool]:
         or raw.startswith("/")
         or chr(0) in raw
         or ".." in path.parts
-        or (path.parts and ":" in path.parts[0])
+        or any(not _portable_windows_component(part) for part in path.parts)
     ):
         raise ValueError(f"unsafe ZIP path: {info.filename}")
     mode = (info.external_attr >> 16) & 0o170000
