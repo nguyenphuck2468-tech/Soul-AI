@@ -82,89 +82,100 @@ def _validate_name(info: zipfile.ZipInfo) -> tuple[str, bool]:
     return "/".join(path.parts), is_directory
 
 
-def inspect_package(archive_path: Path) -> dict[str, object]:
-    if not archive_path.is_file() or not zipfile.is_zipfile(archive_path):
+def inspect_package(archive_path: Path) -> dict[str, object:
+    if not archive_path.is_file():
         raise ValueError(f"not a readable ZIP archive: {archive_path}")
 
-    inventory: list[dict[str, object]] = []
-    seen: set[str] = set()
-    seen_folded: set[str] = set()
-    files_folded: set[str] = set()
-    directories = 0
-    total_uncompressed = 0
-    archive_hash = hashlib.sha256()
-
     with archive_path.open("rb") as raw_archive:
+        before = os.fstat(raw_archive.fileno())
+        if not stat.S_ISREG(before.st_mode):
+            raise ValueError(f"not a regular ZIP archive: {archive_path}")
+        if not zipfile.is_zipfile(raw_archive):
+            raise ValueError(f"not a readable ZIP archive: {archive_path}")
+        raw_archive.seek(0)
+        inventory: list[dict[str, object]] = []
+        seen: set[str] = set()
+        seen_folded: set[str] = set()
+        files_folded: set[str] = set()
+        directories = 0
+        total_uncompressed = 0
+        archive_hash = hashlib.sha256()
         for chunk in iter(lambda: raw_archive.read(CHUNK_SIZE), b""):
             archive_hash.update(chunk)
+        raw_archive.seek(0)
 
-    with zipfile.ZipFile(archive_path) as zf:
-        entries = zf.infolist()
-        if not entries:
-            raise ValueError("empty ZIP archive")
-        if len(entries) > MAX_ARCHIVE_ENTRIES:
-            raise ValueError(
-                f"too many ZIP entries: {len(entries)} (limit {MAX_ARCHIVE_ENTRIES})"
-            )
-
-        validated: list[tuple[zipfile.ZipInfo, str, bool]] = []
-        for info in entries:
-            name, is_directory = _validate_name(info)
-            folded = _collision_key(name)
-            if name in seen or folded in seen_folded:
-                raise ValueError(f"duplicate or case-insensitive ZIP path collision: {info.filename}")
-            parents = ["/".join(PurePosixPath(name).parts[:i]) for i in range(1, len(PurePosixPath(name).parts))]
-            conflict = next((_collision_key(parent) for parent in parents if _collision_key(parent) in files_folded), None)
-            if conflict is not None:
-                raise ValueError(f"file/directory path collision: {info.filename} is below {conflict}")
-            if not is_directory and any(existing.startswith(folded + "/") for existing in seen_folded):
-                raise ValueError(f"file/directory path collision: {info.filename} replaces a directory")
-            if info.flag_bits & 0x1:
-                raise ValueError(f"encrypted ZIP entry refused: {info.filename}")
-            if not is_directory:
-                if info.file_size < 0 or info.file_size > MAX_MEMBER_UNCOMPRESSED_BYTES:
-                    raise ValueError(f"ZIP member exceeds size limit: {info.filename}")
-                total_uncompressed += info.file_size
-                if total_uncompressed > MAX_TOTAL_UNCOMPRESSED_BYTES:
-                    raise ValueError("ZIP archive exceeds total uncompressed size limit")
-                files_folded.add(folded)
-            else:
-                directories += 1
-            seen.add(name)
-            seen_folded.add(folded)
-            validated.append((info, name, is_directory))
-
-        for info, name, is_directory in validated:
-            if is_directory:
-                inventory.append({"path": name, "kind": "directory"})
-                continue
-            digest = hashlib.sha256()
-            json_bytes = bytearray() if name.lower().endswith(".json") else None
-            actual_size = 0
-            with zf.open(info) as source:
-                while chunk := source.read(CHUNK_SIZE):
-                    actual_size += len(chunk)
-                    if actual_size > MAX_MEMBER_UNCOMPRESSED_BYTES:
-                        raise ValueError(f"actual ZIP member size exceeds limit: {name}")
-                    digest.update(chunk)
-                    if json_bytes is not None:
-                        if len(json_bytes) + len(chunk) > MAX_JSON_BYTES:
-                            raise ValueError(f"JSON manifest exceeds inspection limit: {name}")
-                        json_bytes.extend(chunk)
-            if actual_size != info.file_size:
-                raise ValueError(f"ZIP member size mismatch: {name}")
-            if json_bytes is not None:
-                try:
-                    json.loads(bytes(json_bytes), object_pairs_hook=_reject_duplicate_keys)
-                except (UnicodeDecodeError, json.JSONDecodeError, ValueError) as error:
-                    raise ValueError(f"invalid JSON file {name}: {error}") from error
-            inventory.append({
-                "path": name,
-                "kind": "file",
-                "bytes": actual_size,
-                "sha256": digest.hexdigest(),
-                "json_validated": json_bytes is not None,
-            })
+            with zipfile.ZipFile(raw_archive) as zf:
+            entries = zf.infolist()
+            if not entries:
+                raise ValueError("empty ZIP archive")
+            if len(entries) > MAX_ARCHIVE_ENTRIES:
+                raise ValueError(
+                    f"too many ZIP entries: {len(entries)} (limit {MAX_ARCHIVE_ENTRIES})"
+                )
+    
+            validated: list[tuple[zipfile.ZipInfo, str, bool]] = []
+            for info in entries:
+                name, is_directory = _validate_name(info)
+                folded = _collision_key(name)
+                if name in seen or folded in seen_folded:
+                    raise ValueError(f"duplicate or case-insensitive ZIP path collision: {info.filename}")
+                parents = ["/".join(PurePosixPath(name).parts[:i]) for i in range(1, len(PurePosixPath(name).parts))]
+                conflict = next((_collision_key(parent) for parent in parents if _collision_key(parent) in files_folded), None)
+                if conflict is not None:
+                    raise ValueError(f"file/directory path collision: {info.filename} is below {conflict}")
+                if not is_directory and any(existing.startswith(folded + "/") for existing in seen_folded):
+                    raise ValueError(f"file/directory path collision: {info.filename} replaces a directory")
+                if info.flag_bits & 0x1:
+                    raise ValueError(f"encrypted ZIP entry refused: {info.filename}")
+                if not is_directory:
+                    if info.file_size < 0 or info.file_size > MAX_MEMBER_UNCOMPRESSED_BYTES:
+                        raise ValueError(f"ZIP member exceeds size limit: {info.filename}")
+                    total_uncompressed += info.file_size
+                    if total_uncompressed > MAX_TOTAL_UNCOMPRESSED_BYTES:
+                        raise ValueError("ZIP archive exceeds total uncompressed size limit")
+                    files_folded.add(folded)
+                else:
+                    directories += 1
+                seen.add(name)
+                seen_folded.add(folded)
+                validated.append((info, name, is_directory))
+    
+            for info, name, is_directory in validated:
+                if is_directory:
+                    inventory.append({"path": name, "kind": "directory"})
+                    continue
+                digest = hashlib.sha256()
+                json_bytes = bytearray() if name.lower().endswith(".json") else None
+                actual_size = 0
+                with zf.open(info) as source:
+                    while chunk := source.read(CHUNK_SIZE):
+                        actual_size += len(chunk)
+                        if actual_size > MAX_MEMBER_UNCOMPRESSED_BYTES:
+                            raise ValueError(f"actual ZIP member size exceeds limit: {name}")
+                        digest.update(chunk)
+                        if json_bytes is not None:
+                            if len(json_bytes) + len(chunk) > MAX_JSON_BYTES:
+                                raise ValueError(f"JSON manifest exceeds inspection limit: {name}")
+                            json_bytes.extend(chunk)
+                if actual_size != info.file_size:
+                    raise ValueError(f"ZIP member size mismatch: {name}")
+                if json_bytes is not None:
+                    try:
+                        json.loads(bytes(json_bytes), object_pairs_hook=_reject_duplicate_keys)
+                    except (UnicodeDecodeError, json.JSONDecodeError, ValueError) as error:
+                        raise ValueError(f"invalid JSON file {name}: {error}") from error
+                inventory.append({
+                    "path": name,
+                    "kind": "file",
+                    "bytes": actual_size,
+                    "sha256": digest.hexdigest(),
+                    "json_validated": json_bytes is not None,
+                })
+    
+        after = os.fstat(raw_archive.fileno())
+        stable_fields = ("st_dev", "st_ino", "st_size", "st_mtime_ns", "st_ctime_ns")
+        if any(getattr(before, field) != getattr(after, field) for field in stable_fields):
+            raise ValueError("ZIP archive changed during inspection")
 
     files = [item for item in inventory if item["kind"] == "file"]
     return {
