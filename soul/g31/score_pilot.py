@@ -32,6 +32,11 @@ PILOT_HASH = '26d63b1e3a900d40a9532aa5b2e4c178b58129e88f70cb2cb9a6e07af596264e'
 CHECKPOINT_HASH = '0fd3fbc46eadd3e6dc4b2d9af873f62ef4c5a04477bfedd06b8565d704b32147'
 B1_CHECKPOINT_HASH = '136017b650fc910043c559822d47fea900391e2823324413327de815a4d8c018'
 FROZEN_CHECKPOINT_HASHES = frozenset((CHECKPOINT_HASH, B1_CHECKPOINT_HASH))
+FROZEN_CHECKPOINT_SIZES = {
+    CHECKPOINT_HASH: 3_386_259,
+    B1_CHECKPOINT_HASH: 3_383_579,
+}
+MAX_FROZEN_CHECKPOINT_BYTES = max(FROZEN_CHECKPOINT_SIZES.values())
 
 
 def sha256(path):
@@ -50,15 +55,22 @@ def load_frozen_checkpoint(path):
     or in-place source mutation from changing the bytes after the allowlist check.
     """
     digest = hashlib.sha256()
+    total_bytes = 0
     with Path(path).open('rb') as source, tempfile.TemporaryFile(mode='w+b') as snapshot:
         for chunk in iter(lambda: source.read(1024 * 1024), b''):
+            total_bytes += len(chunk)
+            if total_bytes > MAX_FROZEN_CHECKPOINT_BYTES:
+                raise RuntimeError('checkpoint exceeds the maximum frozen G3.1 checkpoint size')
             digest.update(chunk)
             snapshot.write(chunk)
         checkpoint_sha256 = digest.hexdigest()
-        if checkpoint_sha256 not in FROZEN_CHECKPOINT_HASHES:
+        expected_size = FROZEN_CHECKPOINT_SIZES.get(checkpoint_sha256)
+        if expected_size is None:
             raise RuntimeError(
                 'checkpoint SHA-256 is not one of the frozen G3.1 A/B1 checkpoints'
             )
+        if total_bytes != expected_size:
+            raise RuntimeError('frozen G3.1 checkpoint size does not match its pinned SHA-256')
         snapshot.flush()
         snapshot.seek(0)
         checkpoint = torch.load(snapshot, map_location='cpu', weights_only=False)
