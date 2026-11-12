@@ -182,6 +182,15 @@ def main() -> int:
     parser.add_argument("archive", type=Path, help="SOUL AI artifact ZIP")
     parser.add_argument("--output", type=Path, help="Optional path for the JSON inventory report")
     args = parser.parse_args()
+    if args.output is not None:
+        same_path = args.output.resolve() == args.archive.resolve()
+        same_file = (
+            args.output.exists()
+            and args.archive.exists()
+            and args.output.samefile(args.archive)
+        )
+        if same_path or same_file:
+            parser.error("--output must not overwrite the input archive")
     try:
         report = inspect_package(args.archive)
     except (OSError, ValueError, zipfile.BadZipFile, RuntimeError) as error:
