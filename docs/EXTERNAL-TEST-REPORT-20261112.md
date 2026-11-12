@@ -31,7 +31,7 @@ This is the report's pre-training suite. It is distinct from the current reposit
 - Policy loss: `12.1158` → `0.5645` (21× lower).
 - Continue loss: `0.0042` → `6.38e-07`.
 
-Loss convergence alone does not establish closed-loop control quality. The model still requires held-out trajectory scoring, action-channel ablation, and comparison with simple baselines before any control claim.
+Loss convergence alone does not establish closed-loop control quality. A reconstruction loss of `0.0050` is not automatically equivalent to `99.5%` accuracy; that conversion requires a defined, calibrated metric and normalization. The model still requires held-out trajectory scoring, action-channel ablation, and comparison with simple baselines before any control claim.
 
 ## 4. Reported Phase 0 MiniCraft RSSM
 
@@ -43,7 +43,7 @@ Loss convergence alone does not establish closed-loop control quality. The model
 - Facing error: `0.111` versus inertia baseline `0.302`.
 - Mob relative movement error: `mobs.dx=0.192`, `mobs.dy=0.114`, versus reported baselines `0.389` and `0.242`.
 
-The exact normalization, evaluation aggregation and baseline definitions need to be checked against the package's JSON reports.
+The exact normalization, evaluation aggregation and baseline definitions need to be checked against the package's JSON reports. Ratios between MAE values may be reported as error reductions, but should not be described as accuracy multipliers without a defined accuracy metric.
 
 ## 5. Reported Phase 1 skill results
 
