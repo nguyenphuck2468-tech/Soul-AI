@@ -74,6 +74,16 @@ def test_rejects_duplicate_json_keys(tmp_path: Path):
         inspect_package(archive)
 
 
+
+def test_rejects_unicode_canonical_equivalent_paths(tmp_path: Path):
+    archive = tmp_path / "unicode-collision.zip"
+    with zipfile.ZipFile(archive, "w") as zf:
+        zf.writestr("artifacts/caf\u00e9.json", "{}")
+        zf.writestr("artifacts/cafe\u0301.json", "{}")
+    with pytest.raises(ValueError, match="case-insensitive ZIP path collision"):
+        inspect_package(archive)
+
+
 def test_rejects_too_many_entries(tmp_path: Path):
     archive = tmp_path / "many.zip"
     with zipfile.ZipFile(archive, "w") as zf:
