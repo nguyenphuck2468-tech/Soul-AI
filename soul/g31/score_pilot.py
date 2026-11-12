@@ -1,6 +1,8 @@
 """G3.1 Pilot scorer. Reads Pilot + TRAIN only; never opens Confirm."""
 import hashlib
 import json
+import os
+import tempfile
 from collections import defaultdict
 from pathlib import Path
 
@@ -93,6 +95,27 @@ def aggregate_episode_metrics(metrics_by_episode):
     }
 
 
+def _same_output_path(left, right):
+    """Detect path aliases, including symlinks and existing hard links."""
+    if left.resolve() == right.resolve():
+        return True
+    try:
+        return left.exists() and right.exists() and os.path.samefile(left, right)
+    except OSError:
+        return False
+
+
+def validate_output_paths(outputs, protected_inputs):
+    """Prevent outputs from aliasing each other or source evidence."""
+    for index, output in enumerate(outputs):
+        for other in outputs[index + 1:]:
+            if _same_output_path(output, other):
+                raise ValueError(f'Output paths must be distinct: {output} and {other}')
+        for source in protected_inputs:
+            if _same_output_path(output, source):
+                raise ValueError(f'Output path must not overwrite input evidence: {output}')
+
+
 def run(checkpoint_path=None, predictions_path=None, metrics_path=None,
         report_path=None, allow_overwrite=False):
     # Resolve paths
@@ -100,6 +123,13 @@ def run(checkpoint_path=None, predictions_path=None, metrics_path=None,
     predictions_path = Path(predictions_path) if predictions_path else DEFAULT_PREDICTIONS_PATH
     metrics_path = Path(metrics_path) if metrics_path else DEFAULT_METRICS_PATH
     report_path = Path(report_path) if report_path else DEFAULT_REPORT_PATH
+
+    # Never let outputs alias each other or overwrite source evidence, even with
+    # allow_overwrite=True. This protects the frozen checkpoint and evaluation inputs.
+    validate_output_paths(
+        (predictions_path, metrics_path, report_path),
+        (checkpoint_path, PILOT_PATH, TRAIN_PATH),
+    )
 
     # Isolation guard: refuse to overwrite existing artifacts unless allowed
     for p in (predictions_path, metrics_path, report_path):
@@ -217,11 +247,6 @@ def run(checkpoint_path=None, predictions_path=None, metrics_path=None,
         'checkpoint_path': str(checkpoint_path),
         'checkpoint_sha256': checkpoint_sha256,
     }
-    predictions_path.parent.mkdir(parents=True, exist_ok=True)
-    with predictions_path.open('w', encoding='utf-8') as stream:
-        for record in records:
-            stream.write(json.dumps(record, sort_keys=True) + '\n')
-    metrics_path.write_text(json.dumps(metrics, indent=2, sort_keys=True), encoding='utf-8')
     report = {
         'dataset': str(PILOT_PATH), 'pilot_sha256': PILOT_HASH,
         'checkpoint': str(checkpoint_path), 'checkpoint_sha256': checkpoint_sha256,
@@ -242,7 +267,37 @@ def run(checkpoint_path=None, predictions_path=None, metrics_path=None,
         'threshold': 'TO_LOCK', 'gate': 'INCONCLUSIVE',
         'note': 'Pilot metrics are exploratory; no threshold was locked and Confirm was not run.',
     }
-    report_path.write_text(json.dumps(report, indent=2, sort_keys=True), encoding='utf-8')
+    # Stage all three files beside their destinations before replacing any output.
+    # A failed serialization/write therefore cannot leave a partially written artifact.
+    payloads = {
+        predictions_path: ''.join(
+            json.dumps(record, sort_keys=True) + '\\n' for record in records
+        ),
+        metrics_path: json.dumps(metrics, indent=2, sort_keys=True),
+        report_path: json.dumps(report, indent=2, sort_keys=True),
+    }
+    staged = {}
+    try:
+        for destination, rendered in payloads.items():
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            with tempfile.NamedTemporaryFile(
+                mode='w',
+                encoding='utf-8',
+                dir=destination.parent,
+                prefix=f'.{destination.name}.',
+                suffix='.tmp',
+                delete=False,
+            ) as stream:
+                staged[destination] = Path(stream.name)
+                stream.write(rendered)
+                stream.write('\\n')
+                stream.flush()
+                os.fsync(stream.fileno())
+        for destination, temporary in staged.items():
+            os.replace(temporary, destination)
+    finally:
+        for temporary in staged.values():
+            temporary.unlink(missing_ok=True)
     return metrics
 
 
