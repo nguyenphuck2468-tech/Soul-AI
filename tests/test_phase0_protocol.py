@@ -79,7 +79,6 @@ def test_validator_rejects_duplicate_yaml_keys(tmp_path):
         validate_protocol(protocol, ROOT / "configs" / "seeds.yaml")
 
 
-
 @pytest.mark.parametrize(
     ("old", "new", "split"),
     [
