@@ -111,6 +111,11 @@ def test_default_run_uses_a_checkpoint_and_computes_hash():
     assert report['transitions'] == 95
     assert report['recorded_transitions'] == 100
     assert report['warmup_transitions_skipped'] == 5
+    assert report['action_ablation']['kind'] == 'zero-action sensitivity diagnostic'
+    assert report['action_ablation']['optimizer_updates'] == 0
+    assert report['action_ablation']['held_fixed'] == [
+        'recurrent state', 'current observation', 'checkpoint', 'PILOT transitions'
+    ]
     # Each episode contributes 19 aligned one-step predictions.
     rows = [json.loads(line) for line in staging_pred.read_text(encoding='utf-8').splitlines()]
     assert len(rows) == 95
