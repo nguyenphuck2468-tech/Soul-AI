@@ -30,6 +30,23 @@ def test_rejects_path_traversal(tmp_path: Path):
         inspect_package(archive)
 
 
+@pytest.mark.parametrize(
+    "unsafe_name",
+    [
+        "artifacts/model:stream.pt",
+        "artifacts/CON.json",
+        "artifacts/trailing.",
+        "artifacts/trailing ",
+    ],
+)
+def test_rejects_windows_special_path_aliases(tmp_path: Path, unsafe_name: str):
+    archive = tmp_path / "windows-path.zip"
+    with zipfile.ZipFile(archive, "w") as zf:
+        zf.writestr(unsafe_name, b"unsafe")
+    with pytest.raises(ValueError, match="unsafe ZIP path"):
+        inspect_package(archive)
+
+
 def test_rejects_case_insensitive_duplicate_paths(tmp_path: Path):
     archive = tmp_path / "collision.zip"
     with zipfile.ZipFile(archive, "w") as zf:
