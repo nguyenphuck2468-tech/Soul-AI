@@ -76,6 +76,40 @@ def test_evaluator_semantics_unchanged():
     assert callable(initial_state)
 
 
+def test_output_paths_must_not_alias_each_other(tmp_path):
+    from soul.g31.score_pilot import validate_output_paths
+
+    output = tmp_path / 'result.json'
+    alias = tmp_path / '.' / 'result.json'
+    with pytest.raises(ValueError, match='must be distinct'):
+        validate_output_paths((output, alias), (A_CHECKPOINT,))
+
+
+def test_output_paths_reject_existing_hardlink_aliases(tmp_path):
+    from soul.g31.score_pilot import validate_output_paths
+
+    output = tmp_path / 'result.json'
+    hardlink = tmp_path / 'alias.json'
+    output.write_text('{}')
+    try:
+        hardlink.hardlink_to(output)
+    except (OSError, NotImplementedError):
+        pytest.skip('hard links are unavailable on this filesystem')
+    with pytest.raises(ValueError, match='must be distinct'):
+        validate_output_paths((output, hardlink), (A_CHECKPOINT,))
+
+
+def test_output_paths_cannot_replace_source_evidence():
+    from soul.g31.score_pilot import validate_output_paths
+
+    with pytest.raises(ValueError, match='must not overwrite input evidence'):
+        validate_output_paths(
+            (PILOT_PATH, Path('/tmp/metrics.json'), Path('/tmp/report.json')),
+            (PILOT_PATH, A_CHECKPOINT),
+        )
+
+
+
 def test_default_run_uses_a_checkpoint_and_computes_hash():
     # Run with defaults (A) to a temporary staging prefix; verify hash in output
     staging_pred = Path('artifacts/g31/staging_test_predictions.jsonl')
