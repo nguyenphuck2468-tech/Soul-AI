@@ -75,6 +75,15 @@ def test_rejects_duplicate_json_keys(tmp_path: Path):
 
 
 
+def test_rejects_unicode_canonical_file_parent_collision(tmp_path: Path):
+    archive = tmp_path / "unicode-parent.zip"
+    with zipfile.ZipFile(archive, "w") as zf:
+        zf.writestr("artifacts/caf\u00e9", b"file")
+        zf.writestr("artifacts/cafe\u0301/child.json", "{}")
+    with pytest.raises(ValueError, match="file/directory path collision"):
+        inspect_package(archive)
+
+
 def test_rejects_unicode_canonical_equivalent_paths(tmp_path: Path):
     archive = tmp_path / "unicode-collision.zip"
     with zipfile.ZipFile(archive, "w") as zf:
