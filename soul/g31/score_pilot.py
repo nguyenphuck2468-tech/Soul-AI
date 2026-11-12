@@ -30,10 +30,39 @@ DEFAULT_REPORT_PATH = Path('artifacts/g31/pilot_report.json')
 # Default A checkpoint (preserved for backward compatibility)
 PILOT_HASH = '26d63b1e3a900d40a9532aa5b2e4c178b58129e88f70cb2cb9a6e07af596264e'
 CHECKPOINT_HASH = '0fd3fbc46eadd3e6dc4b2d9af873f62ef4c5a04477bfedd06b8565d704b32147'
+B1_CHECKPOINT_HASH = '136017b650fc910043c559822d47fea900391e2823324413327de815a4d8c018'
+FROZEN_CHECKPOINT_HASHES = frozenset((CHECKPOINT_HASH, B1_CHECKPOINT_HASH))
 
 
 def sha256(path):
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+    digest = hashlib.sha256()
+    with Path(path).open('rb') as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b''):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def load_frozen_checkpoint(path):
+    """Hash a disk-backed snapshot before deserializing a frozen research checkpoint.
+
+    The CLI accepts a checkpoint path, so never let arbitrary pickle content reach
+    torch.load. Copying into an anonymous temporary file also prevents a path swap
+    or in-place source mutation from changing the bytes after the allowlist check.
+    """
+    digest = hashlib.sha256()
+    with Path(path).open('rb') as source, tempfile.TemporaryFile(mode='w+b') as snapshot:
+        for chunk in iter(lambda: source.read(1024 * 1024), b''):
+            digest.update(chunk)
+            snapshot.write(chunk)
+        checkpoint_sha256 = digest.hexdigest()
+        if checkpoint_sha256 not in FROZEN_CHECKPOINT_HASHES:
+            raise RuntimeError(
+                'checkpoint SHA-256 is not one of the frozen G3.1 A/B1 checkpoints'
+            )
+        snapshot.flush()
+        snapshot.seek(0)
+        checkpoint = torch.load(snapshot, map_location='cpu', weights_only=False)
+    return checkpoint, checkpoint_sha256
 
 
 def load_rows(path, split, seeds):
@@ -143,9 +172,8 @@ def run(checkpoint_path=None, predictions_path=None, metrics_path=None,
     if sha256(PILOT_PATH) != PILOT_HASH:
         raise RuntimeError('Pilot dataset hash mismatch')
 
-    # Load checkpoint and compute runtime hash (never hardcoded)
-    checkpoint = torch.load(checkpoint_path, map_location='cpu', weights_only=False)
-    checkpoint_sha256 = sha256(checkpoint_path)
+    # Verify a bounded snapshot against the frozen A/B1 allowlist before deserialization.
+    checkpoint, checkpoint_sha256 = load_frozen_checkpoint(checkpoint_path)
 
     train_delta = fit_train_mean_delta()
     pilot_rows = load_rows(PILOT_PATH, 'pilot', range(2001, 2006))
