@@ -103,7 +103,10 @@ def test_default_run_uses_a_checkpoint_and_computes_hash():
     assert first['checkpoint_sha256'] == sha256(A_CHECKPOINT)
     assert first['pilot_sha256'] == PILOT_HASH
     assert first['timestep'] == 1
+    assert len(first['zero_action_physical']) == 2
     assert result['transition_count'] == 95
+    assert 'zero_action_aggregate_equal_episode' in result
+    assert 'paired_model_minus_zero_action' in result
     report = json.loads(staging_rep.read_text(encoding='utf-8'))
     assert report['transitions'] == 95
     assert report['recorded_transitions'] == 100
