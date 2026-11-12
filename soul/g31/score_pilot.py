@@ -290,7 +290,8 @@ def run(checkpoint_path=None, predictions_path=None, metrics_path=None,
             ) as stream:
                 staged[destination] = Path(stream.name)
                 stream.write(rendered)
-                stream.write('\n')
+                if destination != predictions_path:
+                    stream.write('\n')
                 stream.flush()
                 os.fsync(stream.fileno())
         for destination, temporary in staged.items():
