@@ -1,6 +1,6 @@
 # Soul-AI project status
 
-Updated: 2026-10-13
+Updated: 2026-11-12
 
 ## Direction
 
@@ -31,10 +31,12 @@ AI-generated execution plan and its B6 endpoint are not the project endpoint.
   metrics, feature groups, and schema overflow paths.
 - `python -m scripts.phase0_alpha_run` provides a small end-to-end run-through;
   it defaults to unique output under `work/` and labels the manifest smoke-only.
-- `python -m scripts.phase0_validate_protocol` now fail-closes the Phase 0
-  draft if train/dev ranges drift, Confirm becomes configured, or numeric
-  thresholds are introduced before protocol review. It is configuration-only
-  and does not access any seeds.
+- `python -m scripts.phase0_validate_protocol` fail-closes the Phase 0
+  draft if train/dev ranges drift, split usage expands beyond the declared
+  train-only collection/fitting and dev-only exploratory-evaluation/iteration
+  roles, Confirm becomes configured, or numeric thresholds are introduced
+  before protocol review. The validator is configuration-only and does not
+  access any seeds.
 - Phase 1 now has a Candidate skill wrapper around the existing privileged
   MiniCraft expert. It reports its task goal, status, risks, and descriptive
   episode outcome, plus fixed-action replay comparison and a three-task batch
@@ -111,8 +113,9 @@ AI-generated execution plan and its B6 endpoint are not the project endpoint.
 
 The Phase 0/Phase 1 validation implementation is merged through PR #5
 (`1109169`). It rejects duplicate JSON/YAML configuration keys and reports
-smoke execution separately from Confirm access. The pre-existing untracked
-`work/` directory is retained. The latest hardening was validated in Codespace
-with the Phase 0 validator, alpha sanity, and the full 99-test suite before
-merge; subsequent local archive/provenance hardening is tracked on the next
-branch. No CI checks are reported by GitHub.
+smoke execution separately from Confirm access. The historical 99-test result
+was produced in Codespace before that merge. This repository previously had no
+GitHub Actions workflow; PR #7 adds the first CI gate to install pinned
+dependencies, validate the Phase 0 split/Confirm boundary, and run the complete
+pytest suite without training a model or touching Confirm. The pre-existing
+untracked `work/` directory is retained.

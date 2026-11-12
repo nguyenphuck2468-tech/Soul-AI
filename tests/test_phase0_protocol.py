@@ -77,3 +77,38 @@ def test_validator_rejects_duplicate_yaml_keys(tmp_path):
 
     with pytest.raises(ProtocolValidationError, match="duplicate YAML key"):
         validate_protocol(protocol, ROOT / "configs" / "seeds.yaml")
+
+
+@pytest.mark.parametrize(
+    ("old", "new", "split"),
+    [
+        (
+            "allowed_for: [collection, fitting]",
+            "allowed_for: [collection, fitting, exploratory_evaluation]",
+            "train",
+        ),
+        (
+            "allowed_for: [exploratory_evaluation, iteration]",
+            "allowed_for: [exploratory_evaluation, iteration, fitting]",
+            "dev",
+        ),
+        (
+            "allowed_for: [collection, fitting]",
+            "allowed_for: [collection, fitting, fitting]",
+            "train",
+        ),
+    ],
+)
+def test_validator_rejects_split_usage_leakage(tmp_path, old, new, split):
+    protocol = tmp_path / "protocol.yaml"
+    content = (ROOT / "configs" / "phase0_protocol_draft.yaml").read_text(
+        encoding="utf-8"
+    )
+    assert old in content
+    protocol.write_text(content.replace(old, new, 1), encoding="utf-8")
+
+    with pytest.raises(
+        ProtocolValidationError,
+        match=rf"{split} split allowed_for must be exactly",
+    ):
+        validate_protocol(protocol, ROOT / "configs" / "seeds.yaml")
