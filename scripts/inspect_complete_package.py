@@ -20,7 +20,7 @@ MAX_JSON_BYTES = 32 * 1024**2
 CHUNK_SIZE = 1024 * 1024
 
 WINDOWS_RESERVED_NAMES = {
-    "CON", "PRN", "AUX", "NUL",
+    "CON", "PRN", "AUX", "NUL", "CLOCK$", "CONIN$", "CONOUT$",
     *(f"COM{number}" for number in range(1, 10)),
     *(f"LPT{number}" for number in range(1, 10)),
     "COM¹", "COM²", "COM³", "LPT¹", "LPT²", "LPT³",
@@ -29,7 +29,7 @@ WINDOWS_RESERVED_NAMES = {
 
 def _portable_windows_component(part: str) -> bool:
     """Reject names that alias devices or alternate streams on Windows."""
-    stem = part.split(".", 1)[0].upper()
+    stem = part.split(".", 1)[0].rstrip(" .").upper()
     return (
         bool(part)
         and not part.endswith((" ", "."))
