@@ -31,6 +31,23 @@ def test_explicit_b1_checkpoint_resolves_to_b1():
     assert B1_CHECKPOINT != A_CHECKPOINT
 
 
+def test_oversized_checkpoint_is_rejected_before_snapshot_growth(tmp_path, monkeypatch):
+    from soul.g31.score_pilot import (
+        MAX_FROZEN_CHECKPOINT_BYTES,
+        load_frozen_checkpoint,
+    )
+
+    oversized = tmp_path / 'oversized.pt'
+    oversized.write_bytes(b'x' * (MAX_FROZEN_CHECKPOINT_BYTES + 1))
+
+    def must_not_deserialize(*args, **kwargs):
+        raise AssertionError('torch.load must not receive an oversized checkpoint')
+
+    monkeypatch.setattr('soul.g31.score_pilot.torch.load', must_not_deserialize)
+    with pytest.raises(RuntimeError, match='exceeds the maximum frozen G3.1 checkpoint size'):
+        load_frozen_checkpoint(oversized)
+
+
 def test_unpinned_checkpoint_is_rejected_before_torch_deserialization(tmp_path, monkeypatch):
     from soul.g31.score_pilot import load_frozen_checkpoint
 
