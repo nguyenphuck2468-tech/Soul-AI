@@ -113,8 +113,9 @@ AI-generated execution plan and its B6 endpoint are not the project endpoint.
 
 The Phase 0/Phase 1 validation implementation is merged through PR #5
 (`1109169`). It rejects duplicate JSON/YAML configuration keys and reports
-smoke execution separately from Confirm access. The pre-existing untracked
-`work/` directory is retained. The latest hardening was validated in Codespace
-with the Phase 0 validator, alpha sanity, and the full 99-test suite before
-merge; subsequent local archive/provenance hardening is tracked on the next
-branch. No CI checks are reported by GitHub.
+smoke execution separately from Confirm access. The historical 99-test result
+was produced in Codespace before that merge. This repository previously had no
+GitHub Actions workflow; PR #7 adds the first CI gate to install pinned
+dependencies, validate the Phase 0 split/Confirm boundary, and run the complete
+pytest suite without training a model or touching Confirm. The pre-existing
+untracked `work/` directory is retained.
