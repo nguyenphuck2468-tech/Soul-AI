@@ -125,6 +125,27 @@ def test_rejects_symlink_entries(tmp_path: Path):
 
 
 
+def test_rejects_archive_mutation_during_inspection(tmp_path: Path):
+    archive = tmp_path / "changing.zip"
+    with zipfile.ZipFile(archive, "w") as zf:
+        zf.writestr("manifest.json", '{"schema_version":1}')
+    original_read = zipfile.ZipExtFile.read
+    mutated = False
+
+    def append_during_read(member, size=-1):
+        nonlocal mutated
+        result = original_read(member, size)
+        if not mutated:
+            with archive.open("ab") as changed:
+                changed.write(b"changed while inspecting")
+            mutated = True
+        return result
+
+    with patch.object(zipfile.ZipExtFile, "read", append_during_read):
+        with pytest.raises(ValueError, match="archive changed during inspection"):
+            inspect_package(archive)
+
+
 def test_cli_refuses_to_overwrite_input_archive(tmp_path: Path):
     archive = tmp_path / "Soul_AI_Complete_Package.zip"
     with zipfile.ZipFile(archive, "w") as zf:
