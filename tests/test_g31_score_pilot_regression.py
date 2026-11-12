@@ -102,6 +102,19 @@ def test_default_run_uses_a_checkpoint_and_computes_hash():
     first = json.loads(staging_pred.read_text().splitlines()[0])
     assert first['checkpoint_sha256'] == sha256(A_CHECKPOINT)
     assert first['pilot_sha256'] == PILOT_HASH
+    assert first['timestep'] == 1
+    assert result['transition_count'] == 95
+    report = json.loads(staging_rep.read_text(encoding='utf-8'))
+    assert report['transitions'] == 95
+    assert report['recorded_transitions'] == 100
+    assert report['warmup_transitions_skipped'] == 5
+    # Each episode contributes 19 aligned one-step predictions.
+    rows = [json.loads(line) for line in staging_pred.read_text(encoding='utf-8').splitlines()]
+    assert len(rows) == 95
+    assert {episode: sum(r['episode_id'] == episode for r in rows)
+            for episode in {r['episode_id'] for r in rows}} == {
+                f'pilot_ep{seed}': 19 for seed in range(2001, 2006)
+            }
     # Clean staging
     for p in (staging_pred, staging_met, staging_rep):
         p.unlink(missing_ok=True)
