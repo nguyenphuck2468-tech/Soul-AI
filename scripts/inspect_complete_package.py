@@ -112,7 +112,7 @@ def inspect_package(archive_path: Path) -> dict[str, object]:
             if name in seen or folded in seen_folded:
                 raise ValueError(f"duplicate or case-insensitive ZIP path collision: {info.filename}")
             parents = ["/".join(PurePosixPath(name).parts[:i]) for i in range(1, len(PurePosixPath(name).parts))]
-            conflict = next((_collision_key(parent) for parent in parents if parent.casefold() in files_folded), None)
+            conflict = next((_collision_key(parent) for parent in parents if _collision_key(parent) in files_folded), None)
             if conflict is not None:
                 raise ValueError(f"file/directory path collision: {info.filename} is below {conflict}")
             if not is_directory and any(existing.startswith(folded + "/") for existing in seen_folded):
