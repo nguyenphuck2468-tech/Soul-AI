@@ -6,6 +6,7 @@ from unittest.mock import patch
 
 import pytest
 
+from scripts import inspect_complete_package as inspector
 from scripts.inspect_complete_package import inspect_package, main
 
 
@@ -153,3 +154,21 @@ def test_cli_refuses_output_symlink_to_input_archive(tmp_path: Path):
             main()
     assert error.value.code == 2
     assert zipfile.is_zipfile(archive)
+
+def test_cli_preserves_previous_report_if_atomic_replace_fails(tmp_path: Path):
+    archive = tmp_path / "Soul_AI_Complete_Package.zip"
+    output = tmp_path / "inventory.json"
+    with zipfile.ZipFile(archive, "w") as zf:
+        zf.writestr("manifest.json", '{"schema_version":1}')
+    output.write_text("previous report\\n", encoding="utf-8")
+    with patch(
+        "sys.argv",
+        ["inspect_complete_package.py", str(archive), "--output", str(output)],
+    ), patch.object(inspector.os, "replace", side_effect=OSError("simulated replace failure")):
+        with pytest.raises(OSError, match="simulated replace failure"):
+            main()
+    assert output.read_text(encoding="utf-8") == "previous report\\n"
+    assert sorted(path.name for path in tmp_path.iterdir()) == [
+        "Soul_AI_Complete_Package.zip", "inventory.json"
+    ]
+
