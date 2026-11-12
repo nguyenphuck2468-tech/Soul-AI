@@ -35,6 +35,7 @@ def test_rejects_path_traversal(tmp_path: Path):
     [
         "artifacts/model:stream.pt",
         "artifacts/CON.json",
+        "artifacts/CON .json",
         "artifacts/trailing.",
         "artifacts/trailing ",
     ],
