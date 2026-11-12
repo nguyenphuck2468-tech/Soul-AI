@@ -157,6 +157,16 @@ def run(checkpoint_path=None, predictions_path=None, metrics_path=None,
         for row in rows[1:]:
             current = np.asarray(row['raw_observation_before'], dtype=np.float32)
             target = raw_observation_to_physical(row['raw_observation_after'])
+            # Diagnostic only: hold the recurrent context fixed and compare the
+            # learned prior with the action input zeroed. This is not a new
+            # baseline or a causal claim; it measures checkpoint sensitivity
+            # to its action channel on the same held-out PILOT transitions.
+            zero_action = np.zeros_like(np.asarray(row['applied_action'], dtype=np.float32))
+            zero_action_prediction, _ = evaluate_one_step(
+                model, state, current, zero_action,
+                obs_next=None,
+                feature_encoder=encoder,
+            )
             predicted, state = evaluate_one_step(
                 model, state, current, row['applied_action'],
                 obs_next=row['raw_observation_after'],
@@ -167,7 +177,7 @@ def run(checkpoint_path=None, predictions_path=None, metrics_path=None,
             mean_delta = current_physical + train_delta
             mean_delta[0] = current_physical[0] + train_delta[0]
             mean_delta[0] = np.arctan2(np.sin(mean_delta[0]), np.cos(mean_delta[0]))
-            if not np.all(np.isfinite(predicted)):
+            if not np.all(np.isfinite(predicted)) or not np.all(np.isfinite(zero_action_prediction)):
                 raise ValueError('nonfinite physical prediction')
             records.append({
                 'episode_id': episode_id,
@@ -175,6 +185,7 @@ def run(checkpoint_path=None, predictions_path=None, metrics_path=None,
                 'applied_action': row['applied_action'],
                 'target_physical': target.tolist(),
                 'predicted_physical': predicted.tolist(),
+                'zero_action_physical': zero_action_prediction.tolist(),
                 'persistence_physical': persistence.tolist(),
                 'mean_delta_physical': mean_delta.tolist(),
                 'checkpoint_sha256': checkpoint_sha256,
@@ -186,6 +197,7 @@ def run(checkpoint_path=None, predictions_path=None, metrics_path=None,
     model_ep = episode_metrics(records, 'predicted_physical')
     persistence_ep = episode_metrics(records, 'persistence_physical')
     mean_ep = episode_metrics(records, 'mean_delta_physical')
+    zero_action_ep = episode_metrics(records, 'zero_action_physical')
     metrics = {
         'episode_count': len(model_ep),
         'transition_count': len(records),
@@ -194,9 +206,12 @@ def run(checkpoint_path=None, predictions_path=None, metrics_path=None,
         'persistence': persistence_ep,
         'persistence_aggregate_equal_episode': aggregate_episode_metrics(persistence_ep),
         'train_only_mean_delta': mean_ep,
+        'zero_action_ablation': zero_action_ep,
+        'zero_action_aggregate_equal_episode': aggregate_episode_metrics(zero_action_ep),
         'mean_delta_aggregate_equal_episode': aggregate_episode_metrics(mean_ep),
         'paired_model_minus_persistence': paired_differences(model_ep, persistence_ep),
         'paired_model_minus_mean_delta': paired_differences(model_ep, mean_ep),
+        'paired_model_minus_zero_action': paired_differences(model_ep, zero_action_ep),
         'threshold': 'TO_LOCK',
         'pilot_scoring': 'EXPLORATORY; no confirm run',
         'checkpoint_path': str(checkpoint_path),
