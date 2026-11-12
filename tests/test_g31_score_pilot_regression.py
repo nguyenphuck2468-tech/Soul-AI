@@ -31,6 +31,20 @@ def test_explicit_b1_checkpoint_resolves_to_b1():
     assert B1_CHECKPOINT != A_CHECKPOINT
 
 
+def test_unpinned_checkpoint_is_rejected_before_torch_deserialization(tmp_path, monkeypatch):
+    from soul.g31.score_pilot import load_frozen_checkpoint
+
+    untrusted = tmp_path / 'untrusted.pt'
+    untrusted.write_bytes(b'not a pinned checkpoint')
+
+    def must_not_deserialize(*args, **kwargs):
+        raise AssertionError('torch.load must not receive an unpinned checkpoint')
+
+    monkeypatch.setattr('soul.g31.score_pilot.torch.load', must_not_deserialize)
+    with pytest.raises(RuntimeError, match='not one of the frozen G3.1 A/B1 checkpoints'):
+        load_frozen_checkpoint(untrusted)
+
+
 def test_runtime_checkpoint_sha256_matches_actual_file():
     # Runtime hash must match file, not hardcoded value
     a_hash = sha256(A_CHECKPOINT)
