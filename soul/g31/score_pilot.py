@@ -1,6 +1,7 @@
 """G3.1 Pilot scorer. Reads Pilot + TRAIN only; never opens Confirm."""
 import hashlib
 import json
+import tempfile
 from collections import defaultdict
 from pathlib import Path
 
@@ -9,9 +10,8 @@ import torch
 
 from soul.config import Config
 from soul.g31.evaluator import (
-    EvaluatorState,
     evaluate_one_step,
-    initial_state,
+    prime_episode_state,
     physical_metrics,
     raw_observation_to_physical,
 )
@@ -29,10 +29,41 @@ DEFAULT_REPORT_PATH = Path('artifacts/g31/pilot_report.json')
 # Default A checkpoint (preserved for backward compatibility)
 PILOT_HASH = '26d63b1e3a900d40a9532aa5b2e4c178b58129e88f70cb2cb9a6e07af596264e'
 CHECKPOINT_HASH = '0fd3fbc46eadd3e6dc4b2d9af873f62ef4c5a04477bfedd06b8565d704b32147'
+B1_CHECKPOINT_HASH = '136017b650fc910043c559822d47fea900391e2823324413327de815a4d8c018'
+FROZEN_CHECKPOINT_SIZES = {
+    CHECKPOINT_HASH: 3_386_259,
+    B1_CHECKPOINT_HASH: 3_383_579,
+}
+MAX_FROZEN_CHECKPOINT_BYTES = max(FROZEN_CHECKPOINT_SIZES.values())
 
 
 def sha256(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def load_frozen_checkpoint(path):
+    """Hash a disk-backed snapshot before deserializing an allowlisted checkpoint."""
+    digest = hashlib.sha256()
+    total_bytes = 0
+    with Path(path).open('rb') as source, tempfile.TemporaryFile(mode='w+b') as snapshot:
+        for chunk in iter(lambda: source.read(1024 * 1024), b''):
+            total_bytes += len(chunk)
+            if total_bytes > MAX_FROZEN_CHECKPOINT_BYTES:
+                raise RuntimeError('checkpoint exceeds the maximum frozen G3.1 checkpoint size')
+            digest.update(chunk)
+            snapshot.write(chunk)
+        checkpoint_sha256 = digest.hexdigest()
+        expected_size = FROZEN_CHECKPOINT_SIZES.get(checkpoint_sha256)
+        if expected_size is None:
+            raise RuntimeError(
+                'checkpoint SHA-256 is not one of the frozen G3.1 A/B1 checkpoints'
+            )
+        if total_bytes != expected_size:
+            raise RuntimeError('frozen G3.1 checkpoint size does not match its pinned SHA-256')
+        snapshot.flush()
+        snapshot.seek(0)
+        checkpoint = torch.load(snapshot, map_location='cpu', weights_only=False)
+    return checkpoint, checkpoint_sha256
 
 
 def load_rows(path, split, seeds):
@@ -114,9 +145,8 @@ def run(checkpoint_path=None, predictions_path=None, metrics_path=None,
     if sha256(PILOT_PATH) != PILOT_HASH:
         raise RuntimeError('Pilot dataset hash mismatch')
 
-    # Load checkpoint and compute runtime hash (never hardcoded)
-    checkpoint = torch.load(checkpoint_path, map_location='cpu', weights_only=False)
-    checkpoint_sha256 = sha256(checkpoint_path)
+    # Verify a disk-backed snapshot before allowing pickle deserialization.
+    checkpoint, checkpoint_sha256 = load_frozen_checkpoint(checkpoint_path)
 
     train_delta = fit_train_mean_delta()
     pilot_rows = load_rows(PILOT_PATH, 'pilot', range(2001, 2006))
@@ -135,8 +165,27 @@ def run(checkpoint_path=None, predictions_path=None, metrics_path=None,
     records = []
     for episode_id, rows in grouped.items():
         rows.sort(key=lambda row: row['timestep'])
-        state = initial_state(model.dynamics, 'cpu')
-        for row in rows:
+        if len(rows) < 2:
+            raise ValueError(f'{episode_id}: at least two rows are required for aligned scoring')
+        if [row['timestep'] for row in rows] != list(range(len(rows))):
+            raise ValueError(f'{episode_id}: timesteps must be contiguous from zero')
+        # Dataset contract: each row's before-state must equal the previous
+        # row's after-state. Fail closed instead of silently scoring a broken sequence.
+        for previous, current_row in zip(rows, rows[1:]):
+            if not np.allclose(
+                previous['raw_observation_after'],
+                current_row['raw_observation_before'],
+                rtol=0.0, atol=1e-6,
+            ):
+                raise ValueError(f'{episode_id}: discontinuity before timestep {current_row["timestep"]}')
+        # The first recorded row is the training-sequence warm-up: training
+        # initializes h with (zero latent, zero action), then observes its
+        # after-state. It has no trained prior target, so prime from that row
+        # and score only rows 1..N-1.
+        state = prime_episode_state(
+            model, rows[0]['raw_observation_after'], encoder, device='cpu'
+        )
+        for row in rows[1:]:
             current = np.asarray(row['raw_observation_before'], dtype=np.float32)
             target = raw_observation_to_physical(row['raw_observation_after'])
             predicted, state = evaluate_one_step(
@@ -193,8 +242,10 @@ def run(checkpoint_path=None, predictions_path=None, metrics_path=None,
         'dataset': str(PILOT_PATH), 'pilot_sha256': PILOT_HASH,
         'checkpoint': str(checkpoint_path), 'checkpoint_sha256': checkpoint_sha256,
         'environment': 'Pendulum-v1 / Gymnasium 1.4.0',
-        'episodes': 5, 'transitions': 100,
-        'evaluator': 'prior mean + physical theta/velocity decode + real obs teacher forcing',
+        'episodes': len(model_ep), 'transitions': len(records),
+        'recorded_transitions': len(pilot_rows),
+        'warmup_transitions_skipped': len(model_ep),
+        'evaluator': 'training-aligned warm start + prior mean + physical decode + real obs teacher forcing',
         'confirm_accessed': False, 'optimizer_updates': 0,
         'deterministic': True, 'model_immutable': True,
         'threshold': 'TO_LOCK', 'gate': 'INCONCLUSIVE',

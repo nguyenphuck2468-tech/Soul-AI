@@ -77,6 +77,30 @@ def initial_state(dynamics, device='cpu'):
     return EvaluatorState(h=h, z=z)
 
 
+def prime_episode_state(model, first_observation_after, feature_encoder, device='cpu'):
+    """Align the recurrent context with the first row of training episodes.
+
+    Training stores observations *after* each action. At sequence index 0,
+    Dynamics advances once from its zero state with a zero action, then the
+    encoder supplies the posterior for the first recorded observation.
+    That first transition has no preceding training context and is therefore
+    a warm-up row, not a scored prior prediction.
+    """
+    state = initial_state(model.dynamics, device)
+    zero_action = torch.zeros(
+        (1, model.cfg.model.action_dim), dtype=torch.float32, device=device
+    )
+    first_t = torch.as_tensor(
+        observation_vector(first_observation_after, feature_encoder),
+        dtype=torch.float32, device=device,
+    ).reshape(1, -1)
+    model.eval()
+    with torch.no_grad():
+        h_context, _, _ = model.dynamics.step(state.h, state.z, zero_action)
+        q_mu, _ = model.encoder(first_t)
+    return EvaluatorState(h=h_context.detach(), z=q_mu.detach())
+
+
 def evaluate_one_step(model, state, obs_current, action_applied,
                       obs_next=None, device='cpu', feature_encoder=None):
     """Predict with prior mean, then optionally teacher-force real obs_next.

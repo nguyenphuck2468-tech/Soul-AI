@@ -12,6 +12,7 @@ from soul.g31.score_pilot import (
     DEFAULT_CHECKPOINT_PATH,
     PILOT_HASH,
     sha256,
+    load_frozen_checkpoint,
     run,
 )
 
@@ -102,6 +103,64 @@ def test_default_run_uses_a_checkpoint_and_computes_hash():
     first = json.loads(staging_pred.read_text().splitlines()[0])
     assert first['checkpoint_sha256'] == sha256(A_CHECKPOINT)
     assert first['pilot_sha256'] == PILOT_HASH
+    assert first['timestep'] == 1
+    assert result['transition_count'] == 95
+    report = json.loads(staging_rep.read_text(encoding='utf-8'))
+    assert report['transitions'] == 95
+    assert report['recorded_transitions'] == 100
+    assert report['warmup_transitions_skipped'] == 5
+    # Each episode contributes 19 aligned one-step predictions.
+    rows = [json.loads(line) for line in staging_pred.read_text(encoding='utf-8').splitlines()]
+    assert len(rows) == 95
+    assert {episode: sum(r['episode_id'] == episode for r in rows)
+            for episode in {r['episode_id'] for r in rows}} == {
+                f'pilot_ep{seed}': 19 for seed in range(2001, 2006)
+            }
     # Clean staging
     for p in (staging_pred, staging_met, staging_rep):
         p.unlink(missing_ok=True)
+
+
+
+def test_untrusted_checkpoint_is_rejected_before_torch_load(tmp_path, monkeypatch):
+    import torch
+
+    untrusted = tmp_path / "untrusted.pt"
+    untrusted.write_bytes(b"not a frozen G3.1 checkpoint")
+    calls = []
+    monkeypatch.setattr(torch, "load", lambda *args, **kwargs: calls.append(args[0]))
+
+    with pytest.raises(RuntimeError, match="not one of the frozen G3.1"):
+        load_frozen_checkpoint(untrusted)
+
+    assert calls == []
+
+
+def test_checkpoint_loader_deserializes_only_the_verified_snapshot(monkeypatch):
+    import torch
+
+    observed = {}
+
+    def inspect_snapshot(stream, **kwargs):
+        position = stream.tell()
+        observed["sha256"] = hashlib.sha256(stream.read()).hexdigest()
+        stream.seek(position)
+        return {"split": "TRAIN"}
+
+    monkeypatch.setattr(torch, "load", inspect_snapshot)
+    checkpoint, digest = load_frozen_checkpoint(A_CHECKPOINT)
+
+    assert checkpoint["split"] == "TRAIN"
+    assert digest == "0fd3fbc46eadd3e6dc4b2d9af873f62ef4c5a04477bfedd06b8565d704b32147"
+    assert observed["sha256"] == digest
+
+
+def test_colab_notebook_uses_the_hash_verified_checkpoint_loader():
+    notebook = json.loads(Path("notebooks/SOUL_AI_G31_Colab.ipynb").read_text(encoding="utf-8"))
+    code = "\n".join(
+        "".join(cell["source"])
+        for cell in notebook["cells"]
+        if cell["cell_type"] == "code"
+    )
+    assert "load_frozen_checkpoint(path)" in code
+    assert "torch.load(" not in code
