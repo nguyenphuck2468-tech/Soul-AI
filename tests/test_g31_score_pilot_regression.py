@@ -298,4 +298,4 @@ def test_output_paths_reject_existing_directories(tmp_path):
     directory.mkdir()
     with pytest.raises(ValueError, match="must be a file, not a directory"):
         validate_output_paths((directory,), ())
-\n
+
