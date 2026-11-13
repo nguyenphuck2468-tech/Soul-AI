@@ -66,7 +66,7 @@ class G31ActionContractTests(unittest.TestCase):
             'applied_action': [0.5],
             'environment_config': {'env_id': 'Pendulum-v1'},
         }
-        raw = (json.dumps(row) + '\\n').encode('utf-8')
+        raw = (json.dumps(row) + '\n').encode('utf-8')
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / 'train.jsonl'
             path.write_bytes(raw)
