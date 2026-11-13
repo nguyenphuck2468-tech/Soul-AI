@@ -113,7 +113,7 @@ def test_rejects_duplicate_json_keys(tmp_path: Path):
 
 def test_rejects_deeply_nested_json_as_a_package_validation_error(tmp_path: Path):
     archive = tmp_path / "deeply-nested-json.zip"
-    payload = "[" * 2000 + "0" + "]" * 2000
+    payload = "[" * 10000 + "0" + "]" * 10000
     with zipfile.ZipFile(archive, "w") as zf:
         zf.writestr("manifest.json", payload)
     with pytest.raises(ValueError, match="invalid JSON file manifest.json"):
