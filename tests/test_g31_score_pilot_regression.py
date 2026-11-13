@@ -276,3 +276,17 @@ def test_default_run_uses_a_checkpoint_and_computes_hash():
     # Clean staging
     for p in (staging_pred, staging_met, staging_rep):
         p.unlink(missing_ok=True)
+
+
+
+def test_colab_notebook_uses_hash_verified_checkpoint_loader():
+    notebook = json.loads(
+        Path("notebooks/SOUL_AI_G31_Colab.ipynb").read_text(encoding="utf-8")
+    )
+    code = "\n".join(
+        "".join(cell["source"])
+        for cell in notebook["cells"]
+        if cell["cell_type"] == "code"
+    )
+    assert "load_frozen_checkpoint(path)" in code
+    assert "torch.load(" not in code
