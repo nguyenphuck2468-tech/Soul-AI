@@ -67,6 +67,42 @@ def test_rejects_file_used_as_parent_directory(tmp_path: Path):
         inspect_package(archive)
 
 
+def test_rejects_casefolded_directory_prefix_aliases_in_both_orders(tmp_path: Path):
+    entry_orders = (
+        (("Game/Mods/", b""), ("game/mods/example.json", b"{}")),
+        (("game/mods/example.json", b"{}"), ("Game/Mods/", b"")),
+    )
+    for index, entries in enumerate(entry_orders):
+        archive = tmp_path / f"directory-prefix-alias-{index}.zip"
+        with zipfile.ZipFile(archive, "w") as zf:
+            for name, payload in entries:
+                zf.writestr(name, payload)
+        with pytest.raises(ValueError, match="case-insensitive ZIP directory prefix collision"):
+            inspect_package(archive)
+
+
+def test_rejects_unicode_normalized_directory_prefix_aliases(tmp_path: Path):
+    archive = tmp_path / "unicode-directory-prefix-alias.zip"
+    with zipfile.ZipFile(archive, "w") as zf:
+        zf.writestr("artifacts/Caf\u00e9/", b"")
+        zf.writestr("artifacts/cafe\u0301/skill.json", "{}")
+    with pytest.raises(ValueError, match="case-insensitive ZIP directory prefix collision"):
+        inspect_package(archive)
+
+
+def test_rejects_oversized_archive_before_hashing(tmp_path: Path):
+    archive = tmp_path / "oversized-archive.zip"
+    with zipfile.ZipFile(archive, "w") as zf:
+        zf.writestr("manifest.json", '{"schema_version":1}')
+    with patch("scripts.inspect_complete_package.MAX_ARCHIVE_BYTES", 1):
+        with patch(
+            "scripts.inspect_complete_package.hashlib.sha256",
+            side_effect=AssertionError("oversized archive was hashed"),
+        ):
+            with pytest.raises(ValueError, match="inspection size limit"):
+                inspect_package(archive)
+
+
 def test_rejects_duplicate_json_keys(tmp_path: Path):
     archive = tmp_path / "duplicate-json.zip"
     with zipfile.ZipFile(archive, "w") as zf:

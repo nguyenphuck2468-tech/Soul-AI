@@ -17,6 +17,9 @@ import unicodedata
 import zipfile
 
 MAX_ARCHIVE_ENTRIES = 100_000
+# The uncompressed total is capped at 8 GiB; allow reasonable ZIP metadata overhead,
+# but do not hash or parse an arbitrarily large input archive.
+MAX_ARCHIVE_BYTES = 9 * 1024**3
 MAX_MEMBER_UNCOMPRESSED_BYTES = 2 * 1024**3
 MAX_TOTAL_UNCOMPRESSED_BYTES = 8 * 1024**3
 MAX_JSON_BYTES = 32 * 1024**2
@@ -90,6 +93,11 @@ def inspect_package(archive_path: Path) -> dict[str, object]:
         before = os.fstat(raw_archive.fileno())
         if not stat.S_ISREG(before.st_mode):
             raise ValueError(f"not a regular ZIP archive: {archive_path}")
+        if before.st_size > MAX_ARCHIVE_BYTES:
+            raise ValueError(
+                f"ZIP archive exceeds inspection size limit: {before.st_size} "
+                f"(limit {MAX_ARCHIVE_BYTES})"
+            )
         if not zipfile.is_zipfile(raw_archive):
             raise ValueError(f"not a readable ZIP archive: {archive_path}")
         raw_archive.seek(0)
@@ -98,6 +106,7 @@ def inspect_package(archive_path: Path) -> dict[str, object]:
         seen: set[str] = set()
         seen_folded: set[str] = set()
         files_folded: set[str] = set()
+        prefix_spellings: dict[str, str] = {}
         directories = 0
         total_uncompressed = 0
         archive_hash = hashlib.sha256()
@@ -122,9 +131,20 @@ def inspect_package(archive_path: Path) -> dict[str, object]:
                     raise ValueError(
                         f"duplicate or case-insensitive ZIP path collision: {info.filename}"
                     )
+                parts = PurePosixPath(name).parts
+                prefix_count = len(parts) if is_directory else len(parts) - 1
+                for index in range(1, prefix_count + 1):
+                    prefix = "/".join(parts[:index])
+                    folded_prefix = _collision_key(prefix)
+                    previous_prefix = prefix_spellings.get(folded_prefix)
+                    if previous_prefix is not None and previous_prefix != prefix:
+                        raise ValueError(
+                            f"case-insensitive ZIP directory prefix collision: {info.filename}"
+                        )
+                    prefix_spellings[folded_prefix] = prefix
                 parents = [
-                    "/".join(PurePosixPath(name).parts[:i])
-                    for i in range(1, len(PurePosixPath(name).parts))
+                    "/".join(parts[:i])
+                    for i in range(1, len(parts))
                 ]
                 conflict = next(
                     (
