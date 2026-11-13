@@ -190,6 +190,36 @@ def test_output_commit_rolls_back_all_previous_artifacts_on_replace_failure(tmp_
         temporary.unlink(missing_ok=True)
 
 
+def test_output_commit_removes_new_files_when_a_later_replace_fails(tmp_path, monkeypatch):
+    from soul.g31.score_pilot import _commit_staged_outputs
+    import os
+
+    staged = {
+        tmp_path / 'predictions.jsonl': tmp_path / '.predictions.tmp',
+        tmp_path / 'metrics.json': tmp_path / '.metrics.tmp',
+    }
+    for temporary in staged.values():
+        temporary.write_text('new payload', encoding='utf-8')
+    metrics = tmp_path / 'metrics.json'
+    staged_metrics = staged[metrics]
+    original_replace = os.replace
+    failed = False
+
+    def fail_second_commit(source, destination):
+        nonlocal failed
+        if Path(destination) == metrics and Path(source) == staged_metrics and not failed:
+            failed = True
+            raise OSError('simulated second-output replacement failure')
+        return original_replace(source, destination)
+
+    monkeypatch.setattr('soul.g31.score_pilot.os.replace', fail_second_commit)
+    with pytest.raises(OSError, match='simulated second-output'):
+        _commit_staged_outputs(staged)
+    assert not (tmp_path / 'predictions.jsonl').exists()
+    assert not metrics.exists()
+    assert not list(tmp_path.glob('.*.bak'))
+
+
 def test_default_run_uses_a_checkpoint_and_computes_hash():
     # Run with defaults (A) to a temporary staging prefix; verify hash in output
     staging_pred = Path('artifacts/g31/staging_test_predictions.jsonl')
