@@ -203,7 +203,7 @@ def inspect_package(archive_path: Path) -> dict[str, object]:
                 if json_bytes is not None:
                     try:
                         json.loads(bytes(json_bytes), object_pairs_hook=_reject_duplicate_keys)
-                    except (UnicodeDecodeError, json.JSONDecodeError, ValueError) as error:
+                    except (UnicodeDecodeError, json.JSONDecodeError, ValueError, RecursionError) as error:
                         raise ValueError(f"invalid JSON file {name}: {error}") from error
                 inventory.append({
                     "path": name,
