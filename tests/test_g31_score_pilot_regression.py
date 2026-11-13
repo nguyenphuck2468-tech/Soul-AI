@@ -254,6 +254,53 @@ def test_output_commit_restores_earlier_backup_if_later_backup_staging_fails(tmp
         assert temporary.exists()
 
 
+
+def test_output_commit_retains_recovery_backup_if_rollback_restore_fails(tmp_path, monkeypatch):
+    from soul.g31.score_pilot import _commit_staged_outputs
+    import os
+
+    staged = {
+        tmp_path / 'predictions.jsonl': tmp_path / '.predictions.tmp',
+        tmp_path / 'metrics.json': tmp_path / '.metrics.tmp',
+    }
+    for destination, temporary in staged.items():
+        destination.write_text(f'old:{destination.name}', encoding='utf-8')
+        temporary.write_text(f'new:{destination.name}', encoding='utf-8')
+
+    predictions = tmp_path / 'predictions.jsonl'
+    metrics = tmp_path / 'metrics.json'
+    staged_metrics = staged[metrics]
+    original_replace = os.replace
+    prediction_backup = None
+    commit_failed = False
+
+    def fail_restore_after_commit_error(source, destination):
+        nonlocal prediction_backup, commit_failed
+        source_path = Path(source)
+        destination_path = Path(destination)
+        if source_path == predictions and str(destination_path).endswith('.bak'):
+            prediction_backup = destination_path
+        if source_path == staged_metrics and destination_path == metrics and not commit_failed:
+            commit_failed = True
+            raise OSError('simulated commit failure')
+        if prediction_backup is not None and source_path == prediction_backup and destination_path == predictions:
+            raise OSError('simulated rollback restore failure')
+        return original_replace(source, destination)
+
+    monkeypatch.setattr('soul.g31.score_pilot.os.replace', fail_restore_after_commit_error)
+    with pytest.raises(RuntimeError, match='rollback was incomplete') as error:
+        _commit_staged_outputs(staged)
+
+    assert prediction_backup is not None and prediction_backup.exists()
+    assert prediction_backup.read_text(encoding='utf-8') == 'old:predictions.jsonl'
+    assert 'recovery backups retained at' in str(error.value)
+    assert metrics.read_text(encoding='utf-8') == 'old:metrics.json'
+    assert not predictions.exists()
+    for temporary in staged.values():
+        temporary.unlink(missing_ok=True)
+    prediction_backup.unlink(missing_ok=True)
+
+
 def test_default_run_uses_a_checkpoint_and_computes_hash():
     # Run with defaults (A) to a temporary staging prefix; verify hash in output
     staging_pred = Path('artifacts/g31/staging_test_predictions.jsonl')
