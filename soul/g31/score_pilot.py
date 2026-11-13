@@ -185,6 +185,8 @@ def _same_output_path(left, right):
 def validate_output_paths(outputs, protected_inputs):
     """Prevent outputs from aliasing each other or source evidence."""
     for index, output in enumerate(outputs):
+        if output.exists() and output.is_dir():
+            raise ValueError(f'Output path must be a file, not a directory: {output}')
         for other in outputs[index + 1:]:
             if _same_output_path(output, other):
                 raise ValueError(f'Output paths must be distinct: {output} and {other}')
