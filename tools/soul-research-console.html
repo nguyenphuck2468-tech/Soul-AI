@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SOUL AI · Research Console</title>
+<style>
+:root{color-scheme:dark;--bg:#0a0d12;--panel:#121923;--panel2:#182231;--line:#263448;--muted:#91a1b5;--text:#eaf0f8;--accent:#8e9fff;--good:#67d6ad;--warn:#f1bf72;--bad:#ff8f8f}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(800px 480px at 90% -12%,#1d2c4a 0,transparent 65%),var(--bg);color:var(--text);font:14px/1.55 Inter,ui-sans-serif,system-ui,sans-serif}
+main{max-width:1120px;margin:auto;padding:36px 22px 70px}.top{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;flex-wrap:wrap}.eyebrow{font-size:11px;color:var(--accent);font-weight:800;letter-spacing:.16em;text-transform:uppercase}h1{font-size:clamp(30px,5vw,46px);letter-spacing:-.05em;line-height:1.05;margin:9px 0}p{color:var(--muted);margin:7px 0}.load{border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:10px 13px;color:var(--text)}.banner{margin:24px 0;padding:15px 17px;border:1px solid #6c5131;background:#211b14;border-radius:14px}.banner strong{color:var(--warn)}.banner p{font-size:13px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:14px 0}.card{background:linear-gradient(160deg,#172130,#111821);border:1px solid var(--line);border-radius:16px;padding:17px;min-width:0}.label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;font-weight:750}.value{font-size:28px;letter-spacing:-.04em;font-weight:760;margin:5px 0}.sub{font-size:12px;color:var(--muted)}.section{margin-top:28px}.section h2{font-size:18px;margin:0 0 4px}.tablewrap{overflow:auto;border:1px solid var(--line);border-radius:14px;margin-top:12px}table{border-collapse:collapse;width:100%;min-width:620px;background:#101720}th,td{text-align:right;padding:12px 14px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}th:first-child,td:first-child{text-align:left}th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;background:#151f2c}td{font-size:13px}tr:last-child td{border-bottom:0}.bad{color:var(--bad)}.good{color:var(--good)}.status{display:inline-flex;padding:5px 9px;border-radius:8px;background:#2a2419;color:var(--warn);font-size:11px;font-weight:800;letter-spacing:.08em}.meta{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.meta div{background:#101720;border:1px solid var(--line);padding:12px;border-radius:10px;min-width:0}.meta small{display:block;color:var(--muted);margin-bottom:4px}.meta code{font:11px ui-monospace,monospace;overflow-wrap:anywhere;color:#c9d5e8}.empty{border:1px dashed #3b4a60;border-radius:16px;padding:34px;text-align:center;color:var(--muted);margin-top:20px}.foot{font-size:12px;color:#718198;margin-top:28px}@media(max-width:760px){main{padding:26px 14px}.grid{grid-template-columns:1fr}.meta{grid-template-columns:1fr}}
+</style></head><body><main>
+<div class="top"><div><div class="eyebrow">SOUL AI · Research Console</div><h1>Evidence, not assumptions.</h1><p>Read-only viewer for exported G3.1 PILOT metrics. Runs locally in your browser; no model code executes here.</p></div><label class="load">Load extracted Colab output folder <input id="files" type="file" webkitdirectory multiple hidden></label></div>
+<div id="empty" class="empty"><strong>Select the extracted ZIP folder</strong><p>Choose the folder containing A/metrics.json, A/report.json, B1/metrics.json and B1/report.json.</p></div>
+<div id="dashboard" hidden>
+<div class="banner"><strong>EXPLORATORY · GATE INCONCLUSIVE · THRESHOLD TO_LOCK</strong><p>These PILOT results are not a Confirm run, not a threshold decision and not evidence of held-out generalization. The viewer never modifies checkpoints or source data.</p></div>
+<div class="grid" id="cards"></div>
+<div class="section"><h2>Checkpoint comparison</h2><p>Equal-episode mean absolute error. Lower is better. Baselines use the same recorded transitions.</p><div class="tablewrap"><table><thead><tr><th>Metric</th><th>Checkpoint A</th><th>Checkpoint B1</th><th>Persistence</th><th>TRAIN-only mean delta</th></tr></thead><tbody id="comparison"></tbody></table></div></div>
+<div class="section"><h2>Episode-level consistency</h2><p>Mean absolute error per episode; inspect spread before interpreting the aggregate.</p><div class="tablewrap"><table><thead><tr><th>Episode</th><th>A · theta</th><th>B1 · theta</th><th>Persistence · theta</th><th>A · velocity</th><th>B1 · velocity</th></tr></thead><tbody id="episodes"></tbody></table></div></div>
+<div class="section"><h2>Run provenance</h2><div class="meta" id="provenance"></div></div>
+</div><div class="foot">No external libraries · No network requests · Read-only · Values are rendered from the selected JSON files</div></main>
+<script>
+const $=id=>document.getElementById(id);let loaded={};
+function fmt(x,d=3){return Number(x).toFixed(d)}
+function escapeHtml(value){return String(value??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]))}
+function findFile(files,suffix){return files.find(f=>f.webkitRelativePath.endsWith(suffix))}
+async function read(files,suffix){const f=findFile(files,suffix);if(!f)throw Error("Missing "+suffix);return JSON.parse(await f.text())}
+function row(label,a,b,p,md){return "<tr><td>"+escapeHtml(label)+"</td><td class='bad'>"+fmt(a)+"</td><td class='bad'>"+fmt(b)+"</td><td>"+fmt(p)+"</td><td>"+fmt(md)+"</td></tr>"}
+function render(files){Promise.all(["A/metrics.json","B1/metrics.json","A/report.json","B1/report.json"].map(x=>read(files,x))).then(([a,b,ar,br])=>{
+const am=a.model_aggregate_equal_episode,bm=b.model_aggregate_equal_episode,pm=a.persistence_aggregate_equal_episode,dm=a.mean_delta_aggregate_equal_episode;
+$("cards").innerHTML=[
+["Scored transitions",a.transition_count+" / episode set","95 aligned steps across five episodes"],
+["A · theta MAE",fmt(am.theta_mae.mean)+" rad","Persistence: "+fmt(pm.theta_mae.mean)+" rad"],
+["B1 · velocity MAE",fmt(bm.velocity_mae.mean)+" rad/s","Persistence: "+fmt(pm.velocity_mae.mean)+" rad/s"]
+].map(c=>"<div class='card'><div class='label'>"+escapeHtml(c[0])+"</div><div class='value'>"+escapeHtml(c[1])+"</div><div class='sub'>"+escapeHtml(c[2])+"</div></div>").join("");
+$("comparison").innerHTML=row("Theta MAE (rad)",am.theta_mae.mean,bm.theta_mae.mean,pm.theta_mae.mean,dm.theta_mae.mean)+row("Velocity MAE (rad/s)",am.velocity_mae.mean,bm.velocity_mae.mean,pm.velocity_mae.mean,dm.velocity_mae.mean);
+const epKeys=Object.keys(a.model).sort();$("episodes").innerHTML=epKeys.map(k=>"<tr><td>"+escapeHtml(k)+"</td><td>"+fmt(a.model[k].theta_mae)+"</td><td>"+fmt(b.model[k].theta_mae)+"</td><td>"+fmt(a.persistence[k].theta_mae)+"</td><td>"+fmt(a.model[k].velocity_mae)+"</td><td>"+fmt(b.model[k].velocity_mae)+"</td></tr>").join("");
+const fields=[["A checkpoint SHA-256",ar.checkpoint_sha256],["B1 checkpoint SHA-256",br.checkpoint_sha256],["PILOT dataset SHA-256",ar.pilot_sha256],["Evaluator",ar.evaluator],["Environment",ar.environment],["Episodes / recorded transitions",ar.episodes+" / "+ar.recorded_transitions],["Warm-up skipped",ar.warmup_transitions_skipped],["Confirm accessed",String(ar.confirm_accessed)],["Optimizer updates",ar.optimizer_updates],["Model immutable",String(ar.model_immutable)]];
+$("provenance").innerHTML=fields.map(x=>"<div><small>"+escapeHtml(x[0])+"</small><code>"+escapeHtml(x[1])+"</code></div>").join("");
+$("empty").hidden=true;$("dashboard").hidden=false;
+}).catch(e=>{ $("empty").hidden=false;$("empty").innerHTML="<strong>Could not load this export</strong><p>"+escapeHtml(e.message)+". Select the extracted folder, not the ZIP file.</p>";$("dashboard").hidden=true;});}
+$("files").addEventListener("change",e=>render([...e.target.files]));
+</script></body></html>
