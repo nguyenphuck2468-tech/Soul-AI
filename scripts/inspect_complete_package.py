@@ -132,16 +132,6 @@ def inspect_package(archive_path: Path) -> dict[str, object]:
                         f"duplicate or case-insensitive ZIP path collision: {info.filename}"
                     )
                 parts = PurePosixPath(name).parts
-                prefix_count = len(parts) if is_directory else len(parts) - 1
-                for index in range(1, prefix_count + 1):
-                    prefix = "/".join(parts[:index])
-                    folded_prefix = _collision_key(prefix)
-                    previous_prefix = prefix_spellings.get(folded_prefix)
-                    if previous_prefix is not None and previous_prefix != prefix:
-                        raise ValueError(
-                            f"case-insensitive ZIP directory prefix collision: {info.filename}"
-                        )
-                    prefix_spellings[folded_prefix] = prefix
                 parents = [
                     "/".join(parts[:i])
                     for i in range(1, len(parts))
@@ -158,6 +148,16 @@ def inspect_package(archive_path: Path) -> dict[str, object]:
                     raise ValueError(
                         f"file/directory path collision: {info.filename} is below {conflict}"
                     )
+                prefix_count = len(parts) if is_directory else len(parts) - 1
+                for index in range(1, prefix_count + 1):
+                    prefix = "/".join(parts[:index])
+                    folded_prefix = _collision_key(prefix)
+                    previous_prefix = prefix_spellings.get(folded_prefix)
+                    if previous_prefix is not None and previous_prefix != prefix:
+                        raise ValueError(
+                            f"case-insensitive ZIP directory prefix collision: {info.filename}"
+                        )
+                    prefix_spellings[folded_prefix] = prefix
                 if not is_directory and any(
                     existing.startswith(folded + "/") for existing in seen_folded
                 ):
