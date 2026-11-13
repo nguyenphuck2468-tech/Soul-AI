@@ -177,8 +177,7 @@ def _same_output_path(left, right):
     if left.resolve() == right.resolve():
         return True
     try:
-        return left.exists() and right.exists() and os.path.samefile(left, right)
-    except OSError:
+        return left.exists() and right.exists() and os.path.samefile(left, right)    except OSError:
         return False
 
 
@@ -358,7 +357,6 @@ def run(checkpoint_path=None, predictions_path=None, metrics_path=None,
             })
     after = model.state_dict()
     assert all(torch.equal(before[name], after[name]) for name in before)
-
     model_ep = episode_metrics(records, 'predicted_physical')
     persistence_ep = episode_metrics(records, 'persistence_physical')
     mean_ep = episode_metrics(records, 'mean_delta_physical')
@@ -435,8 +433,7 @@ def run(checkpoint_path=None, predictions_path=None, metrics_path=None,
                     stream.write('\n')
                 stream.flush()
                 os.fsync(stream.fileno())
-        for destination, temporary in staged.items():
-            os.replace(temporary, destination)
+        _commit_staged_outputs(staged)
     finally:
         for temporary in staged.values():
             temporary.unlink(missing_ok=True)
