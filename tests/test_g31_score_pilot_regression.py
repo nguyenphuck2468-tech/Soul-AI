@@ -290,3 +290,12 @@ def test_colab_notebook_uses_hash_verified_checkpoint_loader():
     )
     assert "load_frozen_checkpoint(path)" in code
     assert "torch.load(" not in code
+
+def test_output_paths_reject_existing_directories(tmp_path):
+    from soul.g31.score_pilot import validate_output_paths
+
+    directory = tmp_path / "reports"
+    directory.mkdir()
+    with pytest.raises(ValueError, match="must be a file, not a directory"):
+        validate_output_paths((directory,), ())
+\n
