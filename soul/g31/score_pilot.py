@@ -177,7 +177,8 @@ def _same_output_path(left, right):
     if left.resolve() == right.resolve():
         return True
     try:
-        return left.exists() and right.exists() and os.path.samefile(left, right)    except OSError:
+        return left.exists() and right.exists() and os.path.samefile(left, right)
+    except OSError:
         return False
 
 
