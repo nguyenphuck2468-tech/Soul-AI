@@ -1,6 +1,7 @@
 """G3.1 Pilot scorer. Reads Pilot + TRAIN only; never opens Confirm."""
 import hashlib
 import json
+import tempfile
 from collections import defaultdict
 from pathlib import Path
 
@@ -28,10 +29,41 @@ DEFAULT_REPORT_PATH = Path('artifacts/g31/pilot_report.json')
 # Default A checkpoint (preserved for backward compatibility)
 PILOT_HASH = '26d63b1e3a900d40a9532aa5b2e4c178b58129e88f70cb2cb9a6e07af596264e'
 CHECKPOINT_HASH = '0fd3fbc46eadd3e6dc4b2d9af873f62ef4c5a04477bfedd06b8565d704b32147'
+B1_CHECKPOINT_HASH = '136017b650fc910043c559822d47fea900391e2823324413327de815a4d8c018'
+FROZEN_CHECKPOINT_SIZES = {
+    CHECKPOINT_HASH: 3_386_259,
+    B1_CHECKPOINT_HASH: 3_383_579,
+}
+MAX_FROZEN_CHECKPOINT_BYTES = max(FROZEN_CHECKPOINT_SIZES.values())
 
 
 def sha256(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def load_frozen_checkpoint(path):
+    """Hash a disk-backed snapshot before deserializing an allowlisted checkpoint."""
+    digest = hashlib.sha256()
+    total_bytes = 0
+    with Path(path).open('rb') as source, tempfile.TemporaryFile(mode='w+b') as snapshot:
+        for chunk in iter(lambda: source.read(1024 * 1024), b''):
+            total_bytes += len(chunk)
+            if total_bytes > MAX_FROZEN_CHECKPOINT_BYTES:
+                raise RuntimeError('checkpoint exceeds the maximum frozen G3.1 checkpoint size')
+            digest.update(chunk)
+            snapshot.write(chunk)
+        checkpoint_sha256 = digest.hexdigest()
+        expected_size = FROZEN_CHECKPOINT_SIZES.get(checkpoint_sha256)
+        if expected_size is None:
+            raise RuntimeError(
+                'checkpoint SHA-256 is not one of the frozen G3.1 A/B1 checkpoints'
+            )
+        if total_bytes != expected_size:
+            raise RuntimeError('frozen G3.1 checkpoint size does not match its pinned SHA-256')
+        snapshot.flush()
+        snapshot.seek(0)
+        checkpoint = torch.load(snapshot, map_location='cpu', weights_only=False)
+    return checkpoint, checkpoint_sha256
 
 
 def load_rows(path, split, seeds):
@@ -113,9 +145,8 @@ def run(checkpoint_path=None, predictions_path=None, metrics_path=None,
     if sha256(PILOT_PATH) != PILOT_HASH:
         raise RuntimeError('Pilot dataset hash mismatch')
 
-    # Load checkpoint and compute runtime hash (never hardcoded)
-    checkpoint = torch.load(checkpoint_path, map_location='cpu', weights_only=False)
-    checkpoint_sha256 = sha256(checkpoint_path)
+    # Verify a disk-backed snapshot before allowing pickle deserialization.
+    checkpoint, checkpoint_sha256 = load_frozen_checkpoint(checkpoint_path)
 
     train_delta = fit_train_mean_delta()
     pilot_rows = load_rows(PILOT_PATH, 'pilot', range(2001, 2006))
