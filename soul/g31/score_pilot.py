@@ -16,7 +16,10 @@ from soul.g31.evaluator import (
     physical_metrics,
     raw_observation_to_physical,
 )
-from soul.g31.train_data import pendulum_model_config
+from soul.g31.train_data import (
+    PENDULUM_ENV_ID, TRAIN_SEEDS, load_train_jsonl_snapshot,
+    pendulum_model_config, read_file_snapshot,
+)
 from soul.model import SoulModel
 from soul.obs import ObsEncoder
 
@@ -37,6 +40,8 @@ FROZEN_CHECKPOINT_SIZES = {
     B1_CHECKPOINT_HASH: 3_383_579,
 }
 MAX_FROZEN_CHECKPOINT_BYTES = max(FROZEN_CHECKPOINT_SIZES.values())
+MAX_PILOT_DATASET_BYTES = 4 * 1024 * 1024
+MAX_PILOT_DATASET_ROWS = 10_000
 
 
 def sha256(path):
@@ -77,17 +82,48 @@ def load_frozen_checkpoint(path):
     return checkpoint, checkpoint_sha256
 
 
-def load_rows(path, split, seeds):
-    rows = [json.loads(line) for line in path.open(encoding='utf-8')]
+def load_rows_snapshot(path, split, seeds, expected_sha256=None):
+    raw, digest = read_file_snapshot(path, MAX_PILOT_DATASET_BYTES)
+    if expected_sha256 is not None and digest != expected_sha256:
+        raise RuntimeError(f'{split.title()} dataset hash mismatch')
+    rows = [json.loads(line) for line in raw.decode('utf-8').splitlines()]
+    if len(rows) > MAX_PILOT_DATASET_ROWS:
+        raise ValueError(f'{path} exceeds the row limit of {MAX_PILOT_DATASET_ROWS}')
     if any(row.get('split') != split for row in rows):
         raise ValueError(f'{path} contains a non-{split} row')
     if {row.get('episode_seed') for row in rows} != set(seeds):
         raise ValueError(f'{path} has unexpected seeds')
+    return rows, digest
+
+
+def load_rows(path, split, seeds):
+    rows, _ = load_rows_snapshot(path, split, seeds)
     return rows
 
 
-def fit_train_mean_delta():
-    rows = load_rows(TRAIN_PATH, 'train', range(1001, 1006))
+def validate_checkpoint_training_provenance(checkpoint, train_sha256, train_rows):
+    """Require the frozen checkpoint to identify the exact TRAIN snapshot being scored."""
+    expected_seeds = sorted(TRAIN_SEEDS)
+    actual_seeds = sorted({row.get('episode_seed') for row in train_rows})
+    if checkpoint.get('split') != 'TRAIN' or checkpoint.get('data_split') != 'TRAIN':
+        raise RuntimeError('frozen checkpoint does not declare TRAIN-only provenance')
+    if checkpoint.get('environment_id') != PENDULUM_ENV_ID:
+        raise RuntimeError('frozen checkpoint environment provenance mismatch')
+    if checkpoint.get('dataset_sha256') != train_sha256:
+        raise RuntimeError('TRAIN dataset hash mismatch with frozen checkpoint provenance')
+    if (
+        checkpoint.get('data_seeds') != expected_seeds
+        or checkpoint.get('train_seeds') != expected_seeds
+        or actual_seeds != expected_seeds
+    ):
+        raise RuntimeError('TRAIN seed provenance mismatch')
+    if checkpoint.get('data_transitions') != len(train_rows):
+        raise RuntimeError('TRAIN transition count mismatch with frozen checkpoint provenance')
+
+
+def fit_train_mean_delta(rows=None):
+    if rows is None:
+        rows, _ = load_train_jsonl_snapshot(TRAIN_PATH)
     deltas = np.asarray([
         raw_observation_to_physical(row['raw_observation_after'])
         - raw_observation_to_physical(row['raw_observation_before'])
@@ -157,6 +193,58 @@ def validate_output_paths(outputs, protected_inputs):
                 raise ValueError(f'Output path must not overwrite input evidence: {output}')
 
 
+def _commit_staged_outputs(staged):
+    """Replace a set of outputs with rollback if any ordinary replacement fails."""
+    backups = {}
+    committed = []
+    try:
+        for destination in staged:
+            if destination.exists() or destination.is_symlink():
+                with tempfile.NamedTemporaryFile(
+                    dir=destination.parent,
+                    prefix=f'.{destination.name}.',
+                    suffix='.bak',
+                    delete=False,
+                ) as stream:
+                    backup = Path(stream.name)
+                try:
+                    os.replace(destination, backup)
+                except BaseException:
+                    backup.unlink(missing_ok=True)
+                    raise
+                backups[destination] = backup
+        _commit_staged_outputs(staged)
+            committed.append(destination)
+    except BaseException as error:
+        rollback_errors = []
+        for destination in reversed(committed):
+            try:
+                destination.unlink(missing_ok=True)
+            except OSError as rollback_error:
+                rollback_errors.append(f'{destination}: {rollback_error}')
+        for destination, backup in reversed(list(backups.items())):
+            if backup.exists() or backup.is_symlink():
+                try:
+                    os.replace(backup, destination)
+                except OSError as rollback_error:
+                    rollback_errors.append(f'{backup} -> {destination}: {rollback_error}')
+        if rollback_errors:
+            retained = [
+                str(path) for path in backups.values()
+                if path.exists() or path.is_symlink()
+            ]
+            raise RuntimeError(
+                'output replacement failed and rollback was incomplete: '
+                + '; '.join(rollback_errors)
+                + '; recovery backups retained at: '
+                + ', '.join(retained)
+            ) from error
+        raise
+    else:
+        for backup in backups.values():
+            backup.unlink(missing_ok=True)
+
+
 def run(checkpoint_path=None, predictions_path=None, metrics_path=None,
         report_path=None, allow_overwrite=False):
     # Resolve paths
@@ -174,21 +262,24 @@ def run(checkpoint_path=None, predictions_path=None, metrics_path=None,
 
     # Isolation guard: refuse to overwrite existing artifacts unless allowed
     for p in (predictions_path, metrics_path, report_path):
-        if p.exists() and not allow_overwrite:
+        if (p.exists() or p.is_symlink()) and not allow_overwrite:
             raise FileExistsError(
                 f'Output artifact already exists (isolation guard): {p}. '
                 f'Use a different output prefix or set allow_overwrite=True.'
             )
 
-    # Verify Pilot dataset identity (same for A or B1)
-    if sha256(PILOT_PATH) != PILOT_HASH:
-        raise RuntimeError('Pilot dataset hash mismatch')
+    # Read each evaluation input once. Hashes describe the exact bytes parsed below,
+    # so a later path replacement cannot silently change the scored evidence.
+    pilot_rows, pilot_sha256 = load_rows_snapshot(
+        PILOT_PATH, 'pilot', range(2001, 2006), expected_sha256=PILOT_HASH
+    )
+    train_rows, train_sha256 = load_train_jsonl_snapshot(TRAIN_PATH)
 
     # Verify a bounded snapshot against the frozen A/B1 allowlist before deserialization.
     checkpoint, checkpoint_sha256 = load_frozen_checkpoint(checkpoint_path)
+    validate_checkpoint_training_provenance(checkpoint, train_sha256, train_rows)
 
-    train_delta = fit_train_mean_delta()
-    pilot_rows = load_rows(PILOT_PATH, 'pilot', range(2001, 2006))
+    train_delta = fit_train_mean_delta(train_rows)
     cfg = Config.from_dict(checkpoint['config_dict'])
     cfg = pendulum_model_config(cfg)
     encoder = ObsEncoder(cfg.obs)
@@ -259,7 +350,8 @@ def run(checkpoint_path=None, predictions_path=None, metrics_path=None,
                 'persistence_physical': persistence.tolist(),
                 'mean_delta_physical': mean_delta.tolist(),
                 'checkpoint_sha256': checkpoint_sha256,
-                'pilot_sha256': PILOT_HASH,
+                'pilot_sha256': pilot_sha256,
+                'train_sha256': train_sha256,
             })
     after = model.state_dict()
     assert all(torch.equal(before[name], after[name]) for name in before)
@@ -286,10 +378,15 @@ def run(checkpoint_path=None, predictions_path=None, metrics_path=None,
         'pilot_scoring': 'EXPLORATORY; no confirm run',
         'checkpoint_path': str(checkpoint_path),
         'checkpoint_sha256': checkpoint_sha256,
+        'pilot_sha256': pilot_sha256,
+        'train_sha256': train_sha256,
     }
     report = {
-        'dataset': str(PILOT_PATH), 'pilot_sha256': PILOT_HASH,
+        'dataset': str(PILOT_PATH), 'pilot_sha256': pilot_sha256,
+        'train_dataset': str(TRAIN_PATH), 'train_sha256': train_sha256,
         'checkpoint': str(checkpoint_path), 'checkpoint_sha256': checkpoint_sha256,
+        'checkpoint_train_dataset': checkpoint.get('dataset_path'),
+        'checkpoint_train_sha256': checkpoint.get('dataset_sha256'),
         'environment': 'Pendulum-v1 / Gymnasium 1.4.0',
         'episodes': len(model_ep), 'transitions': len(records),
         'recorded_transitions': len(pilot_rows),
@@ -307,8 +404,9 @@ def run(checkpoint_path=None, predictions_path=None, metrics_path=None,
         'threshold': 'TO_LOCK', 'gate': 'INCONCLUSIVE',
         'note': 'Pilot metrics are exploratory; no threshold was locked and Confirm was not run.',
     }
-    # Stage all three files beside their destinations before replacing any output.
-    # A failed serialization/write therefore cannot leave a partially written artifact.
+    # Stage every file before touching existing outputs. The commit helper backs up
+    # previous files and rolls them back on ordinary replacement errors. Multiple
+    # filesystem paths cannot be crash-atomic as one transaction.
     payloads = {
         predictions_path: ''.join(
             json.dumps(record, sort_keys=True) + '\n' for record in records
@@ -364,5 +462,6 @@ if __name__ == '__main__':
         'threshold': result['threshold'],
         'gate': 'INCONCLUSIVE',
         'checkpoint_sha256': result['checkpoint_sha256'],
+        'train_sha256': result['train_sha256'],
         'checkpoint_path': result['checkpoint_path'],
     }, indent=2))

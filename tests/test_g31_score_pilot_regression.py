@@ -12,8 +12,10 @@ from soul.g31.score_pilot import (
     DEFAULT_CHECKPOINT_PATH,
     PILOT_HASH,
     PILOT_PATH,
+    TRAIN_PATH,
     sha256,
     run,
+    validate_checkpoint_training_provenance,
 )
 
 A_CHECKPOINT = Path('artifacts/g31/g31_verified_train_checkpoint.pt')
@@ -142,6 +144,52 @@ def test_output_paths_cannot_replace_source_evidence():
 
 
 
+def test_checkpoint_requires_the_exact_train_dataset_hash():
+    seeds = list(range(1001, 1006))
+    checkpoint = {
+        'split': 'TRAIN', 'data_split': 'TRAIN', 'environment_id': 'Pendulum-v1',
+        'dataset_sha256': 'a' * 64, 'data_seeds': seeds,
+        'train_seeds': seeds, 'data_transitions': len(seeds),
+    }
+    train_rows = [{'episode_seed': seed} for seed in seeds]
+    with pytest.raises(RuntimeError, match='TRAIN dataset hash mismatch'):
+        validate_checkpoint_training_provenance(checkpoint, 'b' * 64, train_rows)
+
+
+def test_output_commit_rolls_back_all_previous_artifacts_on_replace_failure(tmp_path, monkeypatch):
+    from soul.g31.score_pilot import _commit_staged_outputs
+    import os
+
+    staged = {
+        tmp_path / 'predictions.jsonl': tmp_path / '.predictions.tmp',
+        tmp_path / 'metrics.json': tmp_path / '.metrics.tmp',
+        tmp_path / 'report.json': tmp_path / '.report.tmp',
+    }
+    for destination, temporary in staged.items():
+        destination.write_text(f'old:{destination.name}', encoding='utf-8')
+        temporary.write_text(f'new:{destination.name}', encoding='utf-8')
+    metrics = tmp_path / 'metrics.json'
+    staged_metrics = staged[metrics]
+    original_replace = os.replace
+    failed = False
+
+    def fail_second_commit(source, destination):
+        nonlocal failed
+        if Path(destination) == metrics and Path(source) == staged_metrics and not failed:
+            failed = True
+            raise OSError('simulated second-output replacement failure')
+        return original_replace(source, destination)
+
+    monkeypatch.setattr('soul.g31.score_pilot.os.replace', fail_second_commit)
+    with pytest.raises(OSError, match='simulated second-output'):
+        _commit_staged_outputs(staged)
+    for destination in staged:
+        assert destination.read_text(encoding='utf-8') == f'old:{destination.name}'
+    assert not list(tmp_path.glob('.*.bak'))
+    for temporary in staged.values():
+        temporary.unlink(missing_ok=True)
+
+
 def test_default_run_uses_a_checkpoint_and_computes_hash():
     # Run with defaults (A) to a temporary staging prefix; verify hash in output
     staging_pred = Path('artifacts/g31/staging_test_predictions.jsonl')
@@ -159,6 +207,7 @@ def test_default_run_uses_a_checkpoint_and_computes_hash():
     )
     # Verify runtime hash matches A
     assert result['checkpoint_sha256'] == sha256(A_CHECKPOINT)
+    assert result['train_sha256'] == sha256(TRAIN_PATH)
     assert result['checkpoint_path'] == str(A_CHECKPOINT)
     # Verify outputs exist and non-empty
     assert staging_pred.exists() and staging_pred.stat().st_size > 0
@@ -168,6 +217,7 @@ def test_default_run_uses_a_checkpoint_and_computes_hash():
     first = json.loads(staging_pred.read_text().splitlines()[0])
     assert first['checkpoint_sha256'] == sha256(A_CHECKPOINT)
     assert first['pilot_sha256'] == PILOT_HASH
+    assert first['train_sha256'] == sha256(TRAIN_PATH)
     assert first['timestep'] == 1
     assert len(first['zero_action_physical']) == 2
     assert result['transition_count'] == 95
@@ -175,6 +225,10 @@ def test_default_run_uses_a_checkpoint_and_computes_hash():
     assert 'paired_model_minus_zero_action' in result
     report = json.loads(staging_rep.read_text(encoding='utf-8'))
     assert report['transitions'] == 95
+    assert report['train_dataset'] == str(TRAIN_PATH)
+    assert report['train_sha256'] == sha256(TRAIN_PATH)
+    metrics = json.loads(staging_met.read_text(encoding='utf-8'))
+    assert metrics['train_sha256'] == sha256(TRAIN_PATH)
     assert report['recorded_transitions'] == 100
     assert report['warmup_transitions_skipped'] == 5
     assert report['action_ablation']['kind'] == 'zero-action sensitivity diagnostic'

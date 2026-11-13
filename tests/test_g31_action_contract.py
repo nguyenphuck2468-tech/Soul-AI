@@ -1,3 +1,4 @@
+import hashlib
 import json
 import tempfile
 import unittest
@@ -7,7 +8,7 @@ import numpy as np
 
 from soul.config import Config
 from soul.g31.collector import record_transition
-from soul.g31.train_data import load_train_jsonl, pendulum_model_config, rows_to_episodes
+from soul.g31.train_data import (MAX_TRAIN_JSONL_BYTES, load_train_jsonl, load_train_jsonl_snapshot, pendulum_model_config, rows_to_episodes)
 from soul.obs import ObsEncoder
 
 
@@ -56,6 +57,29 @@ class G31ActionContractTests(unittest.TestCase):
             rows = load_train_jsonl(str(path))
             self.assertEqual(len(rows), 1)
             self.assertEqual(rows[0]['episode_seed'], 1001)
+
+    def test_train_loader_hashes_the_exact_bytes_it_parses(self):
+        row = {
+            'episode_id': 'train_ep0', 'split': 'train', 'episode_seed': 1001,
+            'raw_observation_before': [1.0, 0.0, 0.0],
+            'raw_observation_after': [0.99, 0.1, 0.2],
+            'applied_action': [0.5],
+            'environment_config': {'env_id': 'Pendulum-v1'},
+        }
+        raw = (json.dumps(row) + '\\n').encode('utf-8')
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'train.jsonl'
+            path.write_bytes(raw)
+            rows, digest = load_train_jsonl_snapshot(str(path))
+            self.assertEqual(rows, [row])
+            self.assertEqual(digest, hashlib.sha256(raw).hexdigest())
+
+    def test_train_loader_bounds_snapshot_size(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'oversized.jsonl'
+            path.write_bytes(b'x' * (MAX_TRAIN_JSONL_BYTES + 1))
+            with self.assertRaisesRegex(ValueError, 'maximum snapshot size'):
+                load_train_jsonl_snapshot(str(path))
 
     def test_rows_to_episodes_preserves_order_actions_and_terminal(self):
         rows = []
