@@ -15,6 +15,19 @@ class ResearchConsoleTests(unittest.TestCase):
         self.assertIn("read-only viewer", source)
         self.assertIn("no model code executes", source)
 
+    def test_console_escapes_untrusted_export_values_before_html_rendering(self):
+        source = PAGE.read_text(encoding="utf-8")
+        self.assertIn("function escapeHtml(value)", source)
+        for dynamic_value in (
+            "escapeHtml(c[0])",
+            "escapeHtml(c[1])",
+            "escapeHtml(c[2])",
+            "escapeHtml(k)",
+            "escapeHtml(x[1])",
+            "escapeHtml(e.message)",
+        ):
+            self.assertIn(dynamic_value, source)
+
     def test_console_loads_both_checkpoint_reports_and_metrics(self):
         source = PAGE.read_text(encoding="utf-8")
         for required in (
