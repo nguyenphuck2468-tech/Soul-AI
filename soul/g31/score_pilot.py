@@ -213,7 +213,8 @@ def _commit_staged_outputs(staged):
                     backup.unlink(missing_ok=True)
                     raise
                 backups[destination] = backup
-        _commit_staged_outputs(staged)
+        for destination, temporary in staged.items():
+            os.replace(temporary, destination)
             committed.append(destination)
     except BaseException as error:
         rollback_errors = []
