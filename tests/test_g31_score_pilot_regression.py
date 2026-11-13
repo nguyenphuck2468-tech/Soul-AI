@@ -220,6 +220,40 @@ def test_output_commit_removes_new_files_when_a_later_replace_fails(tmp_path, mo
     assert not list(tmp_path.glob('.*.bak'))
 
 
+def test_output_commit_restores_earlier_backup_if_later_backup_staging_fails(tmp_path, monkeypatch):
+    from soul.g31.score_pilot import _commit_staged_outputs
+    import os
+
+    staged = {
+        tmp_path / 'predictions.jsonl': tmp_path / '.predictions.tmp',
+        tmp_path / 'metrics.json': tmp_path / '.metrics.tmp',
+    }
+    for destination, temporary in staged.items():
+        destination.write_text(f'old:{destination.name}', encoding='utf-8')
+        temporary.write_text(f'new:{destination.name}', encoding='utf-8')
+
+    metrics = tmp_path / 'metrics.json'
+    original_replace = os.replace
+    failed = False
+
+    def fail_second_backup(source, destination):
+        nonlocal failed
+        if Path(source) == metrics and str(destination).endswith('.bak') and not failed:
+            failed = True
+            raise OSError('simulated backup staging failure')
+        return original_replace(source, destination)
+
+    monkeypatch.setattr('soul.g31.score_pilot.os.replace', fail_second_backup)
+    with pytest.raises(OSError, match='backup staging failure'):
+        _commit_staged_outputs(staged)
+
+    for destination in staged:
+        assert destination.read_text(encoding='utf-8') == f'old:{destination.name}'
+    assert not list(tmp_path.glob('.*.bak'))
+    for temporary in staged.values():
+        assert temporary.exists()
+
+
 def test_default_run_uses_a_checkpoint_and_computes_hash():
     # Run with defaults (A) to a temporary staging prefix; verify hash in output
     staging_pred = Path('artifacts/g31/staging_test_predictions.jsonl')
