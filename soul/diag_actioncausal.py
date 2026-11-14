@@ -59,6 +59,19 @@ def build(seed=0, steps=1200, warmup_episodes=30,
     return s
 
 
+def _shuffle_action_timesteps(actions, valid):
+    """Shuffle time positions independently per sequence, preserving padding."""
+    if actions.ndim != 3 or valid.shape != actions.shape[:2]:
+        raise ValueError('actions must be [batch, time, action] and valid [batch, time]')
+    shuffled = actions.clone()
+    for batch_index in range(actions.shape[0]):
+        indices = torch.nonzero(valid[batch_index] > 0, as_tuple=False).flatten()
+        if indices.numel() > 1:
+            permutation = torch.randperm(indices.numel(), device=actions.device)
+            shuffled[batch_index, indices] = actions[batch_index, indices[permutation]]
+    return shuffled
+
+
 def measure(s, rng, shuffle, n_batches=10):
     tot, n = 0.0, 0
     for _ in range(n_batches):
@@ -73,13 +86,9 @@ def measure(s, rng, shuffle, n_batches=10):
         # while actions/valid cover only the input sequence.
         oi = torch.cat([v_, m_, tx], -1)[:, :seq]
         if shuffle:
-            # Xao tron hanh dong theo THOI GIAN: dung mot bien do rieng
-            # cho moi chuoi. Do la cach bao "dung sai lan" ma van giu
-            # duoc phan phoi bien do cua hanh dong — neu khong xao theo
-            # thoi gian, mau hanh dong o buoc t se chua hanh dong that o
-            # buoc t, va do sai luon ra doi.
-            perm = torch.randperm(ac.shape[0])
-            ac = ac[perm]
+            # Hoan vi cac moc thoi gian rieng trong tung chuoi; giu nguyen
+            # tap hanh dong cua moi episode va cac vi tri padding.
+            ac = _shuffle_action_timesteps(ac, va)
         with torch.no_grad():
             out = s.model.dynamics.observe_sequence(
                 oi, ac, s.model.encoder, va)
@@ -116,6 +125,7 @@ def main():
 
     _banner('KL prior||posterior cua hanh dung va hanh xao tron')
     real = measure(s, rng, False, n_batches=args.batches)
+    torch.manual_seed(args.seed + 7)
     shuf = measure(s, np.random.default_rng(args.seed + 7), True,
                    n_batches=args.batches)
     print(f'  hanh dong THAT     : KL = {real:.4f} nats')
