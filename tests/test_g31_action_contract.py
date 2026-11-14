@@ -1,3 +1,4 @@
+import hashlib
 import json
 import tempfile
 import unittest
@@ -7,7 +8,7 @@ import numpy as np
 
 from soul.config import Config
 from soul.g31.collector import record_transition
-from soul.g31.train_data import load_train_jsonl, pendulum_model_config, rows_to_episodes
+from soul.g31.train_data import (MAX_TRAIN_JSONL_BYTES, load_train_jsonl, load_train_jsonl_snapshot, pendulum_model_config, rows_to_episodes)
 from soul.obs import ObsEncoder
 
 
@@ -57,14 +58,66 @@ class G31ActionContractTests(unittest.TestCase):
             self.assertEqual(len(rows), 1)
             self.assertEqual(rows[0]['episode_seed'], 1001)
 
+    def test_train_loader_rejects_nonfinite_observations_actions_and_rewards(self):
+        base = {
+            'episode_id': 'train_ep0', 'split': 'train', 'episode_seed': 1001,
+            'raw_observation_before': [1.0, 0.0, 0.0],
+            'raw_observation_after': [0.9, 0.1, 0.2],
+            'applied_action': [0.5], 'reward': 0.0,
+            'environment_config': {'env_id': 'Pendulum-v1'},
+        }
+        cases = (
+            ('raw_observation_before', [float('nan'), 0.0, 0.0]),
+            ('raw_observation_after', [0.9, float('inf'), 0.2]),
+            ('applied_action', [float('-inf')]),
+            ('reward', float('nan')),
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'nonfinite.jsonl'
+            for field, value in cases:
+                with self.subTest(field=field):
+                    row = dict(base)
+                    row[field] = value
+                    path.write_text(json.dumps(row) + chr(10), encoding='utf-8')
+                    with self.assertRaisesRegex(ValueError, 'nonfinite'):
+                        load_train_jsonl_snapshot(str(path))
+
+    def test_train_loader_hashes_the_exact_bytes_it_parses(self):
+        row = {
+            'episode_id': 'train_ep0', 'split': 'train', 'episode_seed': 1001,
+            'raw_observation_before': [1.0, 0.0, 0.0],
+            'raw_observation_after': [0.99, 0.1, 0.2],
+            'applied_action': [0.5],
+            'environment_config': {'env_id': 'Pendulum-v1'},
+        }
+        raw = (json.dumps(row) + '\n').encode('utf-8')
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'train.jsonl'
+            path.write_bytes(raw)
+            rows, digest = load_train_jsonl_snapshot(str(path))
+            self.assertEqual(rows, [row])
+            self.assertEqual(digest, hashlib.sha256(raw).hexdigest())
+
+    def test_train_loader_bounds_snapshot_size(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'oversized.jsonl'
+            path.write_bytes(b'x' * (MAX_TRAIN_JSONL_BYTES + 1))
+            with self.assertRaisesRegex(ValueError, 'maximum snapshot size'):
+                load_train_jsonl_snapshot(str(path))
+
     def test_rows_to_episodes_preserves_order_actions_and_terminal(self):
         rows = []
+        observations = [
+            [1.0, 0.0, 0.0],
+            [0.9, 0.1, 1.0],
+            [0.8, 0.2, 2.0],
+        ]
         for timestep in range(2):
             rows.append({
                 'episode_id': 'train_ep0', 'split': 'train',
                 'episode_seed': 1001, 'timestep': timestep,
-                'raw_observation_before': [1.0, 0.0, float(timestep)],
-                'raw_observation_after': [0.9, 0.1, float(timestep + 1)],
+                'raw_observation_before': observations[timestep],
+                'raw_observation_after': observations[timestep + 1],
                 'requested_action': [float(timestep)],
                 'applied_action': [float(timestep)],
                 'reward': float(timestep), 'terminal': timestep == 1,
@@ -76,6 +129,24 @@ class G31ActionContractTests(unittest.TestCase):
         np.testing.assert_array_equal(episodes[0].actions[0], [0.0])
         np.testing.assert_array_equal(episodes[0].actions[1], [1.0])
         self.assertEqual(episodes[0].continues, [1.0, 0.0])
+
+    def test_rows_to_episodes_rejects_observation_discontinuity(self):
+        rows = [
+            {
+                'episode_id': 'train_ep0', 'timestep': 0,
+                'raw_observation_before': [1.0, 0.0, 0.0],
+                'raw_observation_after': [0.9, 0.1, 1.0],
+                'applied_action': [0.0], 'reward': 0.0, 'terminal': False,
+            },
+            {
+                'episode_id': 'train_ep0', 'timestep': 1,
+                'raw_observation_before': [0.8, 0.2, 2.0],
+                'raw_observation_after': [0.7, 0.3, 3.0],
+                'applied_action': [0.0], 'reward': 0.0, 'terminal': False,
+            },
+        ]
+        with self.assertRaisesRegex(ValueError, 'observation discontinuity'):
+            rows_to_episodes(rows, ObsEncoder(), goal_dim=4)
 
     def test_rows_to_episodes_rejects_timestep_gap(self):
         rows = [{

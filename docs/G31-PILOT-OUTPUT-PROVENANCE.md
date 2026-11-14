@@ -44,3 +44,14 @@ The new results are written to timestamped Colab output folders and are not allo
 - CONFIRM remains untouched.
 - Threshold remains `TO_LOCK`; gate remains `INCONCLUSIVE`.
 - No performance claim is made until the corrected outputs are reviewed and the owner-defined protocol decisions are resolved.
+
+
+## TRAIN dataset identity and output commit safety
+
+The scorer now reads the PILOT and TRAIN JSONL inputs as bounded regular-file snapshots. The PILOT digest is checked against its frozen SHA-256 before scoring. The TRAIN digest is computed from the exact bytes parsed by the loader and must match the `dataset_sha256`, TRAIN split, environment, seed list and transition count embedded in the pinned A/B1 checkpoint. The same TRAIN snapshot feeds the mean-delta baseline; it is not reopened after hashing.
+
+The TRAIN-only training entry points also compute checkpoint provenance from the exact snapshot used to construct episodes. Prediction rows, metrics and the report carry the TRAIN SHA-256 so a later data-file change cannot silently alter the baseline's identity.
+
+Output files are staged before replacement. Existing outputs are backed up and restored if an ordinary replacement operation fails partway through the set. This is rollback protection, not a crash-atomic multi-file transaction; backups are retained and reported if rollback itself fails.
+
+No model was retrained, no checkpoint bytes were modified, and no new benchmark or Confirm result is claimed by this audit change.

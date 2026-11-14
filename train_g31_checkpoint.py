@@ -18,13 +18,13 @@ from soul.g31.collector import record_transition
 # Load real TRAIN data. This entry point deliberately fails closed until the
 # recorded TRAIN JSONL exists; it never falls back to synthetic observations.
 from soul.g31.train_data import (
-    load_train_jsonl,
+    load_train_jsonl_snapshot,
     pendulum_model_config,
     rows_to_episodes,
 )
 
 TRAIN_JSONL = os.environ.get('G31_TRAIN_JSONL', 'artifacts/g31/train.jsonl')
-train_rows = load_train_jsonl(TRAIN_JSONL)
+train_rows, dataset_hash = load_train_jsonl_snapshot(TRAIN_JSONL)
 
 cfg = Config()
 cfg = pendulum_model_config(cfg)
@@ -49,7 +49,6 @@ replay = ReplayBuffer(cfg.train.replay_capacity, cfg.train.seq_len)
 for episode in episodes:
     replay.add_episode(episode)
 
-dataset_hash = hashlib.sha256(open(TRAIN_JSONL, 'rb').read()).hexdigest()
 git_commit = subprocess.check_output(
     ['git', 'rev-parse', 'HEAD'], text=True).strip()
 training_started = time.time()
