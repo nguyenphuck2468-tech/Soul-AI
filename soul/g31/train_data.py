@@ -70,6 +70,8 @@ def load_train_jsonl_snapshot(path: str):
     rows = []
     for line_no, line in enumerate(raw.decode('utf-8').splitlines(), 1):
         row = json.loads(line)
+        if not isinstance(row, dict):
+            raise ValueError(f'row must be a JSON object at {source}:{line_no}')
         if row.get('split') != 'train':
             raise ValueError(f'non-TRAIN row at {source}:{line_no}')
         if row.get('episode_seed') not in TRAIN_SEEDS:
@@ -81,7 +83,17 @@ def load_train_jsonl_snapshot(path: str):
             raise ValueError(f'bad observation shape at {source}:{line_no}')
         if action.shape != (PENDULUM_ACTION_DIM,):
             raise ValueError(f'bad applied action shape at {source}:{line_no}')
-        if row.get('environment_config', {}).get('env_id') != PENDULUM_ENV_ID:
+        if not np.isfinite(before).all() or not np.isfinite(after).all() or not np.isfinite(action).all():
+            raise ValueError(f'nonfinite observation or action at {source}:{line_no}')
+        if 'reward' in row:
+            try:
+                reward = float(row['reward'])
+            except (TypeError, ValueError) as error:
+                raise ValueError(f'invalid reward at {source}:{line_no}') from error
+            if not np.isfinite(reward):
+                raise ValueError(f'nonfinite reward at {source}:{line_no}')
+        environment = row.get('environment_config')
+        if not isinstance(environment, dict) or environment.get('env_id') != PENDULUM_ENV_ID:
             raise ValueError(f'wrong environment at {source}:{line_no}')
         rows.append(row)
         if len(rows) > MAX_TRAIN_JSONL_ROWS:
@@ -108,6 +120,18 @@ def rows_to_episodes(rows: List[Dict], encoder: ObsEncoder,
         ordered = sorted(episode_rows, key=lambda row: row['timestep'])
         if [row['timestep'] for row in ordered] != list(range(len(ordered))):
             raise ValueError('episode timesteps must be contiguous from zero')
+        for previous, current in zip(ordered, ordered[1:]):
+            previous_after = np.asarray(previous['raw_observation_after'], dtype=np.float32)
+            current_before = np.asarray(current['raw_observation_before'], dtype=np.float32)
+            if (
+                previous_after.shape != PENDULUM_OBS_SHAPE
+                or current_before.shape != PENDULUM_OBS_SHAPE
+                or not np.allclose(previous_after, current_before, rtol=0.0, atol=1e-6)
+            ):
+                raise ValueError(
+                    f'episode {current["episode_id"]}: observation discontinuity '
+                    f'before timestep {current["timestep"]}'
+                )
         episode = Episode()
         for row in ordered:
             encoded = encoder.encode(row['raw_observation_after'])
