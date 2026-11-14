@@ -78,7 +78,7 @@ class G31ActionContractTests(unittest.TestCase):
                 with self.subTest(field=field):
                     row = dict(base)
                     row[field] = value
-                    path.write_text(json.dumps(row) + '\\n', encoding='utf-8')
+                    path.write_text(json.dumps(row) + chr(10), encoding='utf-8')
                     with self.assertRaisesRegex(ValueError, 'nonfinite'):
                         load_train_jsonl_snapshot(str(path))
 
